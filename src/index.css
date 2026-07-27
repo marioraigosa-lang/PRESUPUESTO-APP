@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0f1512;
+  --color-panel: #161d19;
+  --color-panel-2: #1d2621;
+  --color-line: #2a352e;
+  --color-text: #eef3ef;
+  --color-text-dim: #9db0a6;
+  --color-mint: #4fd1a5;
+  --color-coral: #f2795b;
+  --color-gold: #e9b949;
+  --color-azul: #5aa9e6;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: #e7ece9;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+@keyframes hoja-subir {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fondo-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,213 @@
+// Diccionario en español. Es el idioma con el que ya funcionaba la app
+// antes del multi-idioma, así que sirve también como el RESPALDO: si una
+// clave no existe todavía en otro idioma (por ejemplo, mientras se van
+// traduciendo pantallas fase a fase), src/i18n/index.js cae aquí.
+//
+// Claves organizadas por pantalla/sección (nav, perfil, registro...) para
+// que sea fácil ubicar a qué archivo pertenece cada una. Por ahora solo
+// están las de Perfil, Registro y la navegación inferior (Fase 1). Las
+// demás pantallas se agregan en las siguientes fases sin tocar esta
+// estructura.
+export default {
+  nav: {
+    inicio: 'Inicio',
+    emergencia: 'Emergencia',
+    resumen: 'Resumen',
+    mas: 'Más',
+  },
+
+  // Textos compartidos por varias pantallas (nombres de meses, quincenas,
+  // el menú de cuenta que aparece en el encabezado de Inicio/Emergencia/
+  // Resumen). Los nombres de mes van en minúscula a propósito: cada sitio
+  // que los usa decide si capitalizar o no según el contexto.
+  comun: {
+    meses: [
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
+    ],
+    mesesAbrev: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+    quincena: {
+      primera: '1ª quincena',
+      segunda: '2ª quincena',
+      completo: 'Mes completo',
+    },
+    menuCuenta: 'Menú de tu cuenta',
+    errorCerrarSesion: 'No se pudo cerrar la sesión',
+  },
+
+  home: {
+    subtituloDineroDisponible: 'Dinero disponible (todas las cuentas)',
+    misCuentas: 'Mis cuentas',
+    gestionarCuentas: 'Gestionar cuentas',
+    cargandoCuentas: 'Cargando cuentas...',
+    errorCargarCuentas: 'Error al cargar las cuentas: ',
+    totalDisponible: 'Total disponible',
+    ingresos: 'Ingresos',
+    gastos: 'Gastos',
+    ahorro: 'Ahorro',
+    mesAnterior: 'Mes anterior',
+    mesSiguiente: 'Mes siguiente',
+    registrarMovimiento: 'Registrar movimiento',
+
+    gastosFijosTitulo: 'Gastos fijos del periodo',
+    gestionarGastosFijos: 'Gestionar gastos fijos',
+    cargandoGastosFijos: 'Cargando gastos fijos...',
+    errorCargarGastosFijos: 'Error al cargar los gastos fijos: ',
+    pagadoPorcentaje: 'Pagado {{porcentaje}}%',
+    pagadoDeTotal: '{{pagado}} de {{total}}',
+    faltaPorPagar: 'Falta por pagar',
+    errorDesmarcar: 'No se pudo desmarcar "{{nombre}}": ',
+    venceDia: 'Vence día {{dia}}',
+    sinFecha: 'Sin fecha',
+
+    gastosVariablesTitulo: 'Gastos variables por categoría',
+    gestionarCategorias: 'Gestionar categorías',
+    cargandoCategorias: 'Cargando categorías...',
+    errorCargarCategorias: 'Error al cargar las categorías: ',
+    totalGastado: 'Total gastado',
+    topesResumen: '{{monto}} en topes definidos ({{conTope}} de {{total}} {{palabra}})',
+    categoriaContador: { uno: 'categoría', otro: 'categorías' },
+    deMontoPresupuesto: 'de {{monto}}',
+
+    movimientosTitulo: 'Movimientos recientes',
+    cargandoMovimientos: 'Cargando movimientos...',
+    errorCargarMovimientos: 'Error al cargar los movimientos: ',
+    errorEliminarMovimiento: 'No se pudo eliminar el movimiento: ',
+    sinMovimientos: 'No hay movimientos en este mes.',
+    confirmarEliminarTraslado:
+      '¿Eliminar el traslado "{{descripcion}}"? Se revertirá en ambas cuentas (origen y destino). Esta acción no se puede deshacer.',
+    confirmarEliminarMovimiento:
+      '¿Eliminar "{{descripcion}}"? Se devolverá su efecto al saldo de la cuenta. Esta acción no se puede deshacer.',
+    editarMovimiento: 'Editar movimiento {{descripcion}}',
+    eliminarMovimiento: 'Eliminar movimiento {{descripcion}}',
+    cuentaEliminada: 'Cuenta eliminada',
+    sinCuenta: 'Sin cuenta',
+    vieneDeGastoFijo: 'Viene de un gasto fijo: para cambiarlo, desmárcalo desde Gastos fijos',
+  },
+
+  resumen: {
+    titulo: 'Resumen',
+    subtitulo: 'Tu panorama financiero por periodo',
+    todoElAnio: 'Todo el año',
+    cargando: 'Cargando resumen...',
+    error: 'Error al cargar el resumen: ',
+    sinMovimientos: 'No hay movimientos en este periodo.',
+    ingresos: 'Ingresos',
+    gastos: 'Gastos',
+    fijos: 'Fijos: {{monto}}',
+    variables: 'Variables: {{monto}}',
+    balancePeriodo: 'Balance del periodo',
+    graficoTitulo: 'Ingresos y gastos por mes',
+    categoriasTitulo: 'Gastos por categoría',
+  },
+
+  emergencia: {
+    titulo: 'Fondo de emergencia',
+    subtitulo: 'Tu colchón para los imprevistos',
+    mesesCubiertos: 'meses cubiertos',
+    cargando: 'Cargando fondo de emergencia...',
+    fondoErrorCarga: 'Error al cargar el fondo de emergencia: ',
+    calculadoConCuentas: 'Calculado con tus cuentas marcadas como ahorro: {{cuentas}}',
+    sinCuentasAhorro: 'No tienes cuentas marcadas como ahorro',
+    fondoActual: 'Fondo actual',
+    gastoMensual: 'Gasto mensual',
+    meta: 'Meta',
+    metaMeses: { uno: '{{count}} mes', otro: '{{count}} meses' },
+    ajustarMeta: 'Ajustar meta',
+    promptMeta: '¿Cuántos meses quieres como meta? (1 a 12)',
+    metaErrorGuardar: 'No se pudo guardar la meta: ',
+    explicacion:
+      'Tomamos tu gasto mensual promedio y lo dividimos en tu fondo actual. Eso te dice cuántos meses podrías sostenerte si te quedaras sin ingresos. Lo recomendado son entre 3 y 6 meses.',
+    mensajeMenosDeUnMes: '⚠️ Tu fondo cubre menos de un mes. Es tu prioridad #1.',
+    mensajeMenosDeTresMeses: 'Vas por buen camino. La meta mínima recomendada son 3 meses.',
+    mensajeMenosDeSeisMeses: '¡Bien! Ya tienes un colchón sólido. Apunta a 6 meses.',
+    mensajeSeisMasMeses: '🎉 Excelente. Tienes 6+ meses cubiertos.',
+    metasTitulo: 'Metas de ahorro',
+    nuevaMeta: '+ Nueva meta',
+    cargandoMetas: 'Cargando metas...',
+    metasErrorCarga: 'Error al cargar las metas de ahorro: ',
+    metaErrorEliminar: 'No se pudo eliminar la meta: ',
+    sinMetas: 'Aún no tienes metas de ahorro. Crea la primera con "+ Nueva meta".',
+    confirmarEliminarMeta: '¿Eliminar "{{nombre}}"? Esta acción no se puede deshacer.',
+    metaAlcanzada: '🎉 ¡Meta alcanzada!',
+    verProyeccion: 'Ver proyección ▾',
+    ocultarProyeccion: 'Ocultar proyección ▴',
+    metaPara: 'Meta para {{fecha}}',
+    anioSinFecha: 'Año {{anio}} · Sin fecha objetivo',
+    editarMetaAria: 'Editar meta {{nombre}}',
+    eliminarMetaAria: 'Eliminar meta {{nombre}}',
+  },
+
+  login: {
+    bienvenida: 'Bienvenido de nuevo',
+    subtitulo: 'Inicia sesión para ver tus cuentas',
+    correo: 'Correo',
+    correoPlaceholder: 'tucorreo@ejemplo.com',
+    contrasena: 'Contraseña',
+    contrasenaPlaceholder: '••••••••',
+    errorCorreoInvalido: 'Ingresa un correo válido',
+    errorContrasenaCorta: 'La contraseña debe tener al menos 6 caracteres',
+    entrando: 'Entrando...',
+    entrar: 'Entrar',
+    noTienesCuenta: '¿No tienes cuenta?',
+    registrate: 'Regístrate',
+  },
+
+  perfil: {
+    titulo: 'Perfil',
+    subtitulo: 'Tu cuenta',
+    sesionIniciadaComo: 'Sesión iniciada como',
+    moneda: 'Moneda',
+    monedaNota: 'Cambiar la moneda solo cambia cómo se muestran tus montos; no los convierte.',
+    monedaConfirmacion:
+      'Cambiar de moneda solo cambia el símbolo y el formato con que se muestran tus montos — no convierte los valores. Por ejemplo, si tenías 1.000.000, seguirás viendo 1.000.000 en la nueva moneda, no su equivalente convertido. ¿Deseas continuar?',
+    monedaError: 'No se pudo cambiar la moneda: ',
+    idioma: 'Idioma',
+    idiomaNota: 'Cambia el idioma de toda la aplicación.',
+    idiomaError: 'No se pudo cambiar el idioma: ',
+    cerrarSesion: 'Cerrar sesión',
+    cerrandoSesion: 'Cerrando sesión...',
+    calculadoras: 'Calculadoras',
+    calcCuotaTitulo: 'Cuota de crédito',
+    calcCuotaDescripcion: 'Calcula tu cuota mensual (sistema francés)',
+    calcCdtTitulo: 'CDT vs. cuenta de alto rendimiento',
+    calcCdtDescripcion: 'Compara dónde rinde más tu plata',
+    calcAhorroTitulo: 'Ahorro con interés compuesto',
+    calcAhorroDescripcion: 'Proyecta tus ahorros mensuales',
+  },
+
+  registro: {
+    titulo: 'Crea tu cuenta',
+    subtitulo: 'Empieza a llevar el control de tu saldo',
+    correo: 'Correo',
+    correoPlaceholder: 'tucorreo@ejemplo.com',
+    contrasena: 'Contraseña',
+    contrasenaPlaceholder: 'Mínimo 6 caracteres',
+    confirmarContrasena: 'Confirmar contraseña',
+    confirmarContrasenaPlaceholder: '••••••••',
+    monedaTitulo: 'Moneda de tu cuenta',
+    monedaNota:
+      'Todos tus montos se mostrarán en esta moneda. Podrás cambiarla después desde Perfil.',
+    idiomaTitulo: 'Idioma de la app',
+    idiomaNota: 'Podrás cambiarlo después desde Perfil.',
+    errorCorreoInvalido: 'Ingresa un correo válido',
+    errorContrasenaCorta: 'La contraseña debe tener al menos 6 caracteres',
+    errorContrasenasNoCoinciden: 'Las contraseñas no coinciden',
+    mensajeCuentaCreada:
+      'Cuenta creada. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',
+    creandoCuenta: 'Creando cuenta...',
+    crearCuenta: 'Crear cuenta',
+    yaTienesCuenta: '¿Ya tienes cuenta?',
+    iniciaSesion: 'Inicia sesión',
+  },
+}
