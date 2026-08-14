@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
 import CategoriaGasto from './CategoriaGasto'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
@@ -9,60 +9,50 @@ function GastosVariables({ version, periodo, onGestionarCategorias }) {
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
   const { t, tp } = useIdioma()
-  const [categorias, setCategorias] = useState([])
-  const [cargandoCategorias, setCargandoCategorias] = useState(true)
-  const [errorCategorias, setErrorCategorias] = useState(null)
 
-  useEffect(() => {
-    async function cargarCategorias() {
-      setCargandoCategorias(true)
-      setErrorCategorias(null)
+  async function cargarCategorias() {
+    const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes, periodo.quincena)
 
-      const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
+    // La categoría del sistema (gastos fijos) es genérica, solo para los
+    // movimientos que crea el checklist de gastos fijos; no es una
+    // categoría de presupuesto variable, así que no debe aparecer en esta
+    // lista (se identifica por es_sistema, no por nombre, para que
+    // funcione igual sin importar el idioma). El gasto de cada categoría
+    // se limita a los movimientos cuya fecha caiga en el mes seleccionado
+    // (no el histórico completo).
+    const [{ data: categoriasData, error: errorCategoriasData }, { data: gastosData, error: errorGastosData }] =
+      await Promise.all([
+        seleccionarPropio('categorias', 'id, nombre, emoji, color, presupuesto, descripcion').eq(
+          'es_sistema',
+          false,
+        ),
+        seleccionarPropio('movimientos', 'categoria_id, monto')
+          .eq('tipo', 'gasto')
+          .gte('fecha', desde)
+          .lte('fecha', hasta),
+      ])
 
-      // La categoría del sistema (gastos fijos) es genérica, solo para los
-      // movimientos que crea el checklist de gastos fijos; no es una
-      // categoría de presupuesto variable, así que no debe aparecer en esta
-      // lista (se identifica por es_sistema, no por nombre, para que
-      // funcione igual sin importar el idioma). El gasto de cada categoría
-      // se limita a los movimientos cuya fecha caiga en el mes seleccionado
-      // (no el histórico completo).
-      const [{ data: categoriasData, error: errorCategoriasData }, { data: gastosData, error: errorGastosData }] =
-        await Promise.all([
-          seleccionarPropio('categorias', 'id, nombre, emoji, color, presupuesto, descripcion').eq(
-            'es_sistema',
-            false,
-          ),
-          seleccionarPropio('movimientos', 'categoria_id, monto')
-            .eq('tipo', 'gasto')
-            .gte('fecha', desde)
-            .lte('fecha', hasta),
-        ])
+    const error = errorCategoriasData || errorGastosData
 
-      const error = errorCategoriasData || errorGastosData
+    if (error) throw new Error(error.message)
 
-      if (error) {
-        setErrorCategorias(error.message)
-      } else {
-        const gastadoPorCategoria = gastosData.reduce((acumulado, movimiento) => {
-          if (!movimiento.categoria_id) return acumulado
-          acumulado[movimiento.categoria_id] = (acumulado[movimiento.categoria_id] ?? 0) + movimiento.monto
-          return acumulado
-        }, {})
+    const gastadoPorCategoria = gastosData.reduce((acumulado, movimiento) => {
+      if (!movimiento.categoria_id) return acumulado
+      acumulado[movimiento.categoria_id] = (acumulado[movimiento.categoria_id] ?? 0) + movimiento.monto
+      return acumulado
+    }, {})
 
-        setCategorias(
-          categoriasData.map((categoria) => ({
-            ...categoria,
-            gastado: gastadoPorCategoria[categoria.id] ?? 0,
-          })),
-        )
-      }
+    return categoriasData.map((categoria) => ({
+      ...categoria,
+      gastado: gastadoPorCategoria[categoria.id] ?? 0,
+    }))
+  }
 
-      setCargandoCategorias(false)
-    }
-
-    cargarCategorias()
-  }, [version, periodo.anio, periodo.mes])
+  const {
+    datos: categorias,
+    cargando: cargandoCategorias,
+    error: errorCategorias,
+  } = useConsulta(cargarCategorias, [version, periodo.anio, periodo.mes, periodo.quincena], [])
 
   const totalGastado = categorias.reduce((suma, categoria) => suma + categoria.gastado, 0)
   const categoriasConTope = categorias.filter((categoria) => Boolean(categoria.presupuesto))

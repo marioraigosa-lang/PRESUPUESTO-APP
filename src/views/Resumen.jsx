@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import FiltroResumen from '../components/FiltroResumen'
 import TarjetasTotalesResumen from '../components/TarjetasTotalesResumen'
 import GraficoMensualResumen from '../components/GraficoMensualResumen'
 import DesgloseCategoriasResumen from '../components/DesgloseCategoriasResumen'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 import { useIdioma } from '../context/IdiomaContext'
 import { parsearFechaISO } from '../utils/formatoFecha'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
@@ -14,54 +15,41 @@ const hoy = new Date()
 function Resumen() {
   const { seleccionarPropio } = useDatosUsuario()
   const { t } = useIdioma()
-  const [anios, setAnios] = useState([hoy.getFullYear()])
   const [anioSeleccionado, setAnioSeleccionado] = useState(hoy.getFullYear())
   const [mesSeleccionado, setMesSeleccionado] = useState(null)
 
-  const [movimientos, setMovimientos] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState(null)
+  async function cargarAnios() {
+    const { data, error } = await seleccionarPropio('movimientos', 'fecha')
+    if (error) throw new Error(error.message)
 
-  useEffect(() => {
-    async function cargarAnios() {
-      const { data, error } = await seleccionarPropio('movimientos', 'fecha')
+    const encontrados = new Set(data.map((movimiento) => Number(movimiento.fecha.slice(0, 4))))
+    encontrados.add(hoy.getFullYear())
+    return [...encontrados].sort((a, b) => b - a)
+  }
 
-      if (!error && data) {
-        const encontrados = new Set(data.map((movimiento) => Number(movimiento.fecha.slice(0, 4))))
-        encontrados.add(hoy.getFullYear())
-        setAnios([...encontrados].sort((a, b) => b - a))
-      }
-    }
+  const { datos: anios } = useConsulta(cargarAnios, [], [hoy.getFullYear()])
 
-    cargarAnios()
-  }, [])
+  async function cargarPeriodo() {
+    const { desde, hasta } = rangoFechasPeriodo(anioSeleccionado, mesSeleccionado)
 
-  useEffect(() => {
-    async function cargarPeriodo() {
-      setCargando(true)
-      setError(null)
+    const { data, error } = await seleccionarPropio(
+      'movimientos',
+      'id, tipo, monto, fecha, categoria:categorias(id, nombre, emoji, color, es_sistema)',
+    )
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
+      .order('fecha', { ascending: true })
 
-      const { desde, hasta } = rangoFechasPeriodo(anioSeleccionado, mesSeleccionado)
+    if (error) throw new Error(error.message)
 
-      const { data, error: errorRespuesta } = await seleccionarPropio(
-        'movimientos',
-        'id, tipo, monto, fecha, categoria:categorias(id, nombre, emoji, color, es_sistema)',
-      )
-        .gte('fecha', desde)
-        .lte('fecha', hasta)
-        .order('fecha', { ascending: true })
+    return data
+  }
 
-      if (errorRespuesta) {
-        setError(errorRespuesta.message)
-      } else {
-        setMovimientos(data)
-      }
-
-      setCargando(false)
-    }
-
-    cargarPeriodo()
-  }, [anioSeleccionado, mesSeleccionado])
+  const {
+    datos: movimientos,
+    cargando,
+    error,
+  } = useConsulta(cargarPeriodo, [anioSeleccionado, mesSeleccionado], [])
 
   const totalIngresos = movimientos
     .filter((movimiento) => movimiento.tipo === 'ingreso')

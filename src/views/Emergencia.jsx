@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AnilloMeses from '../components/AnilloMeses'
 import AvatarUsuario from '../components/AvatarUsuario'
 import TarjetaMeta from '../components/TarjetaMeta'
@@ -6,7 +6,9 @@ import HojaNuevaMeta from '../components/HojaNuevaMeta'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { mensajeFondo } from '../utils/mensajeFondo'
+import { gastoMensualPromedio } from '../utils/gastoMensualPromedio'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 
 const CLASES_TONO = {
   alerta: 'bg-coral/10 text-coral',
@@ -18,100 +20,110 @@ function Emergencia() {
   const { seleccionarPropio, insertarPropio, actualizarPropio, eliminarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
   const { t, tp } = useIdioma()
-  const [fondoId, setFondoId] = useState(null)
-  const [fondoActual, setFondoActual] = useState(0)
-  const [cuentasAhorro, setCuentasAhorro] = useState([])
-  const [metaMeses, setMetaMeses] = useState(6)
-  const [gastoMensual, setGastoMensual] = useState(0)
-  const [cargandoFondo, setCargandoFondo] = useState(true)
-  const [errorFondo, setErrorFondo] = useState(null)
   const [guardandoFondo, setGuardandoFondo] = useState(false)
   const [errorGuardado, setErrorGuardado] = useState(null)
 
-  const [metas, setMetas] = useState([])
-  const [cargandoMetas, setCargandoMetas] = useState(true)
-  const [errorMetas, setErrorMetas] = useState(null)
   const [errorEliminarMeta, setErrorEliminarMeta] = useState(null)
   const [eliminandoMetaId, setEliminandoMetaId] = useState(null)
   const [hojaMetaAbierta, setHojaMetaAbierta] = useState(false)
   const [metaEditando, setMetaEditando] = useState(null)
-  const [capacidadAhorroMensual, setCapacidadAhorroMensual] = useState(0)
 
-  useEffect(() => {
-    async function cargarDatos() {
-      setCargandoFondo(true)
-      setErrorFondo(null)
-      setCargandoMetas(true)
-      setErrorMetas(null)
+  // Cada usuario tiene su propia fila de fondo (creada por el trigger al
+  // registrarse), así que filtrar por user_id sigue devolviendo como máximo
+  // una sola fila: .single() sigue siendo correcto.
+  async function cargarFondo() {
+    const [fondoResp, cuentasAhorroResp, movimientosResp] = await Promise.all([
+      seleccionarPropio('fondo_emergencia', 'id, meses_meta').single(),
+      seleccionarPropio('cuentas', 'nombre, saldo').eq('es_ahorro', true),
+      seleccionarPropio('movimientos', 'tipo, monto, fecha'),
+    ])
 
-      const [fondoResp, gastosFijosResp, categoriasResp, cuentasAhorroResp, metasResp, movimientosResp] =
-        await Promise.all([
-          // Cada usuario tiene su propia fila de fondo (creada por el trigger
-          // al registrarse), así que filtrar por user_id sigue devolviendo
-          // como máximo una sola fila: .single() sigue siendo correcto.
-          seleccionarPropio('fondo_emergencia', 'id, meses_meta').single(),
-          seleccionarPropio('gastos_fijos', 'monto'),
-          seleccionarPropio('categorias', 'presupuesto'),
-          seleccionarPropio('cuentas', 'nombre, saldo').eq('es_ahorro', true),
-          seleccionarPropio('metas_ahorro', '*').order('fecha_objetivo', { ascending: true }),
-          seleccionarPropio('movimientos', 'tipo, monto'),
-        ])
+    const error = fondoResp.error || cuentasAhorroResp.error || movimientosResp.error
 
-      if (metasResp.error) {
-        setErrorMetas(metasResp.error.message)
-      } else {
-        setMetas(metasResp.data)
-      }
-      setCargandoMetas(false)
+    if (error) throw new Error(error.message)
 
-      const error =
-        fondoResp.error ||
-        gastosFijosResp.error ||
-        categoriasResp.error ||
-        cuentasAhorroResp.error ||
-        movimientosResp.error
+    const fondoActual = cuentasAhorroResp.data.reduce((suma, cuenta) => suma + cuenta.saldo, 0)
+    const cuentasAhorro = cuentasAhorroResp.data.map((cuenta) => cuenta.nombre)
 
-      if (error) {
-        setErrorFondo(error.message)
-      } else {
-        setFondoId(fondoResp.data.id)
-        setMetaMeses(fondoResp.data.meses_meta)
+    // Movimientos tipo 'ingreso': los 'traslado' no son ingreso real (mueven
+    // plata entre cuentas propias).
+    const ingresos = movimientosResp.data
+      .filter((movimiento) => movimiento.tipo === 'ingreso')
+      .map((movimiento) => ({ monto: movimiento.monto, fecha: movimiento.fecha }))
 
-        const totalGastosFijos = gastosFijosResp.data.reduce(
-          (suma, gasto) => suma + gasto.monto,
-          0,
-        )
-        const totalPresupuestos = categoriasResp.data.reduce(
-          (suma, categoria) => suma + categoria.presupuesto,
-          0,
-        )
-        setGastoMensual(totalGastosFijos + totalPresupuestos)
+    // Movimientos tipo 'gasto': incluye tanto gastos fijos ya PAGADOS (se
+    // guardan como movimiento con gasto_fijo_id al marcarlos) como gastos
+    // variables manuales. Los 'traslado' no son gasto real y el 'ingreso'
+    // ya queda fuera con este filtro.
+    const gastos = movimientosResp.data
+      .filter((movimiento) => movimiento.tipo === 'gasto')
+      .map((movimiento) => ({ monto: movimiento.monto, fecha: movimiento.fecha }))
 
-        const fondoCalculado = cuentasAhorroResp.data.reduce(
-          (suma, cuenta) => suma + cuenta.saldo,
-          0,
-        )
-        setFondoActual(fondoCalculado)
-        setCuentasAhorro(cuentasAhorroResp.data.map((cuenta) => cuenta.nombre))
+    // Con un solo mes de actividad usamos ese mes tal cual; con dos o más,
+    // promediamos entre los meses que sí tuvieron actividad (ver
+    // utils/gastoMensualPromedio.js: la misma función genérica sirve tanto
+    // para gastos como para ingresos, ambos son solo "montos con fecha").
+    const gastoMensual = gastoMensualPromedio(gastos)
+    const ingresoMensual = gastoMensualPromedio(ingresos)
+    // Ambos lados ya son promedios mensuales, así que se pueden comparar
+    // directamente (antes se restaba un gasto promediado de un ingreso
+    // sumado de todo el historial, lo que inflaba la capacidad de ahorro).
+    const capacidadAhorroMensual = ingresoMensual - gastoMensual
 
-        const totalIngresos = movimientosResp.data
-          .filter((movimiento) => movimiento.tipo === 'ingreso')
-          .reduce((suma, movimiento) => suma + movimiento.monto, 0)
-        const totalGastosVariables = movimientosResp.data
-          .filter((movimiento) => movimiento.tipo === 'gasto')
-          .reduce((suma, movimiento) => suma + movimiento.monto, 0)
-        setCapacidadAhorroMensual(totalIngresos - (totalGastosFijos + totalGastosVariables))
-      }
-
-      setCargandoFondo(false)
+    return {
+      fondoId: fondoResp.data.id,
+      metaMeses: fondoResp.data.meses_meta,
+      gastoMensual,
+      fondoActual,
+      cuentasAhorro,
+      capacidadAhorroMensual,
     }
+  }
 
-    cargarDatos()
-  }, [])
+  const {
+    datos: datosFondo,
+    cargando: cargandoFondo,
+    error: errorFondo,
+    establecerDatos: setDatosFondo,
+  } = useConsulta(cargarFondo, [], {
+    fondoId: null,
+    metaMeses: 6,
+    gastoMensual: 0,
+    fondoActual: 0,
+    cuentasAhorro: [],
+    capacidadAhorroMensual: 0,
+  })
+
+  const { fondoId, metaMeses, gastoMensual, fondoActual, cuentasAhorro, capacidadAhorroMensual } =
+    datosFondo
+
+  async function cargarMetas() {
+    const { data, error } = await seleccionarPropio('metas_ahorro', '*').order('fecha_objetivo', {
+      ascending: true,
+    })
+
+    if (error) throw new Error(error.message)
+
+    return data
+  }
+
+  const {
+    datos: metas,
+    cargando: cargandoMetas,
+    error: errorMetas,
+    establecerDatos: setMetas,
+  } = useConsulta(cargarMetas, [], [])
 
   const mesesCubiertos = gastoMensual > 0 ? Math.round((fondoActual / gastoMensual) * 10) / 10 : 0
   const meta = gastoMensual * metaMeses
-  const { clave: claveMensaje, tono } = mensajeFondo(mesesCubiertos)
+  // Con gastoMensual en 0 no hay nada que "cubrir": mesesCubiertos también
+  // da 0, pero eso no significa lo mismo que un fondo insuficiente frente a
+  // gastos reales, así que no reutilizamos mensajeFondo (que interpretaría
+  // ese 0 como "cubre menos de un mes").
+  const { clave: claveMensaje, tono } =
+    gastoMensual > 0
+      ? mensajeFondo(mesesCubiertos)
+      : { clave: 'emergencia.mensajeSinGastos', tono: 'neutral' }
 
   async function manejarAjustarMeta() {
     const respuesta = window.prompt(t('emergencia.promptMeta'))
@@ -124,7 +136,7 @@ function Emergencia() {
     const nuevaMeta = Math.round(meses)
 
     setErrorGuardado(null)
-    setMetaMeses(nuevaMeta)
+    setDatosFondo((actual) => ({ ...actual, metaMeses: nuevaMeta }))
     setGuardandoFondo(true)
 
     try {
@@ -135,7 +147,7 @@ function Emergencia() {
 
       if (error) throw error
     } catch (error) {
-      setMetaMeses(anterior)
+      setDatosFondo((actual) => ({ ...actual, metaMeses: anterior }))
       setErrorGuardado(t('emergencia.metaErrorGuardar') + error.message)
     } finally {
       setGuardandoFondo(false)

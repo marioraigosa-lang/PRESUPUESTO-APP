@@ -18,14 +18,27 @@ export function textoPeriodo({ mes, anio, quincena }, idioma = 'es') {
 }
 
 // Rango 'YYYY-MM-DD' (desde/hasta, ambos inclusive) para filtrar movimientos
-// por año completo (mes === null) o por un mes específico (mes: 0-11).
-export function rangoFechasPeriodo(anio, mes) {
+// por año completo (mes === null), por un mes específico (mes: 0-11) o, si se
+// indica `quincena`, por la mitad de ese mes: 'primera' (día 1 al 15) o
+// 'segunda' (día 16 al último día del mes, que varía según el mes/año). Con
+// quincena === 'completo' (o sin indicarla) se devuelve el mes entero, igual
+// que antes.
+export function rangoFechasPeriodo(anio, mes, quincena = 'completo') {
   if (mes === null) {
     return { desde: `${anio}-01-01`, hasta: `${anio}-12-31` }
   }
 
   const mesStr = String(mes + 1).padStart(2, '0')
   const ultimoDia = new Date(anio, mes + 1, 0).getDate()
+
+  if (quincena === 'primera') {
+    return { desde: `${anio}-${mesStr}-01`, hasta: `${anio}-${mesStr}-15` }
+  }
+
+  if (quincena === 'segunda') {
+    return { desde: `${anio}-${mesStr}-16`, hasta: `${anio}-${mesStr}-${String(ultimoDia).padStart(2, '0')}` }
+  }
+
   return { desde: `${anio}-${mesStr}-01`, hasta: `${anio}-${mesStr}-${String(ultimoDia).padStart(2, '0')}` }
 }
 

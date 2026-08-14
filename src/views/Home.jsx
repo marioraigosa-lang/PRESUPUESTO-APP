@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Encabezado from '../components/Encabezado'
 import SelectorPeriodo from '../components/SelectorPeriodo'
 import TarjetaSaldo from '../components/TarjetaSaldo'
@@ -7,6 +7,7 @@ import GastosFijos from '../components/GastosFijos'
 import GastosVariables from '../components/GastosVariables'
 import MovimientosRecientes from '../components/MovimientosRecientes'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { textoPeriodo, rangoFechasPeriodo } from '../utils/formatoPeriodo'
@@ -35,38 +36,33 @@ function Home({
     quincena: 'completo',
   })
 
-  const [resumenPeriodo, setResumenPeriodo] = useState({ ingresos: 0, gastos: 0, ahorro: 0 })
-  const [errorResumen, setErrorResumen] = useState(null)
-
   // Ingresos/gastos/ahorro del mes seleccionado, calculados a partir de los
   // movimientos reales (no del saldo de las cuentas, que es el saldo actual
   // y no se filtra por mes).
-  useEffect(() => {
-    async function cargarResumenPeriodo() {
-      setErrorResumen(null)
+  async function cargarResumenPeriodo() {
+    const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes, periodo.quincena)
 
-      const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
+    const { data, error } = await seleccionarPropio('movimientos', 'tipo, monto')
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
 
-      const { data, error } = await seleccionarPropio('movimientos', 'tipo, monto')
-        .gte('fecha', desde)
-        .lte('fecha', hasta)
+    if (error) throw new Error(error.message)
 
-      if (error) {
-        setErrorResumen(error.message)
-      } else {
-        const ingresos = data
-          .filter((movimiento) => movimiento.tipo === 'ingreso')
-          .reduce((suma, movimiento) => suma + movimiento.monto, 0)
-        const gastos = data
-          .filter((movimiento) => movimiento.tipo === 'gasto')
-          .reduce((suma, movimiento) => suma + movimiento.monto, 0)
+    const ingresos = data
+      .filter((movimiento) => movimiento.tipo === 'ingreso')
+      .reduce((suma, movimiento) => suma + movimiento.monto, 0)
+    const gastos = data
+      .filter((movimiento) => movimiento.tipo === 'gasto')
+      .reduce((suma, movimiento) => suma + movimiento.monto, 0)
 
-        setResumenPeriodo({ ingresos, gastos, ahorro: ingresos - gastos })
-      }
-    }
+    return { ingresos, gastos, ahorro: ingresos - gastos }
+  }
 
-    cargarResumenPeriodo()
-  }, [periodo.anio, periodo.mes, movimientosVersion])
+  const { datos: resumenPeriodo, error: errorResumen } = useConsulta(
+    cargarResumenPeriodo,
+    [periodo.anio, periodo.mes, periodo.quincena, movimientosVersion],
+    { ingresos: 0, gastos: 0, ahorro: 0 },
+  )
 
   const total = cuentas.reduce((suma, cuenta) => suma + cuenta.saldo, 0)
 

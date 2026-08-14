@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext'
 import { useMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { MONEDAS } from '../utils/monedas'
-import { IDIOMAS } from '../utils/idiomas'
 
 // Herramientas educativas de cálculo: no leen ni escriben nada en Supabase,
 // solo hacen cuentas en pantalla con lo que el usuario escribe. Título y
@@ -38,13 +37,11 @@ const CALCULADORAS = [
 function Perfil() {
   const { usuario, cerrarSesion } = useAuth()
   const { moneda, cambiarMoneda } = useMoneda()
-  const { idioma, cambiarIdioma, t } = useIdioma()
+  const { t } = useIdioma()
   const [cerrando, setCerrando] = useState(false)
   const [calculadoraAbierta, setCalculadoraAbierta] = useState(null)
   const [cambiandoMoneda, setCambiandoMoneda] = useState(false)
   const [errorMoneda, setErrorMoneda] = useState('')
-  const [cambiandoIdioma, setCambiandoIdioma] = useState(false)
-  const [errorIdioma, setErrorIdioma] = useState('')
 
   async function manejarCerrarSesion() {
     setCerrando(true)
@@ -71,24 +68,6 @@ function Perfil() {
       setErrorMoneda(err.message)
     } finally {
       setCambiandoMoneda(false)
-    }
-  }
-
-  // El idioma no tiene el mismo riesgo de "confusión de valores" que la
-  // moneda (no hay montos guardados que interpretar distinto), así que
-  // cambia de una vez, sin aviso de confirmación.
-  async function manejarCambiarIdioma(nuevoIdioma) {
-    if (nuevoIdioma === idioma || cambiandoIdioma) return
-
-    setCambiandoIdioma(true)
-    setErrorIdioma('')
-
-    try {
-      await cambiarIdioma(nuevoIdioma)
-    } catch (err) {
-      setErrorIdioma(err.message)
-    } finally {
-      setCambiandoIdioma(false)
     }
   }
 
@@ -144,32 +123,6 @@ function Perfil() {
             <p className="mt-2 text-xs text-coral">
               {t('perfil.monedaError')}
               {errorMoneda}
-            </p>
-          )}
-        </div>
-
-        <div className="rounded-2xl bg-panel p-4">
-          <p className="mb-2 text-xs text-text-dim">{t('perfil.idioma')}</p>
-          <div className="flex gap-2 rounded-full bg-panel-2 p-1">
-            {Object.values(IDIOMAS).map((opcion) => (
-              <button
-                key={opcion.codigo}
-                type="button"
-                onClick={() => manejarCambiarIdioma(opcion.codigo)}
-                disabled={cambiandoIdioma}
-                className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors disabled:opacity-60 ${
-                  idioma === opcion.codigo ? 'bg-mint text-bg' : 'text-text-dim'
-                }`}
-              >
-                {opcion.etiqueta}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-text-dim">{t('perfil.idiomaNota')}</p>
-          {errorIdioma && (
-            <p className="mt-2 text-xs text-coral">
-              {t('perfil.idiomaError')}
-              {errorIdioma}
             </p>
           )}
         </div>

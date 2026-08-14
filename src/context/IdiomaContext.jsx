@@ -9,12 +9,15 @@ const IdiomaContext = createContext(undefined)
 // Centraliza el idioma elegido por el usuario (es/en), exactamente igual
 // que MonedaContext centraliza la moneda: se lee UNA vez por sesión desde
 // "perfiles" y se expone a toda la app, para no repetir esa consulta en
-// cada pantalla. Moneda e idioma son preferencias independientes -- viven
-// en la misma fila de "perfiles" pero cada una se lee/actualiza por su
-// cuenta, cambiar una nunca toca la otra.
+// cada pantalla.
+//
+// A diferencia de la moneda, el idioma NO se puede cambiar después de
+// registrarse (se elige una sola vez en Registro y viaja en los metadatos
+// del signUp). Por eso este contexto solo lee "perfiles.idioma"; no expone
+// una función para actualizarlo.
 export function IdiomaProvider({ children }) {
   const { usuario } = useAuth()
-  const { seleccionarPropio, actualizarPropio } = useDatosUsuario()
+  const { seleccionarPropio } = useDatosUsuario()
   const [idioma, setIdioma] = useState(IDIOMA_POR_DEFECTO)
   const [cargando, setCargando] = useState(true)
 
@@ -48,25 +51,6 @@ export function IdiomaProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario])
 
-  const cambiarIdioma = useCallback(
-    async (nuevoIdioma) => {
-      if (!(nuevoIdioma in IDIOMAS)) {
-        throw new Error('Idioma no soportado')
-      }
-
-      // perfiles.user_id es la primary key, así que actualizarPropio ya
-      // apunta a la única fila del usuario sin necesitar un .eq() extra.
-      const { error } = await actualizarPropio('perfiles', { idioma: nuevoIdioma })
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      setIdioma(nuevoIdioma)
-    },
-    [actualizarPropio],
-  )
-
   // `t` es la función que van a usar los componentes para traducir cada
   // texto: t('perfil.titulo') devuelve el texto en el idioma activo (con
   // respaldo a español si la clave no existe todavía en ese idioma).
@@ -81,10 +65,7 @@ export function IdiomaProvider({ children }) {
     [idioma],
   )
 
-  const valor = useMemo(
-    () => ({ idioma, cargando, cambiarIdioma, t, tp }),
-    [idioma, cargando, cambiarIdioma, t, tp],
-  )
+  const valor = useMemo(() => ({ idioma, cargando, t, tp }), [idioma, cargando, t, tp])
 
   return <IdiomaContext.Provider value={valor}>{children}</IdiomaContext.Provider>
 }

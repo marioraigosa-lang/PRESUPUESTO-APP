@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Movimiento from './Movimiento'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 import { useIdioma } from '../context/IdiomaContext'
 import { fechaCortaDesdeISO } from '../utils/formatoFecha'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
@@ -10,52 +11,45 @@ const MAXIMO_VISIBLE = 8
 function MovimientosRecientes({ version, periodo, onEditarMovimiento, onEliminarMovimiento }) {
   const { seleccionarPropio } = useDatosUsuario()
   const { idioma, t } = useIdioma()
-  const [movimientos, setMovimientos] = useState([])
-  const [cargandoMovimientos, setCargandoMovimientos] = useState(true)
-  const [errorMovimientos, setErrorMovimientos] = useState(null)
   const [eliminandoId, setEliminandoId] = useState(null)
   const [errorEliminar, setErrorEliminar] = useState(null)
 
-  useEffect(() => {
-    async function cargarMovimientos() {
-      setCargandoMovimientos(true)
-      setErrorMovimientos(null)
+  async function cargarMovimientos() {
+    const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes, periodo.quincena)
 
-      const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
+    // "cuenta:cuentas!cuenta_id(...)" y "cuenta_destino:cuentas!cuenta_destino_id(...)":
+    // movimientos tiene DOS llaves foráneas hacia cuentas (origen y
+    // destino, esta última para traslados), así que hay que indicarle a
+    // Supabase con cuál de las dos se hace cada unión; sin el "!columna"
+    // la consulta queda ambigua y falla.
+    const { data, error } = await seleccionarPropio(
+      'movimientos',
+      'id, tipo, descripcion, monto, emoji, fecha, cuenta_id, cuenta_destino_id, categoria_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre)',
+    )
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
+      .order('fecha', { ascending: false })
+      .order('creado_en', { ascending: false })
+      .limit(MAXIMO_VISIBLE)
 
-      // "cuenta:cuentas!cuenta_id(...)" y "cuenta_destino:cuentas!cuenta_destino_id(...)":
-      // movimientos tiene DOS llaves foráneas hacia cuentas (origen y
-      // destino, esta última para traslados), así que hay que indicarle a
-      // Supabase con cuál de las dos se hace cada unión; sin el "!columna"
-      // la consulta queda ambigua y falla.
-      const { data, error } = await seleccionarPropio(
-        'movimientos',
-        'id, tipo, descripcion, monto, emoji, fecha, cuenta_id, cuenta_destino_id, categoria_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre)',
-      )
-        .gte('fecha', desde)
-        .lte('fecha', hasta)
-        .order('fecha', { ascending: false })
-        .order('creado_en', { ascending: false })
-        .limit(MAXIMO_VISIBLE)
-
-      if (error) {
-        setErrorMovimientos(error.message)
-      } else {
-        setMovimientos(
-          data.map((movimiento) => ({
-            ...movimiento,
-            cuenta: movimiento.cuenta?.nombre ?? t('home.sinCuenta'),
-            cuentaDestino: movimiento.cuenta_destino?.nombre ?? null,
-            fecha: fechaCortaDesdeISO(movimiento.fecha, idioma),
-          })),
-        )
-      }
-
-      setCargandoMovimientos(false)
+    if (error) {
+      throw new Error(error.message)
     }
 
-    cargarMovimientos()
-  }, [version, periodo.anio, periodo.mes])
+    return data.map((movimiento) => ({
+      ...movimiento,
+      cuenta: movimiento.cuenta?.nombre ?? t('home.sinCuenta'),
+      cuentaDestino: movimiento.cuenta_destino?.nombre ?? null,
+      fecha: fechaCortaDesdeISO(movimiento.fecha, idioma),
+    }))
+  }
+
+  const {
+    datos: movimientos,
+    cargando: cargandoMovimientos,
+    error: errorMovimientos,
+    establecerDatos: setMovimientos,
+  } = useConsulta(cargarMovimientos, [version, periodo.anio, periodo.mes, periodo.quincena], [])
 
   async function manejarEliminar(movimiento) {
     if (movimiento.gasto_fijo_id) return

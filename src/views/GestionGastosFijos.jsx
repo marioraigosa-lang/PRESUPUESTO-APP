@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import HojaGastoFijo from '../components/HojaGastoFijo'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 
 function GestionGastosFijos({
   onVolver,
@@ -11,38 +12,31 @@ function GestionGastosFijos({
 }) {
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
-  const [gastos, setGastos] = useState([])
-  const [cargandoGastos, setCargandoGastos] = useState(true)
-  const [errorGastos, setErrorGastos] = useState(null)
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [gastoEditando, setGastoEditando] = useState(null)
   const [eliminandoId, setEliminandoId] = useState(null)
   const [errorAccion, setErrorAccion] = useState(null)
-
-  useEffect(() => {
-    cargarGastosFijos()
-  }, [])
 
   function ordenarPorDia(lista) {
     return [...lista].sort((a, b) => (a.dia_pago ?? 32) - (b.dia_pago ?? 32))
   }
 
   async function cargarGastosFijos() {
-    setCargandoGastos(true)
-    setErrorGastos(null)
-
     const { data, error } = await seleccionarPropio('gastos_fijos').order('dia_pago', {
       ascending: true,
     })
 
-    if (error) {
-      setErrorGastos(error.message)
-    } else {
-      setGastos(data)
-    }
+    if (error) throw new Error(error.message)
 
-    setCargandoGastos(false)
+    return data
   }
+
+  const {
+    datos: gastos,
+    cargando: cargandoGastos,
+    error: errorGastos,
+    establecerDatos: setGastos,
+  } = useConsulta(cargarGastosFijos, [], [])
 
   function abrirCrear() {
     setGastoEditando(null)

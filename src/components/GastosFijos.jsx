@@ -1,83 +1,70 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import GastoFijo from './GastoFijo'
 import HojaElegirCuentaPago from './HojaElegirCuentaPago'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
+import { useConsulta } from '../hooks/useConsulta'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 
 function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
-  const [gastos, setGastos] = useState([])
-  const [cargandoGastos, setCargandoGastos] = useState(true)
-  const [errorGastos, setErrorGastos] = useState(null)
-
-  // Mapa gasto_fijo_id -> movimiento vinculado que cae en el mes
-  // seleccionado. Es la fuente de verdad de "pagado en este mes": ya no se
-  // usa gastos_fijos.pagado (ese campo es global, sin mes) para decidir qué
-  // se muestra aquí.
-  const [movimientosMes, setMovimientosMes] = useState({})
-  const [cargandoMovimientos, setCargandoMovimientos] = useState(true)
-  const [errorMovimientos, setErrorMovimientos] = useState(null)
 
   const [guardandoIds, setGuardandoIds] = useState(new Set())
   const [errorGuardado, setErrorGuardado] = useState(null)
   const [gastoSeleccionado, setGastoSeleccionado] = useState(null)
   const [hojaAbierta, setHojaAbierta] = useState(false)
 
-  useEffect(() => {
-    async function cargarGastosFijos() {
-      setCargandoGastos(true)
-      setErrorGastos(null)
+  async function cargarGastosFijos() {
+    const { data, error } = await seleccionarPropio('gastos_fijos').order('dia_pago', {
+      ascending: true,
+    })
 
-      const { data, error } = await seleccionarPropio('gastos_fijos').order('dia_pago', {
-        ascending: true,
-      })
+    if (error) throw new Error(error.message)
 
-      if (error) {
-        setErrorGastos(error.message)
-      } else {
-        setGastos(data)
-      }
+    return data
+  }
 
-      setCargandoGastos(false)
-    }
+  const {
+    datos: gastos,
+    cargando: cargandoGastos,
+    error: errorGastos,
+  } = useConsulta(cargarGastosFijos, [], [])
 
-    cargarGastosFijos()
-  }, [])
+  // Mapa gasto_fijo_id -> movimiento vinculado que cae en el mes
+  // seleccionado. Es la fuente de verdad de "pagado en este mes": ya no se
+  // usa gastos_fijos.pagado (ese campo es global, sin mes) para decidir qué
+  // se muestra aquí. A propósito NO se pasa periodo.quincena: un gasto fijo
+  // es mensual (no tiene sentido "medio arriendo"), así que siempre se
+  // calcula por el mes completo sin importar la quincena seleccionada.
+  async function cargarMovimientosDelMes() {
+    const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
 
-  useEffect(() => {
-    async function cargarMovimientosDelMes() {
-      setCargandoMovimientos(true)
-      setErrorMovimientos(null)
+    const { data, error } = await seleccionarPropio(
+      'movimientos',
+      'id, gasto_fijo_id, cuenta_id, monto, fecha',
+    )
+      .not('gasto_fijo_id', 'is', null)
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
 
-      const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
+    if (error) throw new Error(error.message)
 
-      const { data, error } = await seleccionarPropio(
-        'movimientos',
-        'id, gasto_fijo_id, cuenta_id, monto, fecha',
-      )
-        .not('gasto_fijo_id', 'is', null)
-        .gte('fecha', desde)
-        .lte('fecha', hasta)
+    const mapa = {}
+    data.forEach((movimiento) => {
+      mapa[movimiento.gasto_fijo_id] = movimiento
+    })
+    return mapa
+  }
 
-      if (error) {
-        setErrorMovimientos(error.message)
-      } else {
-        const mapa = {}
-        data.forEach((movimiento) => {
-          mapa[movimiento.gasto_fijo_id] = movimiento
-        })
-        setMovimientosMes(mapa)
-      }
-
-      setCargandoMovimientos(false)
-    }
-
-    cargarMovimientosDelMes()
-  }, [periodo.anio, periodo.mes])
+  const {
+    datos: movimientosMes,
+    cargando: cargandoMovimientos,
+    error: errorMovimientos,
+    establecerDatos: setMovimientosMes,
+  } = useConsulta(cargarMovimientosDelMes, [periodo.anio, periodo.mes], {})
 
   // Lista de gastos fijos con su estado "pagado" recalculado para el mes
   // seleccionado (no el campo global de la tabla).
