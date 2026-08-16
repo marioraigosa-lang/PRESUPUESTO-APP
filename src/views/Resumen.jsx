@@ -10,6 +10,7 @@ import { useConsulta } from '../hooks/useConsulta'
 import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import { calcularTotalesResumen, agruparGastosPorCategoria, agruparPorMes } from '../utils/resumenCalculos'
+import MensajeError from '../components/ui/MensajeError'
 
 const hoy = new Date()
 
@@ -89,10 +90,10 @@ function Resumen() {
         {cargando && <p className="px-2 text-sm text-text-dim">{t('resumen.cargando')}</p>}
 
         {error && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <MensajeError>
             {t('resumen.error')}
             {error}
-          </p>
+          </MensajeError>
         )}
 
         {!cargando && !error && (

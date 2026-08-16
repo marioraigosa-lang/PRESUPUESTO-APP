@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import AyudaContextual from './AyudaContextual'
+import MensajeError from './ui/MensajeError'
 
 function HojaNuevoViaje({ abierta, onCerrar, onGuardar, onActualizar, viajeEditando }) {
   const editando = Boolean(viajeEditando)
@@ -123,7 +125,7 @@ function HojaNuevoViaje({ abierta, onCerrar, onGuardar, onActualizar, viajeEdita
 
       <form
         onSubmit={manejarGuardar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -143,7 +145,7 @@ function HojaNuevoViaje({ abierta, onCerrar, onGuardar, onActualizar, viajeEdita
             aria-label={t('viajes.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -248,12 +250,12 @@ function HojaNuevoViaje({ abierta, onCerrar, onGuardar, onActualizar, viajeEdita
           </div>
         </div>
 
-        {error && <p className="text-xs text-coral">{error}</p>}
+        <MensajeError>{error}</MensajeError>
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('viajes.formulario.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

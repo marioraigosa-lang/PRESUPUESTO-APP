@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { mesAnioLargoDesdeISO } from '../utils/formatoFecha'
@@ -52,16 +53,16 @@ function TarjetaMeta({ meta, ahorrado, capacidadAhorroMensual, eliminando, onEdi
             aria-label={t('emergencia.editarMetaAria', { nombre: meta.nombre })}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
           >
-            ✏️
+            <Pencil className="h-4 w-4" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={onEliminar}
             disabled={eliminando}
             aria-label={t('emergencia.eliminarMetaAria', { nombre: meta.nombre })}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
           >
-            🗑
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </div>

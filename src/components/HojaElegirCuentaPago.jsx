@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { X, Check } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
+import MensajeError from './ui/MensajeError'
 
 function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }) {
   const { t } = useIdioma()
@@ -54,7 +56,7 @@ function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }
 
       <form
         onSubmit={manejarConfirmar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -71,7 +73,7 @@ function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }
             aria-label={t('movimientos.elegirCuentaPago.cerrarAria')}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -105,7 +107,7 @@ function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }
                       <p className="truncate text-sm font-medium text-text">{cuenta.nombre}</p>
                       <p className="truncate text-xs text-text-dim">{formatear(cuenta.saldo)}</p>
                     </div>
-                    {activo && <span className="shrink-0 text-sm font-semibold text-mint">✓</span>}
+                    {activo && <Check className="h-4 w-4 shrink-0 text-mint" strokeWidth={3} aria-hidden="true" />}
                   </button>
                 )
               })}
@@ -114,10 +116,10 @@ function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }
         </div>
 
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('movimientos.elegirCuentaPago.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

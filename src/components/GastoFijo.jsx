@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 
@@ -14,11 +15,11 @@ function GastoFijo({ gasto, onToggle, guardando }) {
       className="flex w-full items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3 text-left disabled:opacity-60"
     >
       <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-xs font-bold ${
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${
           pagado ? 'border-mint bg-mint text-bg' : 'border-line text-transparent'
         }`}
       >
-        ✓
+        <Check className="h-4 w-4" strokeWidth={3} aria-hidden="true" />
       </span>
 
       <div className="min-w-0 flex-1">

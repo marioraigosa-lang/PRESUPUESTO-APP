@@ -5,6 +5,7 @@ import { useConsulta } from '../hooks/useConsulta'
 import { useIdioma } from '../context/IdiomaContext'
 import { fechaCortaDesdeISO } from '../utils/formatoFecha'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import MensajeError from './ui/MensajeError'
 
 const MAXIMO_VISIBLE = 8
 
@@ -85,17 +86,17 @@ function MovimientosRecientes({ version, periodo, onEditarMovimiento, onEliminar
       )}
 
       {errorMovimientos && (
-        <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <MensajeError>
           {t('home.errorCargarMovimientos')}
           {errorMovimientos}
-        </p>
+        </MensajeError>
       )}
 
       {errorEliminar && (
-        <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <MensajeError>
           {t('home.errorEliminarMovimiento')}
           {errorEliminar}
-        </p>
+        </MensajeError>
       )}
 
       {!cargandoMovimientos && !errorMovimientos && movimientos.length === 0 && (
@@ -105,7 +106,7 @@ function MovimientosRecientes({ version, periodo, onEditarMovimiento, onEliminar
       )}
 
       {!cargandoMovimientos && !errorMovimientos && movimientos.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-2xl bg-panel p-2">
+        <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
           {movimientos.map((movimiento) => (
             <Movimiento
               key={movimiento.id}

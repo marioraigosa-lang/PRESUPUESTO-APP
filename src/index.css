@@ -1,3 +1,19 @@
+/* Tipografía premium (Fase 3): Plus Jakarta Sans self-hosted vía @fontsource
+ * (paquete instalado en node_modules, Vite la empaqueta y la sirve desde el
+ * propio origen -- no hay request a fonts.googleapis.com, nada que bloquee
+ * ni retrase el render por una conexión externa). Es la variante VARIABLE
+ * (un solo archivo cubre los pesos 200-800), con font-display: swap ya
+ * incluido en sus @font-face: el texto se pinta de inmediato con la fuente
+ * de respaldo (system-ui) y se reemplaza sin parpadeo en cuanto el archivo
+ * carga -- nunca hay texto invisible esperando la fuente. Además, el
+ * archivo viene subdividido por "unicode-range" (latin / latin-ext /
+ * vietnamese / cyrillic-ext): el navegador descarga SOLO el subset "latin"
+ * (~27kb) para el español/inglés de esta app, no las ~80kb completas.
+ * Solo se importa el eje de peso normal (wght.css), no el itálico -- esta
+ * app no usa cursivas.
+ */
+@import "@fontsource-variable/plus-jakarta-sans/wght.css";
+
 @import "tailwindcss";
 
 @theme {
@@ -11,6 +27,29 @@
   --color-coral: #f2795b;
   --color-gold: #e9b949;
   --color-azul: #5aa9e6;
+
+  /* Sistema de sombras (Fase 2, "look premium"): dos niveles nada más,
+   * definidos acá para poder subir/bajar la intensidad en un solo lugar.
+   * Cada uno combina una sombra negra hacia abajo (la profundidad) con un
+   * filo superior en blanco (el "borde elevado" que separa la tarjeta del
+   * fondo en un tema oscuro). --shadow-card es para tarjetas normales
+   * (cuentas, viajes, categorías, movimientos, metas...); --shadow-elevated
+   * es un escalón más marcado, para piezas "hero" (TarjetaSaldo, la tarjeta
+   * de progreso de Emergencia) y para superficies que flotan sobre el resto
+   * (hojas, popovers).
+   *
+   * Intensidad subida a propósito (antes eran casi imperceptibles): más
+   * opacidad de negro + más desenfoque en ambas capas, y el filo superior
+   * reforzado para que se note más el "despegue" del panel sobre el fondo
+   * oscuro. Cada capa sigue el mismo orden -- (1) sombra corta y cerrada,
+   * (2) sombra larga y difusa, (3) filo superior -- así que para afinar más
+   * o menos intensidad más adelante, basta con tocar los mismos 3 números
+   * de opacidad (los rgba) sin reestructurar nada.
+   */
+  --shadow-card: 0 2px 4px 0 rgba(0, 0, 0, 0.32), 0 10px 24px -10px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  --shadow-elevated: 0 4px 10px 0 rgba(0, 0, 0, 0.4), 0 28px 48px -16px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 html,
@@ -23,7 +62,34 @@ body {
   margin: 0;
   background-color: var(--color-bg);
   color: #e7ece9;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-family: "Plus Jakarta Sans Variable", system-ui, "Segoe UI", Roboto, sans-serif;
+  /* Números con ancho fijo en toda la app (montos, fechas, porcentajes,
+   * cuotas...): así una cifra que cambia (p. ej. el saldo al filtrar por
+   * mes) no "baila" de ancho, y las columnas de números en listas quedan
+   * alineadas -- el detalle que hace que las cifras de dinero se vean
+   * pulidas en vez de solo correctas.
+   */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gradiente muy discreto para las 1-2 piezas "ancla" de la app (Fase 2):
+ * un realce diagonal casi imperceptible (blanco al 3.5% en una esquina) que
+ * se desvanece hacia un toque de mint (5%) en la otra, sobre el mismo
+ * --color-panel de siempre -- no reemplaza el color base, solo le da
+ * textura. Deliberadamente NO es un token de color (--theme) porque un
+ * gradiente no es un color plano; queda centralizado acá como única clase
+ * para poder ajustar sus dos paradas sin tocar los componentes que la usan.
+ */
+@layer utilities {
+  .superficie-hero {
+    background-color: var(--color-panel);
+    background-image: linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.035) 0%,
+      rgba(255, 255, 255, 0) 45%,
+      rgba(79, 209, 165, 0.05) 100%
+    );
+  }
 }
 
 @keyframes hoja-subir {

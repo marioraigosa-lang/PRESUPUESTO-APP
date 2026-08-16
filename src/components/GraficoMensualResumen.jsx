@@ -7,7 +7,7 @@ function GraficoMensualResumen({ datos }) {
   const maximo = Math.max(1, ...datos.flatMap((dato) => [dato.ingresos, dato.gastos]))
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl bg-panel p-4">
+    <section className="flex flex-col gap-3 rounded-2xl bg-panel shadow-card p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">

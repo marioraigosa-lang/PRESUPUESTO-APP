@@ -1,21 +1,13 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import Interruptor from './Interruptor'
 import AyudaContextual from './AyudaContextual'
 import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
-
-const COLORES = [
-  '#4fd1a5',
-  '#f2795b',
-  '#e9b949',
-  '#60a5fa',
-  '#c084fc',
-  '#f472b6',
-  '#94a3b8',
-  '#38bdf8',
-]
+import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import MensajeError from './ui/MensajeError'
 
 function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando }) {
   const editando = Boolean(cuentaEditando)
@@ -25,7 +17,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
   const [nombre, setNombre] = useState('')
   const [tipo, setTipo] = useState('')
-  const [color, setColor] = useState(COLORES[0])
+  const [color, setColor] = useState(COLORES_CUENTA[0])
   const [saldo, setSaldo] = useState('')
   const [esAhorro, setEsAhorro] = useState(false)
   const [error, setError] = useState('')
@@ -38,13 +30,13 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
     if (cuentaEditando) {
       setNombre(cuentaEditando.nombre)
       setTipo(cuentaEditando.tipo || '')
-      setColor(cuentaEditando.color || COLORES[0])
+      setColor(cuentaEditando.color || COLORES_CUENTA[0])
       setSaldo(String(cuentaEditando.saldo ?? ''))
       setEsAhorro(Boolean(cuentaEditando.es_ahorro))
     } else {
       setNombre('')
       setTipo('')
-      setColor(COLORES[0])
+      setColor(COLORES_CUENTA[0])
       setSaldo('')
       setEsAhorro(false)
     }
@@ -121,7 +113,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
       <form
         onSubmit={manejarGuardar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -135,7 +127,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
             aria-label={t('cuentas.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -170,7 +162,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
         <div>
           <p className="mb-1 text-xs text-text-dim">{t('cuentas.formulario.colorLabel')}</p>
           <div className="flex flex-wrap gap-2">
-            {COLORES.map((opcion) => (
+            {COLORES_CUENTA.map((opcion) => (
               <button
                 key={opcion}
                 type="button"
@@ -223,12 +215,12 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
           />
         </div>
 
-        {error && <p className="text-xs text-coral">{error}</p>}
+        <MensajeError>{error}</MensajeError>
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('cuentas.formulario.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

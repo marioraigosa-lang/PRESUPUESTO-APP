@@ -1,3 +1,4 @@
+import { Pencil, Trash2, Pin } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 
@@ -60,24 +61,21 @@ function Movimiento({ movimiento, eliminando, onEditar, onEliminar }) {
             aria-label={t('home.editarMovimiento', { descripcion })}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel hover:text-mint"
           >
-            ✏️
+            <Pencil className="h-4 w-4" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={onEliminar}
             disabled={eliminando}
             aria-label={t('home.eliminarMovimiento', { descripcion })}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel hover:text-coral disabled:opacity-60"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel hover:text-coral disabled:opacity-60"
           >
-            🗑
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       ) : (
-        <span
-          className="shrink-0 px-1 text-xs text-text-dim"
-          title={t('home.vieneDeGastoFijo')}
-        >
-          📌
+        <span className="shrink-0 px-1 text-text-dim" title={t('home.vieneDeGastoFijo')}>
+          <Pin className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
       )}
     </div>

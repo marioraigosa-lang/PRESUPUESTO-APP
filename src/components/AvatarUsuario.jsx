@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useIdioma } from '../context/IdiomaContext'
+import MensajeError from './ui/MensajeError'
 
 // Avatar circular con la inicial del correo del usuario. Se usa en el
 // encabezado de las 4 pestañas principales (Inicio, Emergencia, Resumen,
@@ -62,11 +63,11 @@ function AvatarUsuario() {
       </button>
 
       {abierto && (
-        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 max-w-[85vw] rounded-2xl border border-line bg-panel p-3 shadow-xl">
+        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 max-w-[85vw] rounded-2xl border border-line bg-panel p-3 shadow-elevated">
           <p className="text-xs text-text-dim">{t('perfil.sesionIniciadaComo')}</p>
           <p className="mt-0.5 break-words text-xs font-medium leading-snug text-text">{correo}</p>
 
-          {error && <p className="mt-2 text-xs text-coral">{error}</p>}
+          {error && <MensajeError className="mt-2 px-3 py-2 text-xs">{error}</MensajeError>}
 
           <button
             type="button"

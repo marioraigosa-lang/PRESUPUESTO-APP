@@ -8,7 +8,7 @@ function SelectorPeriodo({ periodo, onMesAnterior, onMesSiguiente, onCambiarQuin
   const { idioma, t } = useIdioma()
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl bg-panel p-4">
+    <section className="flex flex-col gap-3 rounded-2xl bg-panel shadow-card p-4">
       <div className="flex items-center justify-between">
         <button
           type="button"

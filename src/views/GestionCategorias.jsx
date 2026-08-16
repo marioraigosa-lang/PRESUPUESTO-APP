@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import HojaCategoria from '../components/HojaCategoria'
 import HojaReasignarCategoria from '../components/HojaReasignarCategoria'
 import AyudaContextual from '../components/AyudaContextual'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
+import BotonVolver from '../components/ui/BotonVolver'
+import MensajeError from '../components/ui/MensajeError'
 
 function GestionCategorias({
   categorias,
@@ -86,14 +89,7 @@ function GestionCategorias({
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onVolver}
-            aria-label={t('categorias.gestion.volverAria')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
-          >
-            ←
-          </button>
+          <BotonVolver onClick={onVolver} ariaLabel={t('categorias.gestion.volverAria')} />
           <div>
             <h1 className="text-lg font-semibold text-text">{t('categorias.gestion.titulo')}</h1>
             <p className="text-xs text-text-dim">{t('categorias.gestion.subtitulo')}</p>
@@ -108,19 +104,17 @@ function GestionCategorias({
           {t('categorias.gestion.agregarCategoria')}
         </button>
 
-        {errorAccion && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorAccion}</p>
-        )}
+        <MensajeError>{errorAccion}</MensajeError>
 
         {cargandoCategorias && (
           <p className="px-2 text-sm text-text-dim">{t('categorias.gestion.cargando')}</p>
         )}
 
         {errorCategorias && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <MensajeError>
             {t('categorias.gestion.errorCargar')}
             {errorCategorias}
-          </p>
+          </MensajeError>
         )}
 
         {!cargandoCategorias && !errorCategorias && categoriasGestionables.length === 0 && (
@@ -131,7 +125,7 @@ function GestionCategorias({
 
         <div className="flex flex-col gap-3">
           {categoriasGestionables.map((categoria) => (
-            <div key={categoria.id} className="flex items-center gap-3 rounded-2xl bg-panel p-4">
+            <div key={categoria.id} className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4">
               <div
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
                 style={{ backgroundColor: `${categoria.color}26` }}
@@ -156,16 +150,16 @@ function GestionCategorias({
                   aria-label={t('categorias.gestion.editarAria', { nombre: categoria.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
                 >
-                  ✏️
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={() => manejarEliminar(categoria)}
                   disabled={eliminandoId === categoria.id}
                   aria-label={t('categorias.gestion.eliminarAria', { nombre: categoria.nombre })}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
                 >
-                  🗑
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>

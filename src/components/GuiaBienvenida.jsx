@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Sparkles, ArrowLeftRight, LifeBuoy, BookOpen } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useGuia } from '../context/GuiaContext'
 
@@ -8,13 +9,17 @@ import { useGuia } from '../context/GuiaContext'
 // carrusel llaman a lo MISMO (marcarGuiaVista): cerrar de cualquier forma
 // marca la guía como vista, para que nunca vuelva a aparecer sola.
 //
-// Los emoji van hardcodeados acá (no en i18n), mismo criterio que ya usa
+// Los íconos van hardcodeados acá (no en i18n), mismo criterio que ya usa
 // NavegacionInferior.jsx y GuiaUso.jsx para sus íconos decorativos.
 const TARJETAS = [
-  { emoji: '👋', claveTitulo: 'guia.bienvenida.tarjeta1Titulo', claveTexto: 'guia.bienvenida.tarjeta1Texto' },
-  { emoji: '💸', claveTitulo: 'guia.bienvenida.tarjeta2Titulo', claveTexto: 'guia.bienvenida.tarjeta2Texto' },
-  { emoji: '🛟', claveTitulo: 'guia.bienvenida.tarjeta3Titulo', claveTexto: 'guia.bienvenida.tarjeta3Texto' },
-  { emoji: '📖', claveTitulo: 'guia.bienvenida.tarjeta4Titulo', claveTexto: 'guia.bienvenida.tarjeta4Texto' },
+  { Icono: Sparkles, claveTitulo: 'guia.bienvenida.tarjeta1Titulo', claveTexto: 'guia.bienvenida.tarjeta1Texto' },
+  {
+    Icono: ArrowLeftRight,
+    claveTitulo: 'guia.bienvenida.tarjeta2Titulo',
+    claveTexto: 'guia.bienvenida.tarjeta2Texto',
+  },
+  { Icono: LifeBuoy, claveTitulo: 'guia.bienvenida.tarjeta3Titulo', claveTexto: 'guia.bienvenida.tarjeta3Texto' },
+  { Icono: BookOpen, claveTitulo: 'guia.bienvenida.tarjeta4Titulo', claveTexto: 'guia.bienvenida.tarjeta4Texto' },
 ]
 
 function GuiaBienvenida() {
@@ -41,7 +46,7 @@ function GuiaBienvenida() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="relative flex w-full max-w-[400px] flex-col gap-5 rounded-2xl bg-panel p-6 pt-10">
+      <div className="relative flex w-full max-w-[400px] flex-col gap-5 rounded-2xl bg-panel shadow-elevated p-6 pt-10">
         <button
           type="button"
           onClick={marcarGuiaVista}
@@ -51,7 +56,9 @@ function GuiaBienvenida() {
         </button>
 
         <div className="flex flex-col items-center gap-3 text-center">
-          <span className="text-4xl">{tarjeta.emoji}</span>
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-mint/10 text-mint">
+            <tarjeta.Icono className="h-7 w-7" aria-hidden="true" />
+          </span>
           <h2 className="text-lg font-semibold text-text">{t(tarjeta.claveTitulo)}</h2>
           <p className="text-sm leading-relaxed text-text-dim">{t(tarjeta.claveTexto)}</p>
         </div>

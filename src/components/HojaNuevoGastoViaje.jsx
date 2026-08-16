@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { MONEDA_POR_DEFECTO, MONEDAS, configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import { fechaLocalISO } from '../utils/formatoFecha'
 import AyudaContextual from './AyudaContextual'
+import MensajeError from './ui/MensajeError'
 
 // A diferencia de HojaNuevoMovimiento (gastos reales), cada gasto de viaje
 // tiene su PROPIA moneda -- no usa useMoneda() del perfil -- porque un mismo
@@ -124,7 +126,7 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
 
       <form
         onSubmit={manejarGuardar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -138,7 +140,7 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
             aria-label={t('viajes.gastoFormulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -243,12 +245,12 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
           />
         </div>
 
-        {error && <p className="text-xs text-coral">{error}</p>}
+        <MensajeError>{error}</MensajeError>
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('viajes.gastoFormulario.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

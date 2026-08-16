@@ -1,6 +1,8 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { fechaCortaDesdeISO } from '../utils/formatoFecha'
+import Tarjeta from './ui/Tarjeta'
 
 // El monto se formatea con formatearMonto(valor, moneda) --puro, sin
 // useFormatoMoneda-- porque cada gasto de viaje tiene SU PROPIA moneda, que
@@ -13,7 +15,7 @@ function GastoViaje({ gasto, categoria, eliminando, onEditar, onEliminar }) {
   const nombreCategoria = categoria?.nombre ?? t('viajes.detalle.gastoSinCategoria')
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-panel p-4">
+    <Tarjeta className="flex items-center gap-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-xl">
         {categoria?.emoji || '🧳'}
       </span>
@@ -34,19 +36,19 @@ function GastoViaje({ gasto, categoria, eliminando, onEditar, onEliminar }) {
           aria-label={t('viajes.detalle.editarGastoAria', { descripcion })}
           className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
         >
-          ✏️
+          <Pencil className="h-4 w-4" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={onEliminar}
           disabled={eliminando}
           aria-label={t('viajes.detalle.eliminarGastoAria', { descripcion })}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
         >
-          🗑
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
-    </div>
+    </Tarjeta>
   )
 }
 

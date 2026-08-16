@@ -1,20 +1,12 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import MensajeError from './ui/MensajeError'
 import AyudaContextual from './AyudaContextual'
-
-const COLORES = [
-  '#4fd1a5',
-  '#f2795b',
-  '#e9b949',
-  '#5aa9e6',
-  '#9b8cf0',
-  '#e07ba0',
-  '#38bdf8',
-  '#94a3b8',
-]
 
 const EMOJIS_SUGERIDOS = ['🛒', '⛽', '💊', '🎬', '✨', '🏠', '🍔', '👕', '📚', '🐾', '🎁', '☕']
 
@@ -26,7 +18,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
   const [nombre, setNombre] = useState('')
   const [emoji, setEmoji] = useState(EMOJIS_SUGERIDOS[0])
-  const [color, setColor] = useState(COLORES[0])
+  const [color, setColor] = useState(COLORES_CUENTA[0])
   const [presupuesto, setPresupuesto] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [error, setError] = useState('')
@@ -39,13 +31,13 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
     if (categoriaEditando) {
       setNombre(categoriaEditando.nombre)
       setEmoji(categoriaEditando.emoji || EMOJIS_SUGERIDOS[0])
-      setColor(categoriaEditando.color || COLORES[0])
+      setColor(categoriaEditando.color || COLORES_CUENTA[0])
       setPresupuesto(categoriaEditando.presupuesto ? String(categoriaEditando.presupuesto) : '')
       setDescripcion(categoriaEditando.descripcion || '')
     } else {
       setNombre('')
       setEmoji(EMOJIS_SUGERIDOS[0])
-      setColor(COLORES[0])
+      setColor(COLORES_CUENTA[0])
       setPresupuesto('')
       setDescripcion('')
     }
@@ -131,7 +123,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
       <form
         onSubmit={manejarGuardar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -145,7 +137,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
             aria-label={t('categorias.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -195,7 +187,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
         <div>
           <p className="mb-1 text-xs text-text-dim">{t('categorias.formulario.colorLabel')}</p>
           <div className="flex flex-wrap gap-2">
-            {COLORES.map((opcion) => (
+            {COLORES_CUENTA.map((opcion) => (
               <button
                 key={opcion}
                 type="button"
@@ -256,12 +248,12 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
           <p className="mt-1 text-xs text-text-dim">{t('categorias.formulario.descripcionAyuda')}</p>
         </div>
 
-        {error && <p className="text-xs text-coral">{error}</p>}
+        <MensajeError>{error}</MensajeError>
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('categorias.formulario.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

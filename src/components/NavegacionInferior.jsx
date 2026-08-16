@@ -1,11 +1,12 @@
+import { Home, LifeBuoy, BarChart3, Plane, MoreHorizontal } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 
 const ITEMS = [
-  { id: 'inicio', clave: 'nav.inicio', icono: '🏠' },
-  { id: 'emergencia', clave: 'nav.emergencia', icono: '🛟' },
-  { id: 'resumen', clave: 'nav.resumen', icono: '📊' },
-  { id: 'viajes', clave: 'nav.viajes', icono: '✈️' },
-  { id: 'mas', clave: 'nav.mas', icono: '⋯' },
+  { id: 'inicio', clave: 'nav.inicio', Icono: Home },
+  { id: 'emergencia', clave: 'nav.emergencia', Icono: LifeBuoy },
+  { id: 'resumen', clave: 'nav.resumen', Icono: BarChart3 },
+  { id: 'viajes', clave: 'nav.viajes', Icono: Plane },
+  { id: 'mas', clave: 'nav.mas', Icono: MoreHorizontal },
 ]
 
 function NavegacionInferior({ vistaActiva, onCambiarVista }) {
@@ -16,6 +17,7 @@ function NavegacionInferior({ vistaActiva, onCambiarVista }) {
       <div className="mx-auto flex max-w-[460px] items-stretch justify-between px-1">
         {ITEMS.map((item) => {
           const activo = item.id === vistaActiva
+          const Icono = item.Icono
           return (
             <button
               key={item.id}
@@ -25,7 +27,7 @@ function NavegacionInferior({ vistaActiva, onCambiarVista }) {
                 activo ? 'text-mint' : 'text-text-dim'
               }`}
             >
-              <span className="text-base leading-none">{item.icono}</span>
+              <Icono className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               {t(item.clave)}
             </button>
           )

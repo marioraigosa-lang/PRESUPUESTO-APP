@@ -10,6 +10,7 @@ import { gastoMensualPromedio } from '../utils/gastoMensualPromedio'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import AyudaContextual from '../components/AyudaContextual'
+import MensajeError from '../components/ui/MensajeError'
 
 const CLASES_TONO = {
   alerta: 'bg-coral/10 text-coral',
@@ -29,12 +30,17 @@ function Emergencia() {
   const [hojaMetaAbierta, setHojaMetaAbierta] = useState(false)
   const [metaEditando, setMetaEditando] = useState(null)
 
-  // Cada usuario tiene su propia fila de fondo (creada por el trigger al
-  // registrarse), así que filtrar por user_id sigue devolviendo como máximo
-  // una sola fila: .single() sigue siendo correcto.
+  // Cada usuario tiene su propia fila de fondo, creada normalmente por el
+  // trigger handle_new_user al registrarse -- pero una cuenta anterior a
+  // ese trigger (o que por cualquier otro motivo se quedó sin fila) no la
+  // tiene. Por eso .maybeSingle() en vez de .single(): con 0 filas
+  // devuelve data=null en vez de lanzar error, y más abajo la creamos
+  // nosotros mismos con los mismos valores por defecto que usa el trigger
+  // (monto_actual 0, meses_meta 6). Así la pantalla nunca se rompe por
+  // esto, sea cual sea la razón de que falte la fila.
   async function cargarFondo() {
     const [fondoResp, cuentasAhorroResp, movimientosResp] = await Promise.all([
-      seleccionarPropio('fondo_emergencia', 'id, meses_meta').single(),
+      seleccionarPropio('fondo_emergencia', 'id, meses_meta').maybeSingle(),
       seleccionarPropio('cuentas', 'nombre, saldo').eq('es_ahorro', true),
       seleccionarPropio('movimientos', 'tipo, monto, fecha'),
     ])
@@ -42,6 +48,19 @@ function Emergencia() {
     const error = fondoResp.error || cuentasAhorroResp.error || movimientosResp.error
 
     if (error) throw new Error(error.message)
+
+    let fondo = fondoResp.data
+    if (!fondo) {
+      const { data: fondoCreado, error: errorCrear } = await insertarPropio('fondo_emergencia', {
+        monto_actual: 0,
+        meses_meta: 6,
+      })
+        .select('id, meses_meta')
+        .single()
+
+      if (errorCrear) throw new Error(errorCrear.message)
+      fondo = fondoCreado
+    }
 
     const fondoActual = cuentasAhorroResp.data.reduce((suma, cuenta) => suma + cuenta.saldo, 0)
     const cuentasAhorro = cuentasAhorroResp.data.map((cuenta) => cuenta.nombre)
@@ -72,8 +91,8 @@ function Emergencia() {
     const capacidadAhorroMensual = ingresoMensual - gastoMensual
 
     return {
-      fondoId: fondoResp.data.id,
-      metaMeses: fondoResp.data.meses_meta,
+      fondoId: fondo.id,
+      metaMeses: fondo.meses_meta,
       gastoMensual,
       fondoActual,
       cuentasAhorro,
@@ -248,15 +267,15 @@ function Emergencia() {
         )}
 
         {errorFondo && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <MensajeError>
             {t('emergencia.fondoErrorCarga')}
             {errorFondo}
-          </p>
+          </MensajeError>
         )}
 
         {!cargandoFondo && !errorFondo && (
           <>
-            <section className="flex items-center gap-5 rounded-2xl bg-panel p-6">
+            <section className="flex items-center gap-5 rounded-2xl bg-panel shadow-elevated p-6">
               <div className="flex flex-col items-center gap-2">
                 <AnilloMeses mesesCubiertos={mesesCubiertos} metaMeses={metaMeses} />
                 <p className="max-w-[9rem] text-center text-[11px] leading-snug text-text-dim">
@@ -288,11 +307,7 @@ function Emergencia() {
               {t(claveMensaje)}
             </p>
 
-            {errorGuardado && (
-              <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                {errorGuardado}
-              </p>
-            )}
+            <MensajeError>{errorGuardado}</MensajeError>
 
             <button
               type="button"
@@ -324,17 +339,13 @@ function Emergencia() {
           {cargandoMetas && <p className="px-2 text-sm text-text-dim">{t('emergencia.cargandoMetas')}</p>}
 
           {errorMetas && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <MensajeError>
               {t('emergencia.metasErrorCarga')}
               {errorMetas}
-            </p>
+            </MensajeError>
           )}
 
-          {errorEliminarMeta && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {errorEliminarMeta}
-            </p>
-          )}
+          <MensajeError>{errorEliminarMeta}</MensajeError>
 
           {!cargandoMetas && !errorMetas && metas.length === 0 && (
             <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">

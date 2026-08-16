@@ -14,7 +14,7 @@ function DesgloseCategoriasResumen({ items }) {
         <AyudaContextual clave="guia.ayuda.resumenDesglose" etiqueta={t('guia.ayuda.resumenDesgloseAria')} />
       </div>
 
-      <div className="flex flex-col gap-2 rounded-2xl bg-panel p-2">
+      <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
         {items.map((item) => (
           <div
             key={item.id}

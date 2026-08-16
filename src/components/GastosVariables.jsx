@@ -5,6 +5,7 @@ import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import MensajeError from './ui/MensajeError'
 
 function GastosVariables({ version, periodo, onGestionarCategorias }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -82,14 +83,14 @@ function GastosVariables({ version, periodo, onGestionarCategorias }) {
       )}
 
       {errorCategorias && (
-        <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <MensajeError>
           {t('home.errorCargarCategorias')}
           {errorCategorias}
-        </p>
+        </MensajeError>
       )}
 
       {!cargandoCategorias && !errorCategorias && (
-        <div className="flex flex-col gap-2 rounded-2xl bg-panel p-2">
+        <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
           {categorias.map((categoria) => (
             <CategoriaGasto key={categoria.id} categoria={categoria} />
           ))}

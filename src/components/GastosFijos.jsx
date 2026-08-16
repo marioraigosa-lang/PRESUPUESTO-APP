@@ -7,6 +7,7 @@ import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import AyudaContextual from './AyudaContextual'
+import MensajeError from './ui/MensajeError'
 
 function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -187,20 +188,16 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
       )}
 
       {(errorGastos || errorMovimientos) && (
-        <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <MensajeError>
           {t('home.errorCargarGastosFijos')}
           {errorGastos || errorMovimientos}
-        </p>
+        </MensajeError>
       )}
 
-      {errorGuardado && (
-        <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {errorGuardado}
-        </p>
-      )}
+      <MensajeError>{errorGuardado}</MensajeError>
 
       {!cargandoGastos && !errorGastos && !cargandoMovimientos && !errorMovimientos && (
-        <div className="flex flex-col gap-2 rounded-2xl bg-panel p-2">
+        <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
           {gastosConEstado.map((gasto) => (
             <GastoFijo
               key={gasto.id}

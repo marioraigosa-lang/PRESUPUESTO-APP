@@ -1,22 +1,37 @@
 import { useState } from 'react'
+import {
+  ArrowLeftRight,
+  Landmark,
+  Tag,
+  Pin,
+  ShoppingBag,
+  LifeBuoy,
+  Target,
+  Calendar,
+  BarChart3,
+  Plane,
+  Calculator,
+  Globe,
+} from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
+import BotonVolver from '../components/ui/BotonVolver'
 
 // Un ítem por tema de la guía (Fase 1: solo lectura, sin lógica de negocio).
-// El emoji es puramente decorativo -- ayuda a ubicar cada sección de un
+// El ícono es puramente decorativo -- ayuda a ubicar cada sección de un
 // vistazo, mismo criterio que ya usa NavegacionInferior.
 const SECCIONES = [
-  { id: 'movimientos', emoji: '💸' },
-  { id: 'cuentas', emoji: '🏦' },
-  { id: 'categorias', emoji: '🏷️' },
-  { id: 'gastosFijos', emoji: '📌' },
-  { id: 'gastosVariables', emoji: '🛍️' },
-  { id: 'fondoEmergencia', emoji: '🛟' },
-  { id: 'metas', emoji: '🎯' },
-  { id: 'periodo', emoji: '🗓️' },
-  { id: 'resumen', emoji: '📊' },
-  { id: 'viajes', emoji: '✈️' },
-  { id: 'calculadoras', emoji: '🧮' },
-  { id: 'preferencias', emoji: '🌍' },
+  { id: 'movimientos', Icono: ArrowLeftRight },
+  { id: 'cuentas', Icono: Landmark },
+  { id: 'categorias', Icono: Tag },
+  { id: 'gastosFijos', Icono: Pin },
+  { id: 'gastosVariables', Icono: ShoppingBag },
+  { id: 'fondoEmergencia', Icono: LifeBuoy },
+  { id: 'metas', Icono: Target },
+  { id: 'periodo', Icono: Calendar },
+  { id: 'resumen', Icono: BarChart3 },
+  { id: 'viajes', Icono: Plane },
+  { id: 'calculadoras', Icono: Calculator },
+  { id: 'preferencias', Icono: Globe },
 ]
 
 function GuiaUso({ onVolver }) {
@@ -34,14 +49,7 @@ function GuiaUso({ onVolver }) {
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onVolver}
-            aria-label={t('guia.volverAria')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
-          >
-            ←
-          </button>
+          <BotonVolver onClick={onVolver} ariaLabel={t('guia.volverAria')} />
           <div>
             <h1 className="text-lg font-semibold text-text">{t('guia.titulo')}</h1>
             <p className="text-xs text-text-dim">{t('guia.subtitulo')}</p>
@@ -54,15 +62,15 @@ function GuiaUso({ onVolver }) {
           {SECCIONES.map((seccion) => {
             const abierta = seccionAbierta === seccion.id
             return (
-              <div key={seccion.id} className="overflow-hidden rounded-2xl bg-panel">
+              <div key={seccion.id} className="overflow-hidden rounded-2xl bg-panel shadow-card">
                 <button
                   type="button"
                   onClick={() => alternarSeccion(seccion.id)}
                   aria-expanded={abierta}
                   className="flex w-full items-center gap-3 p-4 text-left"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-base">
-                    {seccion.emoji}
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-text-dim">
+                    <seccion.Icono className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1 text-sm font-medium text-text">
                     {t(`guia.completa.${seccion.id}.titulo`)}

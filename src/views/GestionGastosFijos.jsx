@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import HojaGastoFijo from '../components/HojaGastoFijo'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
+import BotonVolver from '../components/ui/BotonVolver'
+import MensajeError from '../components/ui/MensajeError'
 
 function GestionGastosFijos({
   onVolver,
@@ -92,14 +95,7 @@ function GestionGastosFijos({
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onVolver}
-            aria-label={t('gastosFijos.gestion.volverAria')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
-          >
-            ←
-          </button>
+          <BotonVolver onClick={onVolver} ariaLabel={t('gastosFijos.gestion.volverAria')} />
           <div>
             <h1 className="text-lg font-semibold text-text">{t('gastosFijos.gestion.titulo')}</h1>
             <p className="text-xs text-text-dim">{t('gastosFijos.gestion.subtitulo')}</p>
@@ -114,17 +110,15 @@ function GestionGastosFijos({
           {t('gastosFijos.gestion.agregarGastoFijo')}
         </button>
 
-        {errorAccion && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorAccion}</p>
-        )}
+        <MensajeError>{errorAccion}</MensajeError>
 
         {cargandoGastos && <p className="px-2 text-sm text-text-dim">{t('gastosFijos.gestion.cargando')}</p>}
 
         {errorGastos && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <MensajeError>
             {t('gastosFijos.gestion.errorCargar')}
             {errorGastos}
-          </p>
+          </MensajeError>
         )}
 
         {!cargandoGastos && !errorGastos && gastos.length === 0 && (
@@ -135,7 +129,7 @@ function GestionGastosFijos({
 
         <div className="flex flex-col gap-3">
           {gastos.map((gasto) => (
-            <div key={gasto.id} className="flex items-center gap-3 rounded-2xl bg-panel p-4">
+            <div key={gasto.id} className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="truncate text-sm font-medium text-text">{gasto.nombre}</p>
@@ -161,16 +155,16 @@ function GestionGastosFijos({
                   aria-label={t('gastosFijos.gestion.editarAria', { nombre: gasto.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
                 >
-                  ✏️
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={() => manejarEliminar(gasto)}
                   disabled={eliminandoId === gasto.id}
                   aria-label={t('gastosFijos.gestion.eliminarAria', { nombre: gasto.nombre })}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
                 >
-                  🗑
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>

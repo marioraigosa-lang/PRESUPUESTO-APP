@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import AyudaContextual from './AyudaContextual'
+import MensajeError from './ui/MensajeError'
 
 function HojaNuevoMovimiento({
   abierta,
@@ -186,7 +188,7 @@ function HojaNuevoMovimiento({
 
       <form
         onSubmit={manejarGuardar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -200,7 +202,7 @@ function HojaNuevoMovimiento({
             aria-label={t('movimientos.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -265,7 +267,7 @@ function HojaNuevoMovimiento({
               className="w-full bg-transparent text-2xl font-semibold text-text outline-none placeholder:text-text-dim"
             />
           </div>
-          {error && <p className="mt-1 text-xs text-coral">{error}</p>}
+          {error && <MensajeError className="mt-1 px-3 py-2 text-xs">{error}</MensajeError>}
         </div>
 
         {tipo === 'traslado' ? (
@@ -390,10 +392,10 @@ function HojaNuevoMovimiento({
         </div>
 
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('movimientos.formulario.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

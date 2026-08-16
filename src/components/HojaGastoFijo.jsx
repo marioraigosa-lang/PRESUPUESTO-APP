@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import MensajeError from './ui/MensajeError'
 
 function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditando }) {
   const editando = Boolean(gastoEditando)
@@ -110,7 +112,7 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
 
       <form
         onSubmit={manejarGuardar}
-        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel p-5 pb-6"
+        className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6"
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
@@ -124,7 +126,7 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
             aria-label={t('gastosFijos.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
-            ×
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -183,12 +185,12 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
           />
         </div>
 
-        {error && <p className="text-xs text-coral">{error}</p>}
+        <MensajeError>{error}</MensajeError>
         {errorGuardado && (
-          <p className="text-xs text-coral">
+          <MensajeError>
             {t('gastosFijos.formulario.errorGuardar')}
             {errorGuardado}
-          </p>
+          </MensajeError>
         )}
 
         <button

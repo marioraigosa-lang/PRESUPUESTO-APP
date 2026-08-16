@@ -4,6 +4,7 @@ import { traducirErrorAuth } from '../utils/erroresAuth'
 import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
 import { IDIOMA_POR_DEFECTO, IDIOMAS } from '../utils/idiomas'
 import { traducir } from '../i18n'
+import MensajeError from '../components/ui/MensajeError'
 
 function Registro({ onCambiarModo }) {
   const [correo, setCorreo] = useState('')
@@ -79,7 +80,7 @@ function Registro({ onCambiarModo }) {
           </div>
         </div>
 
-        <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel p-5">
+        <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-5">
           <div>
             <label htmlFor="correo" className="mb-1 block text-xs text-text-dim">
               {t('registro.correo')}
@@ -163,9 +164,7 @@ function Registro({ onCambiarModo }) {
             <p className="mt-1 text-xs text-text-dim">{t('registro.idiomaNota')}</p>
           </div>
 
-          {error && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>
-          )}
+          <MensajeError>{error}</MensajeError>
 
           {mensaje && (
             <p className="rounded-2xl bg-mint/10 px-4 py-3 text-sm text-mint">{mensaje}</p>

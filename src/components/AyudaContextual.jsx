@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { CircleHelp } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 
-// Ícono de ayuda contextual reutilizable ("?"): al tocarlo despliega una
+// Ícono de ayuda contextual reutilizable: al tocarlo despliega una
 // burbuja con una explicación breve, y se cierra al tocarlo de nuevo o al
 // tocar fuera de ella. Mismo patrón de "clic fuera para cerrar" que ya usa
 // AvatarUsuario.jsx (mousedown en document + comparar contra un ref).
@@ -39,13 +40,13 @@ function AyudaContextual({ clave, etiqueta }) {
         aria-haspopup="true"
         aria-expanded={abierta}
         aria-label={etiqueta}
-        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-panel-2 text-[11px] font-bold leading-none text-text-dim"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-panel-2 text-text-dim"
       >
-        ?
+        <CircleHelp className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
       </button>
 
       {abierta && (
-        <div className="absolute left-1/2 top-[calc(100%+0.5rem)] z-50 w-56 max-w-[75vw] -translate-x-1/2 rounded-2xl border border-line bg-panel-2 p-3 text-xs leading-relaxed text-text shadow-xl">
+        <div className="absolute left-1/2 top-[calc(100%+0.5rem)] z-50 w-56 max-w-[75vw] -translate-x-1/2 rounded-2xl border border-line bg-panel-2 p-3 text-xs leading-relaxed text-text shadow-elevated">
           {t(clave)}
         </div>
       )}

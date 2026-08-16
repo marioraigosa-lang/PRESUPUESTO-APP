@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CreditCard, TrendingUp, Sprout, BookOpen } from 'lucide-react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import CalculadoraCuotaCredito from './CalculadoraCuotaCredito'
 import CalculadoraCdt from './CalculadoraCdt'
@@ -9,6 +10,9 @@ import { useAuth } from '../context/AuthContext'
 import { useMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { MONEDAS } from '../utils/monedas'
+import MensajeError from '../components/ui/MensajeError'
+import Tarjeta from '../components/ui/Tarjeta'
+import BotonSecundario from '../components/ui/BotonSecundario'
 
 // Herramientas educativas de cálculo: no leen ni escriben nada en Supabase,
 // solo hacen cuentas en pantalla con lo que el usuario escribe. Título y
@@ -20,19 +24,19 @@ const CALCULADORAS = [
     id: 'cuota',
     claveTitulo: 'perfil.calcCuotaTitulo',
     claveDescripcion: 'perfil.calcCuotaDescripcion',
-    icono: '💳',
+    Icono: CreditCard,
   },
   {
     id: 'cdt',
     claveTitulo: 'perfil.calcCdtTitulo',
     claveDescripcion: 'perfil.calcCdtDescripcion',
-    icono: '📈',
+    Icono: TrendingUp,
   },
   {
     id: 'ahorro',
     claveTitulo: 'perfil.calcAhorroTitulo',
     claveDescripcion: 'perfil.calcAhorroDescripcion',
-    icono: '🌱',
+    Icono: Sprout,
   },
 ]
 
@@ -103,12 +107,12 @@ function Perfil() {
           <AvatarUsuario />
         </header>
 
-        <div className="rounded-2xl bg-panel p-4">
+        <Tarjeta>
           <p className="text-xs text-text-dim">{t('perfil.sesionIniciadaComo')}</p>
           <p className="mt-1 text-sm font-medium text-text">{usuario?.email}</p>
-        </div>
+        </Tarjeta>
 
-        <div className="rounded-2xl bg-panel p-4">
+        <Tarjeta>
           <div className="mb-2 flex items-center gap-1.5">
             <p className="text-xs text-text-dim">{t('perfil.moneda')}</p>
             <AyudaContextual clave="guia.ayuda.multiMoneda" etiqueta={t('guia.ayuda.multiMonedaAria')} />
@@ -130,21 +134,16 @@ function Perfil() {
           </div>
           <p className="mt-2 text-xs text-text-dim">{t('perfil.monedaNota')}</p>
           {errorMoneda && (
-            <p className="mt-2 text-xs text-coral">
+            <MensajeError className="mt-2 px-3 py-2 text-xs">
               {t('perfil.monedaError')}
               {errorMoneda}
-            </p>
+            </MensajeError>
           )}
-        </div>
+        </Tarjeta>
 
-        <button
-          type="button"
-          onClick={manejarCerrarSesion}
-          disabled={cerrando}
-          className="w-full rounded-2xl bg-panel-2 py-3 text-sm font-semibold text-coral disabled:opacity-60"
-        >
+        <BotonSecundario onClick={manejarCerrarSesion} disabled={cerrando} className="text-coral">
           {cerrando ? t('perfil.cerrandoSesion') : t('perfil.cerrarSesion')}
-        </button>
+        </BotonSecundario>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
@@ -153,10 +152,10 @@ function Perfil() {
           <button
             type="button"
             onClick={() => setGuiaAbierta(true)}
-            className="flex items-center gap-3 rounded-2xl bg-panel p-4 text-left transition-colors hover:bg-panel-2"
+            className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4 text-left transition-colors hover:bg-panel-2"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-lg">
-              📖
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-text-dim">
+              <BookOpen className="h-5 w-5" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-text">{t('perfil.guiaTitulo')}</p>
@@ -176,10 +175,10 @@ function Perfil() {
                 key={calculadora.id}
                 type="button"
                 onClick={() => setCalculadoraAbierta(calculadora.id)}
-                className="flex items-center gap-3 rounded-2xl bg-panel p-4 text-left transition-colors hover:bg-panel-2"
+                className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4 text-left transition-colors hover:bg-panel-2"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-lg">
-                  {calculadora.icono}
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-text-dim">
+                  <calculadora.Icono className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-text">{t(calculadora.claveTitulo)}</p>

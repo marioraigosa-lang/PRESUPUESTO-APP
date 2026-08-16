@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { Plane, Calendar, Users, ArrowRight, Tag, Receipt } from 'lucide-react'
 import TarjetaCategoriaViaje from '../components/TarjetaCategoriaViaje'
 import HojaNuevaCategoriaViaje from '../components/HojaNuevaCategoriaViaje'
 import GastoViaje from '../components/GastoViaje'
 import HojaNuevoGastoViaje from '../components/HojaNuevoGastoViaje'
 import AyudaContextual from '../components/AyudaContextual'
-import { textoTrayecto, textoFechas } from '../components/TarjetaViaje'
+import { textoFechas } from '../components/TarjetaViaje'
 import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
@@ -12,6 +13,9 @@ import * as categoriasViajeService from '../services/categoriasViaje'
 import * as gastosViajeService from '../services/gastosViaje'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { gastosSinCategoria, totalesPorMoneda } from '../utils/resumenViaje'
+import BotonVolver from '../components/ui/BotonVolver'
+import MensajeError from '../components/ui/MensajeError'
+import Tarjeta from '../components/ui/Tarjeta'
 
 const DATOS_INICIALES = { categorias: [], gastos: [] }
 
@@ -163,26 +167,19 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
     }
   }
 
-  const trayecto = textoTrayecto(viaje)
   const gastosHuerfanos = gastosSinCategoria(gastos)
   const totalesHuerfanos = totalesPorMoneda(gastosHuerfanos)
+  const totalesGenerales = totalesPorMoneda(gastos)
 
   return (
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
-        <header className="flex items-center gap-3">
-          <button
-            type="button"
+        <header className="flex items-center justify-between gap-3">
+          <BotonVolver
             onClick={onVolver}
-            aria-label={t('viajes.detalle.volverAria')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
-          >
-            ←
-          </button>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold text-text">{viaje.nombre}</h1>
-            {trayecto && <p className="truncate text-xs text-text-dim">{trayecto}</p>}
-          </div>
+            etiqueta={t('viajes.misViajes')}
+            ariaLabel={t('viajes.detalle.volverAria')}
+          />
           <button
             type="button"
             onClick={onVerResumen}
@@ -192,17 +189,57 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
           </button>
         </header>
 
-        <section className="flex flex-col gap-1 rounded-2xl bg-panel p-4">
-          <p className="text-xs text-text-dim">{textoFechas(viaje, idioma, t)}</p>
-          <p className="text-xs text-text-dim">
-            {tp('viajes.adultosContador', viaje.adultos)}
-            {viaje.ninos > 0 ? ` · ${tp('viajes.ninosContador', viaje.ninos)}` : ''}
-          </p>
+        <section className="superficie-hero flex flex-col gap-4 rounded-2xl p-6 shadow-elevated">
+          <div className="flex items-start gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mint/15 text-mint">
+              <Plane className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-lg font-bold text-text">{viaje.nombre}</h1>
+              {(viaje.origen || viaje.destino) && (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-text-dim">
+                  {viaje.origen && <span className="truncate">{viaje.origen}</span>}
+                  {viaje.origen && viaje.destino && (
+                    <ArrowRight className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  )}
+                  {viaje.destino && <span className="truncate">{viaje.destino}</span>}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-dim">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {textoFechas(viaje, idioma, t)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {tp('viajes.adultosContador', viaje.adultos)}
+              {viaje.ninos > 0 ? ` · ${tp('viajes.ninosContador', viaje.ninos)}` : ''}
+            </span>
+          </div>
+
+          {Object.keys(totalesGenerales).length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-line pt-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-text-dim">
+                {t('viajes.resumen.totalesTitulo')}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(totalesGenerales).map(([moneda, monto]) => (
+                  <span
+                    key={moneda}
+                    className="rounded-full bg-panel-2 px-3 py-1.5 text-xs font-semibold text-text"
+                  >
+                    {formatearMonto(monto, moneda)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
-        {error && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>
-        )}
+        <MensajeError>{error}</MensajeError>
 
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
@@ -224,12 +261,13 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
 
           {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.detalle.cargandoCategorias')}</p>}
 
-          {errorEliminarCategoria && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorEliminarCategoria}</p>
-          )}
+          <MensajeError>{errorEliminarCategoria}</MensajeError>
 
           {!cargando && !error && categorias.length === 0 && (
-            <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">{t('viajes.detalle.sinCategorias')}</p>
+            <Tarjeta className="flex flex-col items-center gap-2 p-6 text-center">
+              <Tag className="h-6 w-6 text-text-dim" aria-hidden="true" />
+              <p className="text-sm text-text-dim">{t('viajes.detalle.sinCategorias')}</p>
+            </Tarjeta>
           )}
 
           {!cargando &&
@@ -246,15 +284,18 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
             ))}
 
           {!cargando && !error && gastosHuerfanos.length > 0 && (
-            <div className="flex flex-col gap-1 rounded-2xl bg-panel p-4">
-              <p className="text-sm font-medium text-text">{t('viajes.detalle.gastosSinCategoriaTitulo')}</p>
+            <Tarjeta className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <Tag className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+                <p className="text-sm font-medium text-text">{t('viajes.detalle.gastosSinCategoriaTitulo')}</p>
+              </div>
               <p className="text-xs text-text-dim">{t('viajes.detalle.gastosSinCategoriaNota')}</p>
               <p className="text-xs text-text-dim">
                 {Object.entries(totalesHuerfanos)
                   .map(([moneda, monto]) => formatearMonto(monto, moneda))
                   .join(' · ')}
               </p>
-            </div>
+            </Tarjeta>
           )}
         </section>
 
@@ -272,12 +313,13 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
 
           {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.detalle.cargandoGastos')}</p>}
 
-          {errorEliminarGasto && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorEliminarGasto}</p>
-          )}
+          <MensajeError>{errorEliminarGasto}</MensajeError>
 
           {!cargando && !error && gastos.length === 0 && (
-            <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">{t('viajes.detalle.sinGastos')}</p>
+            <Tarjeta className="flex flex-col items-center gap-2 p-6 text-center">
+              <Receipt className="h-6 w-6 text-text-dim" aria-hidden="true" />
+              <p className="text-sm text-text-dim">{t('viajes.detalle.sinGastos')}</p>
+            </Tarjeta>
           )}
 
           {!cargando &&

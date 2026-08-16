@@ -4,6 +4,8 @@ import { useFormatoMoneda, useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import AyudaContextual from '../components/AyudaContextual'
+import BotonVolver from '../components/ui/BotonVolver'
+import MensajeError from '../components/ui/MensajeError'
 
 // Plazos típicos en Colombia, de crédito de consumo a crédito hipotecario.
 // Solo se guarda el número de meses -- la etiqueta ("12 meses (1 año)") se
@@ -74,14 +76,7 @@ function CalculadoraCuotaCredito({ onVolver }) {
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onVolver}
-            aria-label={t('calculadoraCredito.volverAria')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
-          >
-            ←
-          </button>
+          <BotonVolver onClick={onVolver} ariaLabel={t('calculadoraCredito.volverAria')} />
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="text-lg font-semibold text-text">{t('calculadoraCredito.titulo')}</h1>
@@ -91,7 +86,7 @@ function CalculadoraCuotaCredito({ onVolver }) {
           </div>
         </header>
 
-        <div className="flex flex-col gap-4 rounded-2xl bg-panel p-4">
+        <div className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-4">
           <div>
             <label htmlFor="montoCredito" className="mb-1 block text-xs text-text-dim">
               {t('calculadoraCredito.montoLabel')}
@@ -148,12 +143,10 @@ function CalculadoraCuotaCredito({ onVolver }) {
           </div>
         </div>
 
-        {error && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-coral">{error}</p>
-        )}
+        <MensajeError>{error}</MensajeError>
 
         {resultado && (
-          <div className="flex flex-col gap-3 rounded-2xl bg-panel p-4">
+          <div className="flex flex-col gap-3 rounded-2xl bg-panel shadow-card p-4">
             <div className="rounded-2xl bg-mint/10 px-4 py-3 text-center">
               <p className="text-xs text-text-dim">{t('calculadoraCredito.cuotaMensualLabel')}</p>
               <p className="text-2xl font-bold text-mint">{formatear(Math.round(resultado.cuota))}</p>

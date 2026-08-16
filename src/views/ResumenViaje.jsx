@@ -1,10 +1,14 @@
+import { Calendar, ArrowRight, Wallet, Receipt } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
-import { textoTrayecto, textoFechas } from '../components/TarjetaViaje'
+import { textoFechas } from '../components/TarjetaViaje'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { fechaCortaDesdeISO } from '../utils/formatoFecha'
 import { resumenPorMonedaYCategoria } from '../utils/resumenViaje'
+import BotonVolver from '../components/ui/BotonVolver'
+import MensajeError from '../components/ui/MensajeError'
+import Tarjeta from '../components/ui/Tarjeta'
 
 const DATOS_INICIALES = { categorias: [], gastos: [] }
 
@@ -49,55 +53,64 @@ function ResumenViaje({ viaje, onVolver }) {
     error,
   } = useConsulta(cargarResumenViaje, [viaje.id], DATOS_INICIALES)
 
-  const trayecto = textoTrayecto(viaje)
   const resumenMonedas = resumenPorMonedaYCategoria(gastos, categorias)
 
   return (
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onVolver}
-            aria-label={t('viajes.resumen.volverAria')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
-          >
-            ←
-          </button>
+          <BotonVolver onClick={onVolver} ariaLabel={t('viajes.resumen.volverAria')} />
           <div className="min-w-0">
             <h1 className="truncate text-lg font-semibold text-text">{t('viajes.resumen.titulo')}</h1>
             <p className="truncate text-xs text-text-dim">{viaje.nombre}</p>
           </div>
         </header>
 
-        <section className="flex flex-col gap-1 rounded-2xl bg-panel p-4">
-          {trayecto && <p className="text-sm font-medium text-text">{trayecto}</p>}
-          <p className="text-xs text-text-dim">{textoFechas(viaje, idioma, t)}</p>
-        </section>
+        <Tarjeta className="flex flex-col gap-1.5">
+          {(viaje.origen || viaje.destino) && (
+            <p className="flex items-center gap-1 text-sm font-medium text-text">
+              {viaje.origen && <span className="truncate">{viaje.origen}</span>}
+              {viaje.origen && viaje.destino && (
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-text-dim" aria-hidden="true" />
+              )}
+              {viaje.destino && <span className="truncate">{viaje.destino}</span>}
+            </p>
+          )}
+          <p className="flex items-center gap-1.5 text-xs text-text-dim">
+            <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            {textoFechas(viaje, idioma, t)}
+          </p>
+        </Tarjeta>
 
         {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.resumen.cargando')}</p>}
 
         {error && (
-          <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <MensajeError>
             {t('viajes.resumen.errorCargar')}
             {error}
-          </p>
+          </MensajeError>
         )}
 
         {!cargando && !error && gastos.length === 0 && (
-          <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">{t('viajes.resumen.sinGastos')}</p>
+          <Tarjeta className="flex flex-col items-center gap-2 p-6 text-center">
+            <Receipt className="h-6 w-6 text-text-dim" aria-hidden="true" />
+            <p className="text-sm text-text-dim">{t('viajes.resumen.sinGastos')}</p>
+          </Tarjeta>
         )}
 
         {!cargando && !error && gastos.length > 0 && (
           <>
             <section className="flex flex-col gap-3">
-              <h2 className="text-base font-semibold text-text">{t('viajes.resumen.totalesTitulo')}</h2>
+              <div className="flex items-center gap-1.5">
+                <Wallet className="h-4 w-4 text-text-dim" aria-hidden="true" />
+                <h2 className="text-base font-semibold text-text">{t('viajes.resumen.totalesTitulo')}</h2>
+              </div>
 
               {resumenMonedas.map(({ moneda, total, categorias: desglose }) => (
-                <div key={moneda} className="flex flex-col gap-2 rounded-2xl bg-panel p-4">
+                <Tarjeta key={moneda} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-text-dim">{moneda}</p>
-                    <p className="text-lg font-semibold text-text">{formatearMonto(total, moneda)}</p>
+                    <p className="text-lg font-bold text-text">{formatearMonto(total, moneda)}</p>
                   </div>
 
                   {desglose.length > 1 && (
@@ -117,12 +130,15 @@ function ResumenViaje({ viaje, onVolver }) {
                       ))}
                     </div>
                   )}
-                </div>
+                </Tarjeta>
               ))}
             </section>
 
             <section className="flex flex-col gap-3">
-              <h2 className="text-base font-semibold text-text">{t('viajes.resumen.listaTitulo')}</h2>
+              <div className="flex items-center gap-1.5">
+                <Receipt className="h-4 w-4 text-text-dim" aria-hidden="true" />
+                <h2 className="text-base font-semibold text-text">{t('viajes.resumen.listaTitulo')}</h2>
+              </div>
 
               {gastos.map((gasto) => {
                 const categoria = categorias.find((c) => c.id === gasto.categoria_viaje_id)
@@ -131,7 +147,7 @@ function ResumenViaje({ viaje, onVolver }) {
                   : t('viajes.detalle.gastoSinCategoria')
 
                 return (
-                  <div key={gasto.id} className="flex items-center gap-3 rounded-2xl bg-panel p-4">
+                  <Tarjeta key={gasto.id} className="flex items-center gap-3">
                     <div className="min-w-0 flex-1">
                       {gasto.descripcion && <p className="truncate text-sm text-text">{gasto.descripcion}</p>}
                       <p className="truncate text-xs text-text-dim">
@@ -141,7 +157,7 @@ function ResumenViaje({ viaje, onVolver }) {
                     <p className="shrink-0 text-sm font-semibold text-text">
                       {formatearMonto(gasto.monto, gasto.moneda)}
                     </p>
-                  </div>
+                  </Tarjeta>
                 )
               })}
             </section>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plane } from 'lucide-react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import TarjetaViaje from '../components/TarjetaViaje'
 import HojaNuevoViaje from '../components/HojaNuevoViaje'
@@ -9,6 +10,8 @@ import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import * as viajesService from '../services/viajes'
 import * as categoriasViajeService from '../services/categoriasViaje'
+import MensajeError from '../components/ui/MensajeError'
+import BotonPrimario from '../components/ui/BotonPrimario'
 
 // Pantalla autosuficiente (como Emergencia.jsx): carga sus propios datos con
 // useDatosUsuario + useConsulta, sin depender de props de App.jsx. "Viajes"
@@ -131,45 +134,54 @@ function Viajes() {
   return (
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
-        <header className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-text">{t('viajes.titulo')}</h1>
+        <section className="superficie-hero flex items-center gap-3 rounded-2xl p-5 shadow-elevated">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mint/15 text-mint">
+            <Plane className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg font-bold text-text">{t('viajes.titulo')}</h1>
             <p className="text-xs text-text-dim">{t('viajes.subtitulo')}</p>
           </div>
           <AvatarUsuario />
-        </header>
+        </section>
 
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-text">{t('viajes.misViajes')}</h2>
-            <button
-              type="button"
-              onClick={abrirCrearViaje}
-              className="rounded-full bg-panel-2 px-3 py-1.5 text-xs font-semibold text-mint"
-            >
-              {t('viajes.nuevoViaje')}
-            </button>
+            {viajes.length > 0 && (
+              <button
+                type="button"
+                onClick={abrirCrearViaje}
+                className="rounded-full bg-panel-2 px-3 py-1.5 text-xs font-semibold text-mint"
+              >
+                {t('viajes.nuevoViaje')}
+              </button>
+            )}
           </div>
 
           {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.cargando')}</p>}
 
           {error && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <MensajeError>
               {t('viajes.errorCargar')}
               {error}
-            </p>
+            </MensajeError>
           )}
 
-          {errorEliminar && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorEliminar}</p>
-          )}
-
-          {errorCategoriasDefecto && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorCategoriasDefecto}</p>
-          )}
+          <MensajeError>{errorEliminar}</MensajeError>
+          <MensajeError>{errorCategoriasDefecto}</MensajeError>
 
           {!cargando && !error && viajes.length === 0 && (
-            <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">{t('viajes.sinViajes')}</p>
+            <div className="flex flex-col items-center gap-4 rounded-2xl bg-panel p-8 text-center shadow-card">
+              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/10 text-mint">
+                <Plane className="h-8 w-8" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-text">{t('viajes.vacio.titulo')}</p>
+                <p className="mt-1 text-xs text-text-dim">{t('viajes.vacio.descripcion')}</p>
+              </div>
+              <BotonPrimario onClick={abrirCrearViaje}>{t('viajes.vacio.boton')}</BotonPrimario>
+            </div>
           )}
 
           {!cargando &&
