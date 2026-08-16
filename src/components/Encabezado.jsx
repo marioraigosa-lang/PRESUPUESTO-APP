@@ -8,7 +8,7 @@ function Encabezado({ subtitulo = 'Tus cuentas, en un solo lugar' }) {
           S
         </div>
         <div>
-          <h1 className="text-lg font-semibold text-text">Saldo</h1>
+          <h1 className="text-lg font-semibold text-text">Seed</h1>
           <p className="text-xs text-text-dim">{subtitulo}</p>
         </div>
       </div>

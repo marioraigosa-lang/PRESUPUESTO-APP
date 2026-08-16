@@ -1,4 +1,4 @@
-# Scripts SQL de Saldo App
+# Scripts SQL de Seed App
 
 Scripts para ejecutar A MANO en el editor SQL de Supabase (no hay CLI de
 Supabase ni carpeta `migrations/` con timestamps en este proyecto). Ya están

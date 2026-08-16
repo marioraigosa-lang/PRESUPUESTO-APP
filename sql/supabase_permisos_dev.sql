@@ -5,7 +5,7 @@
 --
 -- Este script le da al rol "anon" (el que usa la llave publishable sb_publishable
 -- cuando la app todavía no tiene login de usuarios) permiso total de lectura y
--- escritura sobre las 5 tablas de Saldo App: cuentas, movimientos, gastos_fijos,
+-- escritura sobre las 5 tablas de Seed App: cuentas, movimientos, gastos_fijos,
 -- categorias y fondo_emergencia.
 --
 -- Por qué falla ahora mismo:

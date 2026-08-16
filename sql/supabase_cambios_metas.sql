@@ -1,7 +1,7 @@
 -- ============================================================================
 -- supabase_cambios_metas.sql
 --
--- Prepara la base de datos para dos funciones nuevas de Saldo App:
+-- Prepara la base de datos para dos funciones nuevas de Seed App:
 --   1. Marcar qué cuentas cuentan como "ahorro" (columna es_ahorro en "cuentas").
 --   2. Guardar metas de ahorro personales (tabla nueva "metas_ahorro").
 --

@@ -14,7 +14,7 @@
 -- Qué hace este script:
 --   Le da al rol "authenticated" EXACTAMENTE los mismos permisos amplios de
 --   desarrollo que ya tiene "anon": lectura y escritura total sobre las 6
---   tablas de Saldo App, sin filtrar todavía por usuario. Es decir, en este
+--   tablas de Seed App, sin filtrar todavía por usuario. Es decir, en este
 --   momento CUALQUIER usuario logueado puede ver y modificar los datos de
 --   CUALQUIER otro usuario. Esto es aceptable temporalmente porque seguimos
 --   en desarrollo (Etapa 2: multiusuario sin aislamiento de datos todavía).
