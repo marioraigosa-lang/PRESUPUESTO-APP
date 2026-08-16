@@ -3,6 +3,7 @@ import TarjetaCategoriaViaje from '../components/TarjetaCategoriaViaje'
 import HojaNuevaCategoriaViaje from '../components/HojaNuevaCategoriaViaje'
 import GastoViaje from '../components/GastoViaje'
 import HojaNuevoGastoViaje from '../components/HojaNuevoGastoViaje'
+import AyudaContextual from '../components/AyudaContextual'
 import { textoTrayecto, textoFechas } from '../components/TarjetaViaje'
 import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
@@ -22,7 +23,7 @@ const DATOS_INICIALES = { categorias: [], gastos: [] }
 //
 // Solo muestra el presupuesto de cada categoría y el listado crudo de
 // gastos -- el dashboard presupuestado vs. ejecutado es la Fase 4.
-function DetalleViaje({ viaje, onVolver }) {
+function DetalleViaje({ viaje, onVolver, onVerResumen }) {
   const datosUsuario = useDatosUsuario()
   const { seleccionarPropio } = datosUsuario
   const { idioma, t, tp } = useIdioma()
@@ -178,10 +179,17 @@ function DetalleViaje({ viaje, onVolver }) {
           >
             ←
           </button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="truncate text-lg font-semibold text-text">{viaje.nombre}</h1>
             {trayecto && <p className="truncate text-xs text-text-dim">{trayecto}</p>}
           </div>
+          <button
+            type="button"
+            onClick={onVerResumen}
+            className="shrink-0 rounded-full bg-panel-2 px-3 py-1.5 text-xs font-semibold text-mint"
+          >
+            {t('viajes.detalle.verResumen')}
+          </button>
         </header>
 
         <section className="flex flex-col gap-1 rounded-2xl bg-panel p-4">
@@ -198,7 +206,13 @@ function DetalleViaje({ viaje, onVolver }) {
 
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-text">{t('viajes.detalle.categoriasTitulo')}</h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-base font-semibold text-text">{t('viajes.detalle.categoriasTitulo')}</h2>
+              <AyudaContextual
+                clave="guia.ayuda.viajeDashboard"
+                etiqueta={t('guia.ayuda.viajeDashboardAria')}
+              />
+            </div>
             <button
               type="button"
               onClick={abrirCrearCategoria}

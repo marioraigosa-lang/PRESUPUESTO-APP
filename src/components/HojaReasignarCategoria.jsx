@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useIdioma } from '../context/IdiomaContext'
 
 function HojaReasignarCategoria({
   abierta,
@@ -8,6 +9,7 @@ function HojaReasignarCategoria({
   cantidadMovimientos,
   onConfirmar,
 }) {
+  const { t, tp } = useIdioma()
   const [categoriaDestinoId, setCategoriaDestinoId] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [errorGuardado, setErrorGuardado] = useState('')
@@ -33,7 +35,7 @@ function HojaReasignarCategoria({
     evento.preventDefault()
 
     if (!categoriaDestinoId) {
-      setErrorGuardado('Selecciona una categoría destino')
+      setErrorGuardado(t('categorias.reasignar.errorSeleccionVacia'))
       return
     }
 
@@ -53,7 +55,7 @@ function HojaReasignarCategoria({
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t('categorias.reasignar.cerrarAria')}
         onClick={cerrarYLimpiar}
         className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
       />
@@ -66,16 +68,15 @@ function HojaReasignarCategoria({
 
         <div className="flex items-center justify-between">
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-text">Mover gastos y eliminar</h2>
+            <h2 className="text-base font-semibold text-text">{t('categorias.reasignar.titulo')}</h2>
             <p className="truncate text-xs text-text-dim">
-              "{categoria.nombre}" tiene {cantidadMovimientos}{' '}
-              {cantidadMovimientos === 1 ? 'movimiento' : 'movimientos'}
+              {tp('categorias.reasignar.contador', cantidadMovimientos, { nombre: categoria.nombre })}
             </p>
           </div>
           <button
             type="button"
             onClick={cerrarYLimpiar}
-            aria-label="Cerrar"
+            aria-label={t('categorias.reasignar.cerrarAria')}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ×
@@ -83,15 +84,15 @@ function HojaReasignarCategoria({
         </div>
 
         <p className="text-xs text-text-dim">
-          Para eliminar "{categoria.nombre}" primero elige a qué categoría se mueven sus gastos.
+          {t('categorias.reasignar.instruccion', { nombre: categoria.nombre })}
         </p>
 
         <div>
-          <p className="mb-1 text-xs text-text-dim">Mover gastos a</p>
+          <p className="mb-1 text-xs text-text-dim">{t('categorias.reasignar.moverALabel')}</p>
 
           {opciones.length === 0 ? (
             <p className="rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text-dim">
-              No tienes otra categoría disponible. Crea una primero.
+              {t('categorias.reasignar.sinOpciones')}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -124,7 +125,10 @@ function HojaReasignarCategoria({
         </div>
 
         {errorGuardado && (
-          <p className="text-xs text-coral">No se pudo completar la acción: {errorGuardado}</p>
+          <p className="text-xs text-coral">
+            {t('categorias.reasignar.errorGuardar')}
+            {errorGuardado}
+          </p>
         )}
 
         <button
@@ -132,7 +136,7 @@ function HojaReasignarCategoria({
           disabled={guardando || !categoriaDestinoId}
           className="mt-1 w-full rounded-2xl bg-coral py-3 text-sm font-semibold text-bg disabled:opacity-60"
         >
-          {guardando ? 'Moviendo y eliminando...' : 'Mover gastos y eliminar categoría'}
+          {guardando ? t('categorias.reasignar.moviendo') : t('categorias.reasignar.confirmar')}
         </button>
       </form>
     </div>

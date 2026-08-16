@@ -3,6 +3,8 @@ import AvatarUsuario from '../components/AvatarUsuario'
 import CalculadoraCuotaCredito from './CalculadoraCuotaCredito'
 import CalculadoraCdt from './CalculadoraCdt'
 import CalculadoraAhorro from './CalculadoraAhorro'
+import GuiaUso from './GuiaUso'
+import AyudaContextual from '../components/AyudaContextual'
 import { useAuth } from '../context/AuthContext'
 import { useMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
@@ -40,6 +42,7 @@ function Perfil() {
   const { t } = useIdioma()
   const [cerrando, setCerrando] = useState(false)
   const [calculadoraAbierta, setCalculadoraAbierta] = useState(null)
+  const [guiaAbierta, setGuiaAbierta] = useState(false)
   const [cambiandoMoneda, setCambiandoMoneda] = useState(false)
   const [errorMoneda, setErrorMoneda] = useState('')
 
@@ -75,6 +78,10 @@ function Perfil() {
     setCalculadoraAbierta(null)
   }
 
+  if (guiaAbierta) {
+    return <GuiaUso onVolver={() => setGuiaAbierta(false)} />
+  }
+
   if (calculadoraAbierta === 'cuota') {
     return <CalculadoraCuotaCredito onVolver={cerrarCalculadora} />
   }
@@ -102,7 +109,10 @@ function Perfil() {
         </div>
 
         <div className="rounded-2xl bg-panel p-4">
-          <p className="mb-2 text-xs text-text-dim">{t('perfil.moneda')}</p>
+          <div className="mb-2 flex items-center gap-1.5">
+            <p className="text-xs text-text-dim">{t('perfil.moneda')}</p>
+            <AyudaContextual clave="guia.ayuda.multiMoneda" etiqueta={t('guia.ayuda.multiMonedaAria')} />
+          </div>
           <div className="flex gap-2 rounded-full bg-panel-2 p-1">
             {Object.values(MONEDAS).map((opcion) => (
               <button
@@ -135,6 +145,26 @@ function Perfil() {
         >
           {cerrando ? t('perfil.cerrandoSesion') : t('perfil.cerrarSesion')}
         </button>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+            {t('perfil.ayudaTitulo')}
+          </h2>
+          <button
+            type="button"
+            onClick={() => setGuiaAbierta(true)}
+            className="flex items-center gap-3 rounded-2xl bg-panel p-4 text-left transition-colors hover:bg-panel-2"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-lg">
+              📖
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-text">{t('perfil.guiaTitulo')}</p>
+              <p className="truncate text-xs text-text-dim">{t('perfil.guiaDescripcion')}</p>
+            </div>
+            <span className="shrink-0 text-text-dim">›</span>
+          </button>
+        </section>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">

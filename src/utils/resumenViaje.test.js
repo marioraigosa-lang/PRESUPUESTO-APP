@@ -4,6 +4,7 @@ import {
   colorBarraPresupuesto,
   gastosSinCategoria,
   totalesPorMoneda,
+  resumenPorMonedaYCategoria,
 } from './resumenViaje'
 
 describe('resumenCategoriaViaje', () => {
@@ -127,5 +128,75 @@ describe('totalesPorMoneda', () => {
 
   it('devuelve un objeto vacío para un arreglo vacío', () => {
     expect(totalesPorMoneda([])).toEqual({})
+  })
+})
+
+describe('resumenPorMonedaYCategoria', () => {
+  const categoriaComida = { id: 'cat-comida', nombre: 'Alimentación', emoji: '🍔' }
+  const categoriaHotel = { id: 'cat-hotel', nombre: 'Hotel', emoji: '🏨' }
+  const categorias = [categoriaComida, categoriaHotel]
+
+  it('suma varios gastos en una sola moneda y los agrupa por categoría', () => {
+    const gastos = [
+      { categoria_viaje_id: 'cat-comida', moneda: 'USD', monto: 20 },
+      { categoria_viaje_id: 'cat-comida', moneda: 'USD', monto: 15 },
+      { categoria_viaje_id: 'cat-hotel', moneda: 'USD', monto: 300 },
+    ]
+
+    const resumen = resumenPorMonedaYCategoria(gastos, categorias)
+
+    expect(resumen).toEqual([
+      {
+        moneda: 'USD',
+        total: 335,
+        categorias: [
+          { categoria: categoriaHotel, total: 300 },
+          { categoria: categoriaComida, total: 35 },
+        ],
+      },
+    ])
+  })
+
+  it('separa los totales de gastos en varias monedas sin mezclarlos ni convertirlos', () => {
+    const gastos = [
+      { categoria_viaje_id: 'cat-comida', moneda: 'COP', monto: 50000 },
+      { categoria_viaje_id: 'cat-hotel', moneda: 'USD', monto: 200 },
+      { categoria_viaje_id: 'cat-hotel', moneda: 'EUR', monto: 90 },
+      { categoria_viaje_id: 'cat-comida', moneda: 'COP', monto: 30000 },
+    ]
+
+    const resumen = resumenPorMonedaYCategoria(gastos, categorias)
+
+    // El orden de las monedas es siempre COP, USD, EUR (el fijo de
+    // utils/monedas.js), sin importar en qué orden se registraron los gastos.
+    expect(resumen.map((r) => r.moneda)).toEqual(['COP', 'USD', 'EUR'])
+    expect(resumen.find((r) => r.moneda === 'COP').total).toBe(80000)
+    expect(resumen.find((r) => r.moneda === 'USD').total).toBe(200)
+    expect(resumen.find((r) => r.moneda === 'EUR').total).toBe(90)
+  })
+
+  it('agrupa los gastos sin categoría bajo categoria: null', () => {
+    const gastos = [
+      { categoria_viaje_id: null, moneda: 'COP', monto: 10000 },
+      { categoria_viaje_id: null, moneda: 'COP', monto: 5000 },
+      { categoria_viaje_id: 'cat-comida', moneda: 'COP', monto: 2000 },
+    ]
+
+    const resumen = resumenPorMonedaYCategoria(gastos, categorias)
+
+    expect(resumen).toEqual([
+      {
+        moneda: 'COP',
+        total: 17000,
+        categorias: [
+          { categoria: null, total: 15000 },
+          { categoria: categoriaComida, total: 2000 },
+        ],
+      },
+    ])
+  })
+
+  it('devuelve un arreglo vacío si el viaje no tiene gastos', () => {
+    expect(resumenPorMonedaYCategoria([], categorias)).toEqual([])
   })
 })

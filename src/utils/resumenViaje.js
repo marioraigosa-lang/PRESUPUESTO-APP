@@ -1,7 +1,10 @@
-// Funciones puras para el dashboard de presupuesto vs. ejecutado de "Planifica
-// tus viajes" (Fase 4). Sin llamadas a Supabase ni estado de React, para que
-// sean fáciles de probar: reciben la categoría y la lista completa de gastos
-// del viaje, y devuelven números listos para pintar.
+import { MONEDAS } from './monedas'
+
+// Funciones puras para el dashboard de presupuesto vs. ejecutado (Fase 4) y
+// el resumen bajo demanda (Fase 5) de "Planifica tus viajes". Sin llamadas a
+// Supabase ni estado de React, para que sean fáciles de probar: reciben la
+// categoría (o lista de categorías) y la lista completa de gastos del viaje,
+// y devuelven números listos para pintar.
 
 // El presupuesto de una categoría está en UNA sola moneda (categoria.moneda).
 // Solo los gastos de esa categoría que están EN ESA MISMA MONEDA se suman al
@@ -52,4 +55,44 @@ export function totalesPorMoneda(gastos) {
     totales[gasto.moneda] = (totales[gasto.moneda] ?? 0) + Number(gasto.monto)
     return totales
   }, {})
+}
+
+// Agrupa los gastos de UNA moneda por categoría, sumando sus montos. Los
+// gastos sin categoría (categoria_viaje_id null, ver gastosSinCategoria) se
+// agrupan bajo `categoria: null` para que quien pinte la lista muestre "Sin
+// categoría" en vez de perderlos. Se ordena de mayor a menor gasto, para que
+// el resumen resalte primero en qué se fue más plata.
+function agruparPorCategoria(gastosDeMoneda, categorias) {
+  const totalesPorCategoriaId = gastosDeMoneda.reduce((totales, gasto) => {
+    const clave = gasto.categoria_viaje_id ?? 'sin-categoria'
+    totales[clave] = (totales[clave] ?? 0) + Number(gasto.monto)
+    return totales
+  }, {})
+
+  return Object.entries(totalesPorCategoriaId)
+    .map(([clave, total]) => ({
+      categoria: clave === 'sin-categoria' ? null : (categorias.find((c) => c.id === clave) ?? null),
+      total,
+    }))
+    .sort((a, b) => b.total - a.total)
+}
+
+// Resumen bajo demanda de un viaje (Fase 5): separa TODOS los gastos del
+// viaje por moneda (nunca se mezclan ni se convierten) y, dentro de cada
+// moneda, por categoría. El orden de las monedas sigue el orden fijo de
+// MONEDAS (COP, USD, EUR) en vez del orden de inserción de los gastos, para
+// que el resumen se vea igual sin importar en qué orden se registraron.
+export function resumenPorMonedaYCategoria(gastos, categorias) {
+  const totales = totalesPorMoneda(gastos)
+
+  return Object.keys(MONEDAS)
+    .filter((moneda) => totales[moneda] !== undefined)
+    .map((moneda) => {
+      const gastosDeMoneda = gastos.filter((gasto) => gasto.moneda === moneda)
+      return {
+        moneda,
+        total: totales[moneda],
+        categorias: agruparPorCategoria(gastosDeMoneda, categorias),
+      }
+    })
 }

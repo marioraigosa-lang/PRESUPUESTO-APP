@@ -31,11 +31,7 @@ function Login({ onCambiarModo }) {
     setEnviando(false)
 
     if (errorSupabase) {
-      // traducirErrorAuth todavía no distingue idioma (eso es de una fase
-      // posterior, junto con los demás "generadores de mensajes"): igual
-      // que en Registro.jsx, este mensaje se sigue mostrando en español
-      // aunque el resto de la pantalla ya esté en inglés.
-      setError(traducirErrorAuth(errorSupabase.message))
+      setError(t(traducirErrorAuth(errorSupabase.message)))
     }
   }
 

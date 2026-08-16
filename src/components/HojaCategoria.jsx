@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import AyudaContextual from './AyudaContextual'
 
 const COLORES = [
   '#4fd1a5',
@@ -18,6 +20,7 @@ const EMOJIS_SUGERIDOS = ['🛒', '⛽', '💊', '🎬', '✨', '🏠', '🍔', 
 
 function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEditando }) {
   const editando = Boolean(categoriaEditando)
+  const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
 
@@ -77,15 +80,15 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
     evento.preventDefault()
 
     if (!nombre.trim()) {
-      setError('Ingresa un nombre para la categoría')
+      setError(t('categorias.formulario.errorNombreVacio'))
       return
     }
     if (!emoji.trim()) {
-      setError('Elige un emoji')
+      setError(t('categorias.formulario.errorEmojiVacio'))
       return
     }
     if (presupuesto !== '' && Number(presupuesto) < 0) {
-      setError('El tope mensual no puede ser negativo')
+      setError(t('categorias.formulario.errorPresupuestoInvalido'))
       return
     }
 
@@ -121,7 +124,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t('categorias.formulario.cerrarAria')}
         onClick={cerrarYLimpiar}
         className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
       />
@@ -134,12 +137,12 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-text">
-            {editando ? 'Editar categoría' : 'Nueva categoría'}
+            {editando ? t('categorias.formulario.editarTitulo') : t('categorias.formulario.nuevoTitulo')}
           </h2>
           <button
             type="button"
             onClick={cerrarYLimpiar}
-            aria-label="Cerrar"
+            aria-label={t('categorias.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ×
@@ -148,30 +151,30 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
         <div>
           <label htmlFor="nombreCategoria" className="mb-1 block text-xs text-text-dim">
-            Nombre
+            {t('categorias.formulario.nombreLabel')}
           </label>
           <input
             id="nombreCategoria"
             type="text"
             value={nombre}
             onChange={manejarCambioNombre}
-            placeholder="Ej: Mercado"
+            placeholder={t('categorias.formulario.nombrePlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-text-dim">Emoji</p>
+          <p className="mb-1 text-xs text-text-dim">{t('categorias.formulario.emojiLabel')}</p>
           <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
             <input
               type="text"
               value={emoji}
               onChange={manejarCambioEmoji}
               maxLength={4}
-              aria-label="Emoji de la categoría"
+              aria-label={t('categorias.formulario.emojiAria')}
               className="w-14 bg-transparent text-center text-2xl text-text outline-none"
             />
-            <span className="text-xs text-text-dim">Escribe uno o elige abajo</span>
+            <span className="text-xs text-text-dim">{t('categorias.formulario.emojiAyuda')}</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {EMOJIS_SUGERIDOS.map((opcion) => (
@@ -190,13 +193,13 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-text-dim">Color</p>
+          <p className="mb-1 text-xs text-text-dim">{t('categorias.formulario.colorLabel')}</p>
           <div className="flex flex-wrap gap-2">
             {COLORES.map((opcion) => (
               <button
                 key={opcion}
                 type="button"
-                aria-label={`Color ${opcion}`}
+                aria-label={t('categorias.formulario.colorAria', { color: opcion })}
                 onClick={() => setColor(opcion)}
                 className={`h-8 w-8 rounded-full transition-shadow ${
                   color === opcion ? 'ring-2 ring-text ring-offset-2 ring-offset-panel' : ''
@@ -208,46 +211,57 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
         </div>
 
         <div>
-          <label htmlFor="presupuestoCategoria" className="mb-1 block text-xs text-text-dim">
-            Tope mensual (opcional)
-          </label>
+          <div className="mb-1 flex items-center gap-1.5">
+            <label htmlFor="presupuestoCategoria" className="text-xs text-text-dim">
+              {t('categorias.formulario.presupuestoLabel')}
+            </label>
+            <AyudaContextual
+              clave="guia.ayuda.presupuestoOpcional"
+              etiqueta={t('guia.ayuda.presupuestoOpcionalAria')}
+            />
+          </div>
           <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
             <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
             <input
               id="presupuestoCategoria"
               type="text"
               inputMode={decimales > 0 ? 'decimal' : 'numeric'}
-              placeholder="Sin tope"
+              placeholder={t('categorias.formulario.presupuestoPlaceholder')}
               value={presupuestoFormateado}
               onChange={manejarCambioPresupuesto}
               className="w-full bg-transparent text-2xl font-semibold text-text outline-none placeholder:text-text-dim"
             />
           </div>
-          <p className="mt-1 text-xs text-text-dim">
-            Déjalo vacío si no quieres ponerle un tope a esta categoría; solo se mostrará el total gastado.
-          </p>
+          <p className="mt-1 text-xs text-text-dim">{t('categorias.formulario.presupuestoAyuda')}</p>
         </div>
 
         <div>
-          <label htmlFor="descripcionCategoria" className="mb-1 block text-xs text-text-dim">
-            Descripción (opcional)
-          </label>
+          <div className="mb-1 flex items-center gap-1.5">
+            <label htmlFor="descripcionCategoria" className="text-xs text-text-dim">
+              {t('categorias.formulario.descripcionLabel')}
+            </label>
+            <AyudaContextual
+              clave="guia.ayuda.categoriaDescripcion"
+              etiqueta={t('guia.ayuda.categoriaDescripcionAria')}
+            />
+          </div>
           <input
             id="descripcionCategoria"
             type="text"
             value={descripcion}
             onChange={(evento) => setDescripcion(evento.target.value)}
-            placeholder="Ej: Café, snacks, propinas..."
+            placeholder={t('categorias.formulario.descripcionPlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
-          <p className="mt-1 text-xs text-text-dim">
-            Un texto de ayuda corto que se muestra debajo del nombre de la categoría.
-          </p>
+          <p className="mt-1 text-xs text-text-dim">{t('categorias.formulario.descripcionAyuda')}</p>
         </div>
 
         {error && <p className="text-xs text-coral">{error}</p>}
         {errorGuardado && (
-          <p className="text-xs text-coral">No se pudo guardar la categoría: {errorGuardado}</p>
+          <p className="text-xs text-coral">
+            {t('categorias.formulario.errorGuardar')}
+            {errorGuardado}
+          </p>
         )}
 
         <button
@@ -255,7 +269,11 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
           disabled={guardando}
           className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
         >
-          {guardando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Guardar categoría'}
+          {guardando
+            ? t('categorias.formulario.guardando')
+            : editando
+              ? t('categorias.formulario.guardarCambios')
+              : t('categorias.formulario.guardarCategoria')}
         </button>
       </form>
     </div>

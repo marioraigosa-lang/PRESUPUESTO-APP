@@ -10,35 +10,41 @@ function mesesEntre(hoy, objetivo) {
   return meses
 }
 
-// `formatear` es la función devuelta por useFormatoMoneda() en el
-// componente que llama a esta función: así el mensaje respeta la moneda
-// activa del usuario sin que este util (que no es un componente/hook) tenga
-// que leer el contexto de moneda directamente.
+// Devuelve la CLAVE de traducción del mensaje (no el texto ya armado) más
+// los VALORES a interpolar en ella: mismo patrón que mensajeFondo.js. Este
+// util no es un componente y no conoce el idioma activo, así que quien
+// llama (TarjetaMeta.jsx) arma la frase final con t(clave, valores).
+//
+// `formatear` es la función devuelta por useFormatoMoneda() (para que los
+// montos respeten la moneda activa) e `idioma` es el idioma activo de
+// useIdioma() (para que la fecha objetivo salga en el idioma correcto);
+// ambos vienen del componente porque este util no tiene acceso al contexto.
 export function generarRecomendacionMeta({
   ahorroActual,
   capacidadAhorroMensual,
   fechaObjetivo,
   montoObjetivo,
   formatear,
+  idioma = 'es',
 }) {
   const hoy = new Date()
   hoy.setHours(0, 0, 0, 0)
   const objetivo = parsearFechaISO(fechaObjetivo)
-  const fechaTexto = mesAnioLargoDesdeISO(fechaObjetivo)
+  const fechaTexto = mesAnioLargoDesdeISO(fechaObjetivo, idioma)
 
   if (objetivo < hoy) {
     return {
       tono: 'alerta',
-      mensaje: `📅 La fecha objetivo (${fechaTexto}) ya pasó. Actualiza la fecha de tu meta para ver una proyección real.`,
+      clave: 'emergencia.proyeccion.fechaPasada',
+      valores: { fecha: fechaTexto },
     }
   }
 
   if (capacidadAhorroMensual < 0) {
     return {
       tono: 'alerta',
-      mensaje: `⚠️ Tus gastos superan tus ingresos por ${formatear(
-        Math.round(Math.abs(capacidadAhorroMensual)),
-      )}; tu ahorro no crece. Equilibra tu presupuesto antes de la meta.`,
+      clave: 'emergencia.proyeccion.capacidadNegativa',
+      valores: { exceso: formatear(Math.round(Math.abs(capacidadAhorroMensual))) },
     }
   }
 
@@ -49,16 +55,19 @@ export function generarRecomendacionMeta({
   if (porcentaje >= UMBRAL_HOLGADO) {
     return {
       tono: 'positivo',
-      mensaje: `🎉 ¡Vas sobrado! A este ritmo alcanzas tu meta antes de ${fechaTexto}. Podrías subir la meta.`,
+      clave: 'emergencia.proyeccion.sobrado',
+      valores: { fecha: fechaTexto },
     }
   }
 
   if (porcentaje >= 1) {
     return {
       tono: 'positivo',
-      mensaje: `✅ Vas en camino. Ahorrando ${formatear(
-        Math.round(capacidadAhorroMensual),
-      )} al mes llegas a tu meta para ${fechaTexto}.`,
+      clave: 'emergencia.proyeccion.enCamino',
+      valores: {
+        ahorroMensual: formatear(Math.round(capacidadAhorroMensual)),
+        fecha: fechaTexto,
+      },
     }
   }
 
@@ -68,14 +77,13 @@ export function generarRecomendacionMeta({
 
   return {
     tono: 'aviso',
-    mensaje: `📊 A tu ritmo llegarás a ${formatear(
-      Math.round(proyeccion),
-    )}, te faltarían ${formatear(Math.round(diferencia))}. Para lograrla necesitas ahorrar ${formatear(
-      Math.round(necesarioMensual),
-    )} al mes (ahora ahorras ${formatear(
-      Math.round(capacidadAhorroMensual),
-    )}). Opciones: recorta ${formatear(
-      Math.round(recorteMensual),
-    )} en gastos, o ajusta tu meta a ${formatear(Math.round(proyeccion))} o mueve la fecha.`,
+    clave: 'emergencia.proyeccion.noAlcanza',
+    valores: {
+      proyeccion: formatear(Math.round(proyeccion)),
+      diferencia: formatear(Math.round(diferencia)),
+      necesario: formatear(Math.round(necesarioMensual)),
+      ahorroMensual: formatear(Math.round(capacidadAhorroMensual)),
+      recorte: formatear(Math.round(recorteMensual)),
+    },
   }
 }

@@ -6,6 +6,7 @@ import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import AyudaContextual from './AyudaContextual'
 
 function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -163,9 +164,15 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-          {t('home.gastosFijosTitulo')}
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+            {t('home.gastosFijosTitulo')}
+          </h2>
+          <AyudaContextual
+            clave="guia.ayuda.gastoFijoPagado"
+            etiqueta={t('guia.ayuda.gastoFijoPagadoAria')}
+          />
+        </div>
         <button
           type="button"
           onClick={onGestionar}

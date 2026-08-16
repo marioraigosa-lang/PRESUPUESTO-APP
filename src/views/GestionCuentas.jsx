@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Interruptor from '../components/Interruptor'
 import HojaCuenta from '../components/HojaCuenta'
+import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 
 function GestionCuentas({
@@ -13,6 +14,7 @@ function GestionCuentas({
   onEliminarCuenta,
   onAlternarEsAhorro,
 }) {
+  const { t } = useIdioma()
   const formatear = useFormatoMoneda()
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [cuentaEditando, setCuentaEditando] = useState(null)
@@ -36,9 +38,7 @@ function GestionCuentas({
   }
 
   async function manejarEliminar(cuenta) {
-    const confirmado = window.confirm(
-      `¿Eliminar la cuenta "${cuenta.nombre}"? Esta acción no se puede deshacer.`,
-    )
+    const confirmado = window.confirm(t('cuentas.gestion.confirmarEliminar', { nombre: cuenta.nombre }))
     if (!confirmado) return
 
     setErrorAccion(null)
@@ -46,7 +46,7 @@ function GestionCuentas({
     try {
       await onEliminarCuenta(cuenta)
     } catch (error) {
-      setErrorAccion(`No se pudo eliminar la cuenta: ${error.message}`)
+      setErrorAccion(t('cuentas.gestion.errorEliminar') + error.message)
     } finally {
       setEliminandoId(null)
     }
@@ -58,7 +58,7 @@ function GestionCuentas({
     try {
       await onAlternarEsAhorro(cuenta)
     } catch (error) {
-      setErrorAccion(`No se pudo actualizar la cuenta: ${error.message}`)
+      setErrorAccion(t('cuentas.gestion.errorActualizar') + error.message)
     } finally {
       setActualizandoAhorroId(null)
     }
@@ -71,14 +71,14 @@ function GestionCuentas({
           <button
             type="button"
             onClick={onVolver}
-            aria-label="Volver"
+            aria-label={t('cuentas.gestion.volverAria')}
             className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ←
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-text">Gestionar cuentas</h1>
-            <p className="text-xs text-text-dim">Agrega, edita y marca tus cuentas de ahorro</p>
+            <h1 className="text-lg font-semibold text-text">{t('cuentas.gestion.titulo')}</h1>
+            <p className="text-xs text-text-dim">{t('cuentas.gestion.subtitulo')}</p>
           </div>
         </header>
 
@@ -87,25 +87,24 @@ function GestionCuentas({
           onClick={abrirCrear}
           className="w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg"
         >
-          + Agregar cuenta
+          {t('cuentas.gestion.agregarCuenta')}
         </button>
 
         {errorAccion && (
           <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorAccion}</p>
         )}
 
-        {cargandoCuentas && <p className="px-2 text-sm text-text-dim">Cargando cuentas...</p>}
+        {cargandoCuentas && <p className="px-2 text-sm text-text-dim">{t('cuentas.gestion.cargando')}</p>}
 
         {errorCuentas && (
           <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            Error al cargar las cuentas: {errorCuentas}
+            {t('cuentas.gestion.errorCargar')}
+            {errorCuentas}
           </p>
         )}
 
         {!cargandoCuentas && !errorCuentas && cuentas.length === 0 && (
-          <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">
-            Aún no tienes cuentas. Crea la primera con "+ Agregar cuenta".
-          </p>
+          <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">{t('cuentas.gestion.sinCuentas')}</p>
         )}
 
         <div className="flex flex-col gap-3">
@@ -126,7 +125,7 @@ function GestionCuentas({
                       <p className="truncate text-sm font-medium text-text">{cuenta.nombre}</p>
                       {cuenta.es_ahorro && (
                         <span className="shrink-0 rounded-full bg-mint/10 px-2 py-0.5 text-[10px] font-semibold text-mint">
-                          Ahorro
+                          {t('cuentas.gestion.badgeAhorro')}
                         </span>
                       )}
                     </div>
@@ -136,7 +135,7 @@ function GestionCuentas({
                     <button
                       type="button"
                       onClick={() => abrirEditar(cuenta)}
-                      aria-label={`Editar cuenta ${cuenta.nombre}`}
+                      aria-label={t('cuentas.gestion.editarAria', { nombre: cuenta.nombre })}
                       className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
                     >
                       ✏️
@@ -145,7 +144,7 @@ function GestionCuentas({
                       type="button"
                       onClick={() => manejarEliminar(cuenta)}
                       disabled={eliminandoId === cuenta.id}
-                      aria-label={`Eliminar cuenta ${cuenta.nombre}`}
+                      aria-label={t('cuentas.gestion.eliminarAria', { nombre: cuenta.nombre })}
                       className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
                     >
                       🗑
@@ -159,14 +158,14 @@ function GestionCuentas({
                   <div className="flex items-center gap-2">
                     <span className="text-base leading-none">🐷</span>
                     <span className="text-xs font-medium text-text">
-                      Cuenta para fondo de ahorro
+                      {t('cuentas.gestion.fondoAhorroLabel')}
                     </span>
                   </div>
                   <Interruptor
                     activo={cuenta.es_ahorro}
                     onCambiar={() => manejarAlternarAhorro(cuenta)}
                     deshabilitado={actualizandoAhorroId === cuenta.id}
-                    etiqueta={`Marcar ${cuenta.nombre} como cuenta de ahorro`}
+                    etiqueta={t('cuentas.gestion.fondoAhorroAria', { nombre: cuenta.nombre })}
                   />
                 </div>
               </div>

@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useFormatoMoneda } from '../context/MonedaContext'
+import { useIdioma } from '../context/IdiomaContext'
+import { useFormatoMoneda, useMoneda } from '../context/MonedaContext'
+import { configMoneda } from '../utils/monedas'
+import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import AyudaContextual from '../components/AyudaContextual'
 
 function sanitizarDecimal(valor) {
   const limpio = valor.replace(/[^\d.]/g, '')
@@ -15,7 +19,10 @@ function convertirEaATasaPeriodo(tasaEA, periodosPorAno) {
 }
 
 function CalculadoraCdt({ onVolver }) {
+  const { t } = useIdioma()
   const formatear = useFormatoMoneda()
+  const { moneda } = useMoneda()
+  const { simbolo, decimales } = configMoneda(moneda)
   const [monto, setMonto] = useState('')
   const [plazoMeses, setPlazoMeses] = useState('')
   const [tasaCdt, setTasaCdt] = useState('')
@@ -24,16 +31,16 @@ function CalculadoraCdt({ onVolver }) {
 
   const { error, resultado } = useMemo(() => {
     if (!monto || Number(monto) <= 0) {
-      return { error: 'Ingresa el monto a invertir', resultado: null }
+      return { error: t('calculadoraCdt.errorMontoVacio'), resultado: null }
     }
     if (!plazoMeses || Number(plazoMeses) <= 0) {
-      return { error: 'Ingresa el plazo en meses', resultado: null }
+      return { error: t('calculadoraCdt.errorPlazoVacio'), resultado: null }
     }
     if (tasaCdt === '' || Number(tasaCdt) < 0 || tasaCuenta === '' || Number(tasaCuenta) < 0) {
-      return { error: 'Ingresa las dos tasas de interés (% E.A.)', resultado: null }
+      return { error: t('calculadoraCdt.errorTasasVacias'), resultado: null }
     }
     if (Number(tasaCdt) > 100 || Number(tasaCuenta) > 100) {
-      return { error: 'Ingresa tasas razonables (hasta 100% E.A.)', resultado: null }
+      return { error: t('calculadoraCdt.errorTasasExcesivas'), resultado: null }
     }
 
     const P = Number(monto)
@@ -64,7 +71,7 @@ function CalculadoraCdt({ onVolver }) {
 
     if (!Number.isFinite(montoFinalCdt) || !Number.isFinite(montoFinalCuenta)) {
       return {
-        error: 'No se pudo calcular con estos datos. Revisa el monto, las tasas y el plazo.',
+        error: t('calculadoraCdt.errorCalculo'),
         resultado: null,
       }
     }
@@ -83,6 +90,31 @@ function CalculadoraCdt({ onVolver }) {
     }
   }, [monto, plazoMeses, tasaCdt, tasaCuenta, frecuenciaCuenta])
 
+  // La frase de comparación ("La cuenta de alto rendimiento rinde más, por
+  // $X al final del plazo") se arma completa por idioma vía t() -- nunca
+  // concatenando fragmentos sueltos, porque el orden de las palabras
+  // alrededor del monto cambia entre español e inglés. Para conservar el
+  // monto resaltado en negrita (mint) dentro de esa frase ya traducida, se
+  // ubica el texto del monto formateado dentro de la frase completa y se
+  // separa en "antes"/"después" alrededor de él.
+  const comparacion = useMemo(() => {
+    if (!resultado || Math.abs(resultado.diferencia) < 1) return null
+
+    const montoTexto = formatear(Math.round(Math.abs(resultado.diferencia)))
+    const ganador =
+      resultado.diferencia > 0 ? t('calculadoraCdt.ganadorCuenta') : t('calculadoraCdt.ganadorCdt')
+    const frase = t('calculadoraCdt.comparacion', { ganador, monto: montoTexto })
+    const indice = frase.indexOf(montoTexto)
+
+    if (indice === -1) return { antes: frase, monto: '', despues: '' }
+
+    return {
+      antes: frase.slice(0, indice),
+      monto: montoTexto,
+      despues: frase.slice(indice + montoTexto.length),
+    }
+  }, [resultado, formatear, t])
+
   return (
     <main className="min-h-screen bg-bg px-4 py-6">
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
@@ -90,31 +122,34 @@ function CalculadoraCdt({ onVolver }) {
           <button
             type="button"
             onClick={onVolver}
-            aria-label="Volver"
+            aria-label={t('calculadoraCdt.volverAria')}
             className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ←
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-text">CDT vs. cuenta de alto rendimiento</h1>
-            <p className="text-xs text-text-dim">Compara dónde rinde más tu plata</p>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-lg font-semibold text-text">{t('calculadoraCdt.titulo')}</h1>
+              <AyudaContextual clave="guia.ayuda.calcCdt" etiqueta={t('guia.ayuda.calcCdtAria')} />
+            </div>
+            <p className="text-xs text-text-dim">{t('calculadoraCdt.subtitulo')}</p>
           </div>
         </header>
 
         <div className="flex flex-col gap-4 rounded-2xl bg-panel p-4">
           <div>
             <label htmlFor="montoInvertir" className="mb-1 block text-xs text-text-dim">
-              Monto a invertir
+              {t('calculadoraCdt.montoLabel')}
             </label>
             <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
-              <span className="text-xl font-semibold text-text-dim">$</span>
+              <span className="text-xl font-semibold text-text-dim">{simbolo}</span>
               <input
                 id="montoInvertir"
                 type="text"
-                inputMode="numeric"
+                inputMode={decimales > 0 ? 'decimal' : 'numeric'}
                 placeholder="0"
-                value={monto ? new Intl.NumberFormat('es-CO').format(Number(monto)) : ''}
-                onChange={(evento) => setMonto(evento.target.value.replace(/\D/g, ''))}
+                value={formatearEntradaMonto(monto, moneda)}
+                onChange={(evento) => setMonto(limpiarEntradaMonto(evento.target.value, moneda))}
                 className="w-full bg-transparent text-xl font-semibold text-text outline-none placeholder:text-text-dim"
               />
             </div>
@@ -122,13 +157,13 @@ function CalculadoraCdt({ onVolver }) {
 
           <div>
             <label htmlFor="plazoCdt" className="mb-1 block text-xs text-text-dim">
-              Plazo (meses)
+              {t('calculadoraCdt.plazoLabel')}
             </label>
             <input
               id="plazoCdt"
               type="text"
               inputMode="numeric"
-              placeholder="Ej: 6"
+              placeholder={t('calculadoraCdt.plazoPlaceholder')}
               value={plazoMeses}
               onChange={(evento) => setPlazoMeses(evento.target.value.replace(/\D/g, ''))}
               className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
@@ -138,7 +173,7 @@ function CalculadoraCdt({ onVolver }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="tasaCdt" className="mb-1 block text-xs text-text-dim">
-                Tasa CDT (% E.A.)
+                {t('calculadoraCdt.tasaCdtLabel')}
               </label>
               <div className="flex items-center gap-1 rounded-2xl bg-panel-2 px-3 py-3">
                 <input
@@ -156,7 +191,7 @@ function CalculadoraCdt({ onVolver }) {
 
             <div>
               <label htmlFor="tasaCuenta" className="mb-1 block text-xs text-text-dim">
-                Tasa cuenta (% E.A.)
+                {t('calculadoraCdt.tasaCuentaLabel')}
               </label>
               <div className="flex items-center gap-1 rounded-2xl bg-panel-2 px-3 py-3">
                 <input
@@ -174,9 +209,7 @@ function CalculadoraCdt({ onVolver }) {
           </div>
 
           <div>
-            <p className="mb-1 block text-xs text-text-dim">
-              Frecuencia de liquidación (cuenta de alto rendimiento)
-            </p>
+            <p className="mb-1 block text-xs text-text-dim">{t('calculadoraCdt.frecuenciaLabel')}</p>
             <div className="grid grid-cols-2 gap-2 rounded-2xl bg-panel-2 p-1">
               <button
                 type="button"
@@ -188,7 +221,7 @@ function CalculadoraCdt({ onVolver }) {
                     : 'text-text-dim hover:text-text'
                 }`}
               >
-                Diaria
+                {t('calculadoraCdt.frecuenciaDiaria')}
               </button>
               <button
                 type="button"
@@ -200,7 +233,7 @@ function CalculadoraCdt({ onVolver }) {
                     : 'text-text-dim hover:text-text'
                 }`}
               >
-                Mensual
+                {t('calculadoraCdt.frecuenciaMensual')}
               </button>
             </div>
           </div>
@@ -214,7 +247,7 @@ function CalculadoraCdt({ onVolver }) {
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1 rounded-2xl bg-gold/10 p-4">
-                <p className="text-xs font-semibold text-gold">CDT</p>
+                <p className="text-xs font-semibold text-gold">{t('calculadoraCdt.cdtBadge')}</p>
                 <p className="text-lg font-bold text-text">
                   {formatear(Math.round(resultado.montoFinalCdt))}
                 </p>
@@ -224,7 +257,9 @@ function CalculadoraCdt({ onVolver }) {
               </div>
 
               <div className="flex flex-col gap-1 rounded-2xl bg-mint/10 p-4">
-                <p className="text-xs font-semibold text-mint">Cuenta alto rendimiento</p>
+                <p className="text-xs font-semibold text-mint">
+                  {t('calculadoraCdt.cuentaAltoRendimientoLabel')}
+                </p>
                 <p className="text-lg font-bold text-text">
                   {formatear(Math.round(resultado.montoFinalCuenta))}
                 </p>
@@ -235,15 +270,13 @@ function CalculadoraCdt({ onVolver }) {
             </div>
 
             <div className="rounded-2xl bg-panel p-4 text-center">
-              {Math.abs(resultado.diferencia) < 1 ? (
-                <p className="text-sm font-medium text-text">Ambas opciones rinden prácticamente igual</p>
+              {!comparacion ? (
+                <p className="text-sm font-medium text-text">{t('calculadoraCdt.empate')}</p>
               ) : (
                 <p className="text-sm font-medium text-text">
-                  {resultado.diferencia > 0 ? 'La cuenta de alto rendimiento' : 'El CDT'} rinde más, por{' '}
-                  <span className="font-bold text-mint">
-                    {formatear(Math.round(Math.abs(resultado.diferencia)))}
-                  </span>{' '}
-                  al final del plazo
+                  {comparacion.antes}
+                  <span className="font-bold text-mint">{comparacion.monto}</span>
+                  {comparacion.despues}
                 </p>
               )}
             </div>
@@ -252,25 +285,10 @@ function CalculadoraCdt({ onVolver }) {
 
         <div className="flex flex-col gap-2">
           <p className="rounded-2xl bg-panel-2 px-4 py-3 text-xs leading-relaxed text-text-dim">
-            ¿Diaria o mensual: cuál rinde más? Cuando dos productos anuncian la misma tasa
-            efectiva anual (E.A.), en realidad rinden prácticamente igual sin importar si liquidan
-            los intereses cada día o cada mes -- la E.A. ya lleva "incorporado" el efecto de la
-            capitalización, por eso se llama "efectiva". Lo que sí es cierto es la idea general:
-            entre más seguido te liquiden los intereses, más rápido empiezan esos intereses a
-            generar sus propios intereses (interés compuesto). Verás una ventaja real de la
-            liquidación diaria cuando las dos opciones parten de una tasa distinta a esa
-            frecuencia (no de la misma E.A.), o en el mundo real, por pequeñas diferencias en
-            cómo cada entidad cuenta los días.
+            {t('calculadoraCdt.notaFrecuencia')}
           </p>
           <p className="rounded-2xl bg-panel-2 px-4 py-3 text-xs leading-relaxed text-text-dim">
-            Supuesto de este cálculo: el CDT paga los intereses al vencimiento con su tasa E.A.
-            aplicada sobre el plazo en años. La cuenta de alto rendimiento liquida intereses con
-            la frecuencia que elijas arriba, así que su tasa E.A. se convierte a la tasa
-            equivalente por periodo (diaria o mensual) y se capitaliza periodo a periodo, usando
-            el promedio real de días por mes (365/12) para que el plazo en días y en meses
-            representen exactamente el mismo tiempo. Cálculo estimado con fines educativos: los
-            valores reales pueden variar por GMF, retención en la fuente u otras condiciones.
-            Consulta con tu entidad financiera.
+            {t('calculadoraCdt.notaSupuestos')}
           </p>
         </div>
       </div>

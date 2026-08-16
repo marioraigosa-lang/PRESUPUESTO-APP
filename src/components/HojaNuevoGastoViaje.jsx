@@ -3,6 +3,7 @@ import { useIdioma } from '../context/IdiomaContext'
 import { MONEDA_POR_DEFECTO, MONEDAS, configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import { fechaLocalISO } from '../utils/formatoFecha'
+import AyudaContextual from './AyudaContextual'
 
 // A diferencia de HojaNuevoMovimiento (gastos reales), cada gasto de viaje
 // tiene su PROPIA moneda -- no usa useMoneda() del perfil -- porque un mismo
@@ -187,7 +188,13 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
         </div>
 
         <div>
-          <p className="mb-1 block text-xs text-text-dim">{t('viajes.gastoFormulario.monedaLabel')}</p>
+          <div className="mb-1 flex items-center gap-1.5">
+            <p className="text-xs text-text-dim">{t('viajes.gastoFormulario.monedaLabel')}</p>
+            <AyudaContextual
+              clave="guia.ayuda.viajeGastoMoneda"
+              etiqueta={t('guia.ayuda.viajeGastoMonedaAria')}
+            />
+          </div>
           <div className="flex gap-2 rounded-full bg-panel-2 p-1">
             {Object.values(MONEDAS).map((opcion) => (
               <button

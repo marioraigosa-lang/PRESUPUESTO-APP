@@ -1,28 +1,19 @@
+// Los patrones detectan el mensaje de error que devuelve la API de Supabase
+// (siempre en inglés, sin importar el idioma activo de la app) y deciden
+// CUÁL clave de traducción corresponde -- no arman el texto final. Mismo
+// patrón que mensajeFondo.js: este util no es un componente y no tiene
+// acceso al idioma activo, así que quien llama (Login.jsx/Registro.jsx)
+// decide el idioma con t(clave).
 const traducciones = [
-  { patron: /invalid login credentials/i, mensaje: 'Correo o contraseña incorrectos' },
-  {
-    patron: /email not confirmed/i,
-    mensaje: 'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.',
-  },
-  {
-    patron: /user already registered|already been registered/i,
-    mensaje: 'Este correo ya está registrado. Intenta iniciar sesión.',
-  },
-  {
-    patron: /password should be at least/i,
-    mensaje: 'La contraseña debe tener al menos 6 caracteres',
-  },
-  {
-    patron: /unable to validate email address/i,
-    mensaje: 'El correo no tiene un formato válido',
-  },
-  {
-    patron: /rate limit/i,
-    mensaje: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
-  },
+  { patron: /invalid login credentials/i, clave: 'auth.errorCredenciales' },
+  { patron: /email not confirmed/i, clave: 'auth.errorEmailNoConfirmado' },
+  { patron: /user already registered|already been registered/i, clave: 'auth.errorYaRegistrado' },
+  { patron: /password should be at least/i, clave: 'auth.errorPasswordCorta' },
+  { patron: /unable to validate email address/i, clave: 'auth.errorEmailInvalido' },
+  { patron: /rate limit/i, clave: 'auth.errorLimiteIntentos' },
 ]
 
 export function traducirErrorAuth(mensaje) {
   const encontrada = traducciones.find(({ patron }) => patron.test(mensaje ?? ''))
-  return encontrada ? encontrada.mensaje : 'Ocurrió un error. Inténtalo de nuevo.'
+  return encontrada ? encontrada.clave : 'auth.errorGenerico'
 }

@@ -3,6 +3,7 @@ import AvatarUsuario from '../components/AvatarUsuario'
 import TarjetaViaje from '../components/TarjetaViaje'
 import HojaNuevoViaje from '../components/HojaNuevoViaje'
 import DetalleViaje from './DetalleViaje'
+import ResumenViaje from './ResumenViaje'
 import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
@@ -18,6 +19,11 @@ import * as categoriasViajeService from '../services/categoriasViaje'
 // -- al tocar una tarjeta de viaje se abre DetalleViaje.jsx con sus
 // categorías. Las fases siguientes (gastos, dashboard, resumen) reutilizan
 // este mismo esquema.
+//
+// Fase 5: agrega el modo 'resumen' -- desde el botón "Ver resumen" del
+// detalle se abre ResumenViaje.jsx para el mismo viaje. Al volver desde el
+// resumen se regresa al detalle (no a la lista), por eso "volverAlDetalle"
+// solo cambia el modo y conserva viajeSeleccionado.
 function Viajes() {
   const datosUsuario = useDatosUsuario()
   const { seleccionarPropio } = datosUsuario
@@ -69,6 +75,14 @@ function Viajes() {
     setViajeSeleccionado(null)
   }
 
+  function abrirResumenViaje() {
+    setModo('resumen')
+  }
+
+  function volverAlDetalle() {
+    setModo('detalle')
+  }
+
   async function agregarViaje(datos) {
     const data = await viajesService.agregarViaje(datosUsuario, datos)
     setViajes((actuales) => viajesService.ordenarPorCreacion([data, ...actuales]))
@@ -106,8 +120,12 @@ function Viajes() {
     }
   }
 
+  if (modo === 'resumen' && viajeSeleccionado) {
+    return <ResumenViaje viaje={viajeSeleccionado} onVolver={volverAlDetalle} />
+  }
+
   if (modo === 'detalle' && viajeSeleccionado) {
-    return <DetalleViaje viaje={viajeSeleccionado} onVolver={volverALista} />
+    return <DetalleViaje viaje={viajeSeleccionado} onVolver={volverALista} onVerResumen={abrirResumenViaje} />
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useIdioma } from '../context/IdiomaContext'
+import AyudaContextual from './AyudaContextual'
 
 function HojaNuevoViaje({ abierta, onCerrar, onGuardar, onActualizar, viajeEditando }) {
   const editando = Boolean(viajeEditando)
@@ -127,9 +128,15 @@ function HojaNuevoViaje({ abierta, onCerrar, onGuardar, onActualizar, viajeEdita
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text">
-            {editando ? t('viajes.formulario.editarTitulo') : t('viajes.formulario.nuevoTitulo')}
-          </h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-base font-semibold text-text">
+              {editando ? t('viajes.formulario.editarTitulo') : t('viajes.formulario.nuevoTitulo')}
+            </h2>
+            <AyudaContextual
+              clave="guia.ayuda.viajeEspacioAparte"
+              etiqueta={t('guia.ayuda.viajeEspacioAparteAria')}
+            />
+          </div>
           <button
             type="button"
             onClick={cerrarYLimpiar}

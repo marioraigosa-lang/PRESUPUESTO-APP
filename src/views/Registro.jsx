@@ -55,11 +55,7 @@ function Registro({ onCambiarModo }) {
     setEnviando(false)
 
     if (errorSupabase) {
-      // traducirErrorAuth todavía no distingue idioma (eso es de una fase
-      // posterior, junto con los demás "generadores de mensajes"): el
-      // mensaje de error de Supabase se sigue mostrando en español aunque
-      // el resto de esta pantalla ya esté en inglés.
-      setError(traducirErrorAuth(errorSupabase.message))
+      setError(t(traducirErrorAuth(errorSupabase.message)))
       return
     }
 

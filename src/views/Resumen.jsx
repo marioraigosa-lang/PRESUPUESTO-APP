@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AvatarUsuario from '../components/AvatarUsuario'
+import AyudaContextual from '../components/AyudaContextual'
 import FiltroResumen from '../components/FiltroResumen'
 import TarjetasTotalesResumen from '../components/TarjetasTotalesResumen'
 import GraficoMensualResumen from '../components/GraficoMensualResumen'
@@ -7,8 +8,8 @@ import DesgloseCategoriasResumen from '../components/DesgloseCategoriasResumen'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { useIdioma } from '../context/IdiomaContext'
-import { parsearFechaISO } from '../utils/formatoFecha'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import { calcularTotalesResumen, agruparGastosPorCategoria, agruparPorMes } from '../utils/resumenCalculos'
 
 const hoy = new Date()
 
@@ -51,59 +52,12 @@ function Resumen() {
     error,
   } = useConsulta(cargarPeriodo, [anioSeleccionado, mesSeleccionado], [])
 
-  const totalIngresos = movimientos
-    .filter((movimiento) => movimiento.tipo === 'ingreso')
-    .reduce((suma, movimiento) => suma + movimiento.monto, 0)
+  const { totalIngresos, totalGastosFijos, totalGastosVariables, totalGastos, balance } =
+    calcularTotalesResumen(movimientos)
 
-  const movimientosGasto = movimientos.filter((movimiento) => movimiento.tipo === 'gasto')
+  const gastosPorCategoria = agruparGastosPorCategoria(movimientos, totalGastos, t('resumen.sinCategoria'))
 
-  const totalGastosFijos = movimientosGasto
-    .filter((movimiento) => movimiento.categoria?.es_sistema)
-    .reduce((suma, movimiento) => suma + movimiento.monto, 0)
-
-  const totalGastosVariables = movimientosGasto
-    .filter((movimiento) => !movimiento.categoria?.es_sistema)
-    .reduce((suma, movimiento) => suma + movimiento.monto, 0)
-
-  const totalGastos = totalGastosVariables + totalGastosFijos
-  const balance = totalIngresos - totalGastos
-
-  const mapaCategorias = new Map()
-  movimientosGasto.forEach((movimiento) => {
-    const categoria = movimiento.categoria
-    const id = categoria?.id ?? 'sin-categoria'
-    const actual = mapaCategorias.get(id) ?? {
-      id,
-      nombre: categoria?.nombre ?? 'Sin categoría',
-      emoji: categoria?.emoji ?? '✨',
-      color: categoria?.color ?? '#9db0a6',
-      monto: 0,
-    }
-    actual.monto += movimiento.monto
-    mapaCategorias.set(id, actual)
-  })
-
-  const gastosPorCategoria = [...mapaCategorias.values()]
-    .sort((a, b) => b.monto - a.monto)
-    .map((item) => ({
-      ...item,
-      porcentaje: totalGastos === 0 ? 0 : Math.round((item.monto / totalGastos) * 100),
-    }))
-
-  const datosPorMes = Array.from({ length: 12 }, (_, mes) => {
-    const movimientosDelMes = movimientos.filter(
-      (movimiento) => parsearFechaISO(movimiento.fecha).getMonth() === mes,
-    )
-    return {
-      mes,
-      ingresos: movimientosDelMes
-        .filter((movimiento) => movimiento.tipo === 'ingreso')
-        .reduce((suma, movimiento) => suma + movimiento.monto, 0),
-      gastos: movimientosDelMes
-        .filter((movimiento) => movimiento.tipo === 'gasto')
-        .reduce((suma, movimiento) => suma + movimiento.monto, 0),
-    }
-  })
+  const datosPorMes = agruparPorMes(movimientos)
 
   const sinMovimientos = !cargando && !error && movimientos.length === 0
 
@@ -112,7 +66,13 @@ function Resumen() {
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-text">{t('resumen.titulo')}</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-lg font-semibold text-text">{t('resumen.titulo')}</h1>
+              <AyudaContextual
+                clave="guia.ayuda.resumenTotales"
+                etiqueta={t('guia.ayuda.resumenTotalesAria')}
+              />
+            </div>
             <p className="text-xs text-text-dim">{t('resumen.subtitulo')}</p>
           </div>
           <AvatarUsuario />

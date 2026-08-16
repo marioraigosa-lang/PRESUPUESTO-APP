@@ -1,4 +1,5 @@
 import { useIdioma } from '../context/IdiomaContext'
+import AyudaContextual from './AyudaContextual'
 
 function GraficoMensualResumen({ datos }) {
   const { t } = useIdioma()
@@ -8,9 +9,12 @@ function GraficoMensualResumen({ datos }) {
   return (
     <section className="flex flex-col gap-3 rounded-2xl bg-panel p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-          {t('resumen.graficoTitulo')}
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+            {t('resumen.graficoTitulo')}
+          </h2>
+          <AyudaContextual clave="guia.ayuda.resumenGrafico" etiqueta={t('guia.ayuda.resumenGraficoAria')} />
+        </div>
         <div className="flex items-center gap-3 text-[11px] text-text-dim">
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-mint" /> {t('resumen.ingresos')}

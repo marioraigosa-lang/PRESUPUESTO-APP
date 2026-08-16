@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import HojaCategoria from '../components/HojaCategoria'
 import HojaReasignarCategoria from '../components/HojaReasignarCategoria'
+import AyudaContextual from '../components/AyudaContextual'
+import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 
 function GestionCategorias({
@@ -14,6 +16,7 @@ function GestionCategorias({
   onEliminarCategoria,
   onReasignarYEliminarCategoria,
 }) {
+  const { t } = useIdioma()
   const formatear = useFormatoMoneda()
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [categoriaEditando, setCategoriaEditando] = useState(null)
@@ -62,13 +65,13 @@ function GestionCategorias({
       }
 
       const confirmado = window.confirm(
-        `¿Eliminar la categoría "${categoria.nombre}"? Esta acción no se puede deshacer.`,
+        t('categorias.gestion.confirmarEliminar', { nombre: categoria.nombre }),
       )
       if (!confirmado) return
 
       await onEliminarCategoria(categoria)
     } catch (error) {
-      setErrorAccion(`No se pudo eliminar la categoría: ${error.message}`)
+      setErrorAccion(t('categorias.gestion.errorEliminar') + error.message)
     } finally {
       setEliminandoId(null)
     }
@@ -86,14 +89,14 @@ function GestionCategorias({
           <button
             type="button"
             onClick={onVolver}
-            aria-label="Volver"
+            aria-label={t('categorias.gestion.volverAria')}
             className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ←
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-text">Gestionar categorías</h1>
-            <p className="text-xs text-text-dim">Crea, edita y elimina tus categorías de gasto</p>
+            <h1 className="text-lg font-semibold text-text">{t('categorias.gestion.titulo')}</h1>
+            <p className="text-xs text-text-dim">{t('categorias.gestion.subtitulo')}</p>
           </div>
         </header>
 
@@ -102,24 +105,27 @@ function GestionCategorias({
           onClick={abrirCrear}
           className="w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg"
         >
-          + Agregar categoría
+          {t('categorias.gestion.agregarCategoria')}
         </button>
 
         {errorAccion && (
           <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorAccion}</p>
         )}
 
-        {cargandoCategorias && <p className="px-2 text-sm text-text-dim">Cargando categorías...</p>}
+        {cargandoCategorias && (
+          <p className="px-2 text-sm text-text-dim">{t('categorias.gestion.cargando')}</p>
+        )}
 
         {errorCategorias && (
           <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            Error al cargar las categorías: {errorCategorias}
+            {t('categorias.gestion.errorCargar')}
+            {errorCategorias}
           </p>
         )}
 
         {!cargandoCategorias && !errorCategorias && categoriasGestionables.length === 0 && (
           <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">
-            Aún no tienes categorías. Crea la primera con "+ Agregar categoría".
+            {t('categorias.gestion.sinCategorias')}
           </p>
         )}
 
@@ -139,15 +145,15 @@ function GestionCategorias({
                 )}
                 <p className="truncate text-xs text-text-dim">
                   {categoria.presupuesto
-                    ? `Tope mensual: ${formatear(categoria.presupuesto)}`
-                    : 'Sin tope definido'}
+                    ? t('categorias.gestion.topeMensual', { monto: formatear(categoria.presupuesto) })
+                    : t('categorias.gestion.sinTopeDefinido')}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <button
                   type="button"
                   onClick={() => abrirEditar(categoria)}
-                  aria-label={`Editar categoría ${categoria.nombre}`}
+                  aria-label={t('categorias.gestion.editarAria', { nombre: categoria.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
                 >
                   ✏️
@@ -156,7 +162,7 @@ function GestionCategorias({
                   type="button"
                   onClick={() => manejarEliminar(categoria)}
                   disabled={eliminandoId === categoria.id}
-                  aria-label={`Eliminar categoría ${categoria.nombre}`}
+                  aria-label={t('categorias.gestion.eliminarAria', { nombre: categoria.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
                 >
                   🗑
@@ -177,11 +183,15 @@ function GestionCategorias({
                 <div className="flex items-center gap-2">
                   <p className="truncate text-sm font-medium text-text">{categoriaSistema.nombre}</p>
                   <span className="shrink-0 rounded-full bg-line px-2 py-0.5 text-[10px] font-semibold text-text-dim">
-                    🔒 Categoría del sistema
+                    {t('categorias.gestion.sistemaEtiqueta')}
                   </span>
+                  <AyudaContextual
+                    clave="guia.ayuda.categoriaSistema"
+                    etiqueta={t('guia.ayuda.categoriaSistemaAria')}
+                  />
                 </div>
                 <p className="truncate text-xs text-text-dim">
-                  Se usa para los gastos fijos pagados. No se puede editar ni eliminar.
+                  {t('categorias.gestion.sistemaDescripcion')}
                 </p>
               </div>
             </div>

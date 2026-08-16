@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useFormatoMoneda } from '../context/MonedaContext'
+import { useIdioma } from '../context/IdiomaContext'
+import { useFormatoMoneda, useMoneda } from '../context/MonedaContext'
+import { configMoneda } from '../utils/monedas'
+import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import AyudaContextual from '../components/AyudaContextual'
 
 function sanitizarDecimal(valor) {
   const limpio = valor.replace(/[^\d.]/g, '')
@@ -8,7 +12,10 @@ function sanitizarDecimal(valor) {
 }
 
 function CalculadoraAhorro({ onVolver }) {
+  const { t } = useIdioma()
   const formatear = useFormatoMoneda()
+  const { moneda } = useMoneda()
+  const { simbolo, decimales } = configMoneda(moneda)
   const [aporteMensual, setAporteMensual] = useState('')
   const [montoInicial, setMontoInicial] = useState('')
   const [plazo, setPlazo] = useState('')
@@ -20,16 +27,20 @@ function CalculadoraAhorro({ onVolver }) {
     const inicial = montoInicial ? Number(montoInicial) : 0
 
     if (aporte <= 0 && inicial <= 0) {
-      return { error: 'Ingresa un aporte mensual o un monto inicial', resultado: null }
+      return { error: t('calculadoraAhorro.errorSinAporte'), resultado: null }
     }
     if (!plazo || Number(plazo) <= 0) {
-      return { error: `Ingresa el plazo en ${unidadPlazo}`, resultado: null }
+      const unidad =
+        unidadPlazo === 'años'
+          ? t('calculadoraAhorro.unidadAniosTexto')
+          : t('calculadoraAhorro.unidadMesesTexto')
+      return { error: t('calculadoraAhorro.errorPlazoVacio', { unidad }), resultado: null }
     }
     if (tasaEA === '' || Number(tasaEA) < 0) {
-      return { error: 'Ingresa la tasa de rendimiento (% E.A.)', resultado: null }
+      return { error: t('calculadoraAhorro.errorTasaVacia'), resultado: null }
     }
     if (Number(tasaEA) > 100) {
-      return { error: 'Ingresa una tasa razonable (hasta 100% E.A.)', resultado: null }
+      return { error: t('calculadoraAhorro.errorTasaExcesiva'), resultado: null }
     }
 
     const n = unidadPlazo === 'años' ? Number(plazo) * 12 : Number(plazo)
@@ -47,7 +58,7 @@ function CalculadoraAhorro({ onVolver }) {
 
     if (!Number.isFinite(totalAcumulado)) {
       return {
-        error: 'No se pudo calcular con estos datos. Revisa el aporte, la tasa y el plazo.',
+        error: t('calculadoraAhorro.errorCalculo'),
         resultado: null,
       }
     }
@@ -65,31 +76,34 @@ function CalculadoraAhorro({ onVolver }) {
           <button
             type="button"
             onClick={onVolver}
-            aria-label="Volver"
+            aria-label={t('calculadoraAhorro.volverAria')}
             className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ←
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-text">Ahorro con interés compuesto</h1>
-            <p className="text-xs text-text-dim">Proyecta cuánto acumularías ahorrando cada mes</p>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-lg font-semibold text-text">{t('calculadoraAhorro.titulo')}</h1>
+              <AyudaContextual clave="guia.ayuda.calcAhorroInteres" etiqueta={t('guia.ayuda.calcAhorroInteresAria')} />
+            </div>
+            <p className="text-xs text-text-dim">{t('calculadoraAhorro.subtitulo')}</p>
           </div>
         </header>
 
         <div className="flex flex-col gap-4 rounded-2xl bg-panel p-4">
           <div>
             <label htmlFor="aporteMensual" className="mb-1 block text-xs text-text-dim">
-              Aporte mensual
+              {t('calculadoraAhorro.aporteLabel')}
             </label>
             <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
-              <span className="text-xl font-semibold text-text-dim">$</span>
+              <span className="text-xl font-semibold text-text-dim">{simbolo}</span>
               <input
                 id="aporteMensual"
                 type="text"
-                inputMode="numeric"
+                inputMode={decimales > 0 ? 'decimal' : 'numeric'}
                 placeholder="0"
-                value={aporteMensual ? new Intl.NumberFormat('es-CO').format(Number(aporteMensual)) : ''}
-                onChange={(evento) => setAporteMensual(evento.target.value.replace(/\D/g, ''))}
+                value={formatearEntradaMonto(aporteMensual, moneda)}
+                onChange={(evento) => setAporteMensual(limpiarEntradaMonto(evento.target.value, moneda))}
                 className="w-full bg-transparent text-xl font-semibold text-text outline-none placeholder:text-text-dim"
               />
             </div>
@@ -97,29 +111,33 @@ function CalculadoraAhorro({ onVolver }) {
 
           <div>
             <label htmlFor="montoInicial" className="mb-1 block text-xs text-text-dim">
-              Monto inicial (opcional)
+              {t('calculadoraAhorro.montoInicialLabel')}
             </label>
             <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
-              <span className="text-xl font-semibold text-text-dim">$</span>
+              <span className="text-xl font-semibold text-text-dim">{simbolo}</span>
               <input
                 id="montoInicial"
                 type="text"
-                inputMode="numeric"
+                inputMode={decimales > 0 ? 'decimal' : 'numeric'}
                 placeholder="0"
-                value={montoInicial ? new Intl.NumberFormat('es-CO').format(Number(montoInicial)) : ''}
-                onChange={(evento) => setMontoInicial(evento.target.value.replace(/\D/g, ''))}
+                value={formatearEntradaMonto(montoInicial, moneda)}
+                onChange={(evento) => setMontoInicial(limpiarEntradaMonto(evento.target.value, moneda))}
                 className="w-full bg-transparent text-xl font-semibold text-text outline-none placeholder:text-text-dim"
               />
             </div>
           </div>
 
           <div>
-            <p className="mb-1 text-xs text-text-dim">Plazo</p>
+            <p className="mb-1 text-xs text-text-dim">{t('calculadoraAhorro.plazoLabel')}</p>
             <div className="flex gap-2">
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder={unidadPlazo === 'años' ? 'Ej: 5' : 'Ej: 24'}
+                placeholder={
+                  unidadPlazo === 'años'
+                    ? t('calculadoraAhorro.plazoPlaceholderAnios')
+                    : t('calculadoraAhorro.plazoPlaceholderMeses')
+                }
                 value={plazo}
                 onChange={(evento) => setPlazo(evento.target.value.replace(/\D/g, ''))}
                 className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
@@ -132,7 +150,7 @@ function CalculadoraAhorro({ onVolver }) {
                     unidadPlazo === 'meses' ? 'bg-mint text-bg' : 'text-text-dim'
                   }`}
                 >
-                  Meses
+                  {t('calculadoraAhorro.unidadMesesLabel')}
                 </button>
                 <button
                   type="button"
@@ -141,7 +159,7 @@ function CalculadoraAhorro({ onVolver }) {
                     unidadPlazo === 'años' ? 'bg-mint text-bg' : 'text-text-dim'
                   }`}
                 >
-                  Años
+                  {t('calculadoraAhorro.unidadAniosLabel')}
                 </button>
               </div>
             </div>
@@ -149,7 +167,7 @@ function CalculadoraAhorro({ onVolver }) {
 
           <div>
             <label htmlFor="tasaAhorro" className="mb-1 block text-xs text-text-dim">
-              Tasa de rendimiento (% E.A.)
+              {t('calculadoraAhorro.tasaLabel')}
             </label>
             <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
               <input
@@ -173,21 +191,21 @@ function CalculadoraAhorro({ onVolver }) {
         {resultado && (
           <div className="flex flex-col gap-3 rounded-2xl bg-panel p-4">
             <div className="rounded-2xl bg-mint/10 px-4 py-3 text-center">
-              <p className="text-xs text-text-dim">Total acumulado</p>
+              <p className="text-xs text-text-dim">{t('calculadoraAhorro.totalAcumuladoLabel')}</p>
               <p className="text-2xl font-bold text-mint">
                 {formatear(Math.round(resultado.totalAcumulado))}
               </p>
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-sm text-text-dim">Total aportado por ti</p>
+              <p className="text-sm text-text-dim">{t('calculadoraAhorro.totalAportadoLabel')}</p>
               <p className="text-sm font-semibold text-text">
                 {formatear(Math.round(resultado.totalAportado))}
               </p>
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-sm text-text-dim">Intereses ganados</p>
+              <p className="text-sm text-text-dim">{t('calculadoraAhorro.interesesGanadosLabel')}</p>
               <p className="text-sm font-semibold text-gold">
                 {formatear(Math.round(resultado.totalIntereses))}
               </p>
@@ -196,10 +214,7 @@ function CalculadoraAhorro({ onVolver }) {
         )}
 
         <p className="rounded-2xl bg-panel-2 px-4 py-3 text-xs leading-relaxed text-text-dim">
-          Asume que el aporte se hace al final de cada mes y que el rendimiento se capitaliza
-          mensualmente a partir de la tasa E.A. ingresada. Cálculo estimado con fines educativos:
-          los productos reales pueden tener condiciones distintas. Consulta las condiciones exactas
-          con tu entidad financiera.
+          {t('calculadoraAhorro.notaEducativa')}
         </p>
       </div>
     </main>

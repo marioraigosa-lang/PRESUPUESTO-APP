@@ -99,6 +99,7 @@ export default {
     balancePeriodo: 'Period balance',
     graficoTitulo: 'Income and expenses by month',
     categoriasTitulo: 'Expenses by category',
+    sinCategoria: 'No category',
   },
 
   emergencia: {
@@ -130,6 +131,7 @@ export default {
     metaErrorEliminar: "Couldn't delete the goal: ",
     sinMetas: 'You don\'t have any savings goals yet. Create your first one with "+ New goal".',
     confirmarEliminarMeta: 'Delete "{{nombre}}"? This action cannot be undone.',
+    metaProgreso: '{{ahorrado}} of {{objetivo}}',
     metaAlcanzada: '🎉 Goal reached!',
     verProyeccion: 'View projection ▾',
     ocultarProyeccion: 'Hide projection ▴',
@@ -137,6 +139,217 @@ export default {
     anioSinFecha: '{{anio}} · No target date',
     editarMetaAria: 'Edit goal {{nombre}}',
     eliminarMetaAria: 'Delete goal {{nombre}}',
+    metaSinFecha: "This goal doesn't have a target date. Edit it and choose a month and year to see its projection.",
+    proyeccion: {
+      fechaPasada: "📅 The target date ({{fecha}}) has already passed. Update your goal's date to see a real projection.",
+      capacidadNegativa:
+        "⚠️ Your expenses exceed your income by {{exceso}}, so your savings aren't growing. Balance your budget before working toward this goal.",
+      sobrado: "🎉 You're ahead of schedule! At this pace you'll reach your goal before {{fecha}}. You could raise your target.",
+      enCamino: "✅ You're on track. Saving {{ahorroMensual}} a month gets you to your goal by {{fecha}}.",
+      noAlcanza:
+        "📊 At this pace you'll reach {{proyeccion}}, leaving you {{diferencia}} short. To get there you need to save {{necesario}} a month (you're currently saving {{ahorroMensual}}). Options: cut {{recorte}} from expenses, lower your goal to {{proyeccion}}, or push back the date.",
+    },
+    metaFormulario: {
+      nuevoTitulo: 'New savings goal',
+      editarTitulo: 'Edit savings goal',
+      cerrarAria: 'Close',
+      nombreLabel: 'Name',
+      nombrePlaceholder: 'E.g. 2026 savings goal',
+      montoLabel: 'Target amount',
+      fechaLabel: 'Target date (month and year)',
+      errorNombreVacio: 'Enter a name for the goal',
+      errorMontoInvalido: 'Enter a target amount greater than zero',
+      errorFechaVacia: 'Choose the month and year for your goal',
+      errorGuardar: "Couldn't save the goal: ",
+      guardando: 'Saving...',
+      guardarCambios: 'Save changes',
+      guardarMeta: 'Save goal',
+    },
+  },
+
+  cuentas: {
+    gestion: {
+      volverAria: 'Back',
+      titulo: 'Manage accounts',
+      subtitulo: 'Add, edit, and flag your savings accounts',
+      agregarCuenta: '+ Add account',
+      cargando: 'Loading accounts...',
+      errorCargar: "Couldn't load your accounts: ",
+      errorEliminar: "Couldn't delete the account: ",
+      errorActualizar: "Couldn't update the account: ",
+      confirmarEliminar: 'Delete the account "{{nombre}}"? This action cannot be undone.',
+      sinCuentas: 'You don\'t have any accounts yet. Create your first one with "+ Add account".',
+      badgeAhorro: 'Savings',
+      editarAria: 'Edit account {{nombre}}',
+      eliminarAria: 'Delete account {{nombre}}',
+      fondoAhorroLabel: 'Emergency fund account',
+      fondoAhorroAria: 'Mark {{nombre}} as a savings account',
+    },
+    formulario: {
+      nuevoTitulo: 'New account',
+      editarTitulo: 'Edit account',
+      cerrarAria: 'Close',
+      nombreLabel: 'Name',
+      nombrePlaceholder: 'E.g. Nequi',
+      tipoLabel: 'Type (optional)',
+      tipoPlaceholder: 'E.g. Savings account',
+      colorLabel: 'Color',
+      colorAria: 'Color {{color}}',
+      saldoLabel: 'Balance',
+      esAhorroPregunta: 'Is this balance part of your emergency fund?',
+      esAhorroAyuda: 'Savings or investment accounts count toward your cushion for the unexpected.',
+      esAhorroAria: 'Is this account part of your emergency fund?',
+      errorNombreVacio: 'Enter a name for the account',
+      errorSaldoInvalido: 'Enter a valid balance',
+      errorGuardar: "Couldn't save the account: ",
+      guardando: 'Saving...',
+      guardarCambios: 'Save changes',
+      guardarCuenta: 'Save account',
+    },
+  },
+
+  categorias: {
+    gestion: {
+      volverAria: 'Back',
+      titulo: 'Manage categories',
+      subtitulo: 'Create, edit, and delete your expense categories',
+      agregarCategoria: '+ Add category',
+      cargando: 'Loading categories...',
+      errorCargar: "Couldn't load your categories: ",
+      errorEliminar: "Couldn't delete the category: ",
+      confirmarEliminar: 'Delete the category "{{nombre}}"? This action cannot be undone.',
+      sinCategorias: 'You don\'t have any categories yet. Create your first one with "+ Add category".',
+      topeMensual: 'Monthly cap: {{monto}}',
+      sinTopeDefinido: 'No cap set',
+      editarAria: 'Edit category {{nombre}}',
+      eliminarAria: 'Delete category {{nombre}}',
+      sistemaEtiqueta: '🔒 System category',
+      sistemaDescripcion: "Used for paid fixed expenses. It can't be edited or deleted.",
+    },
+    formulario: {
+      nuevoTitulo: 'New category',
+      editarTitulo: 'Edit category',
+      cerrarAria: 'Close',
+      nombreLabel: 'Name',
+      nombrePlaceholder: 'E.g. Groceries',
+      emojiLabel: 'Emoji',
+      emojiAria: 'Category emoji',
+      emojiAyuda: 'Type one or pick below',
+      colorLabel: 'Color',
+      colorAria: 'Color {{color}}',
+      presupuestoLabel: 'Monthly cap (optional)',
+      presupuestoPlaceholder: 'No cap',
+      presupuestoAyuda:
+        "Leave it empty if you don't want to set a cap for this category; only the total spent will be shown.",
+      descripcionLabel: 'Description (optional)',
+      descripcionPlaceholder: 'E.g. Coffee, snacks, tips...',
+      descripcionAyuda: 'A short helper text shown below the category name.',
+      errorNombreVacio: 'Enter a name for the category',
+      errorEmojiVacio: 'Choose an emoji',
+      errorPresupuestoInvalido: "The monthly cap can't be negative",
+      errorGuardar: "Couldn't save the category: ",
+      guardando: 'Saving...',
+      guardarCambios: 'Save changes',
+      guardarCategoria: 'Save category',
+    },
+    reasignar: {
+      titulo: 'Move expenses and delete',
+      cerrarAria: 'Close',
+      contador: {
+        uno: '"{{nombre}}" has {{count}} transaction',
+        otro: '"{{nombre}}" has {{count}} transactions',
+      },
+      instruccion: 'To delete "{{nombre}}", first choose which category its expenses will move to.',
+      moverALabel: 'Move expenses to',
+      sinOpciones: "You don't have another category available. Create one first.",
+      errorSeleccionVacia: 'Select a destination category',
+      errorGuardar: "Couldn't complete the action: ",
+      moviendo: 'Moving and deleting...',
+      confirmar: 'Move expenses and delete category',
+    },
+  },
+
+  gastosFijos: {
+    gestion: {
+      volverAria: 'Back',
+      titulo: 'Manage fixed expenses',
+      subtitulo: 'Create, edit, and delete your fixed expenses',
+      agregarGastoFijo: '+ Add fixed expense',
+      cargando: 'Loading fixed expenses...',
+      errorCargar: "Couldn't load your fixed expenses: ",
+      errorEliminar: "Couldn't delete the fixed expense: ",
+      sinGastosFijos: 'You don\'t have any fixed expenses yet. Create your first one with "+ Add fixed expense".',
+      confirmarEliminarPagado:
+        '"{{nombre}}" is already paid. Deleting it will refund {{monto}} to the account and remove the linked transaction. This action cannot be undone. Continue?',
+      confirmarEliminarPendiente: 'Delete the fixed expense "{{nombre}}"? This action cannot be undone.',
+      estadoPagado: 'Paid',
+      estadoPendiente: 'Pending',
+      editarAria: 'Edit fixed expense {{nombre}}',
+      eliminarAria: 'Delete fixed expense {{nombre}}',
+    },
+    formulario: {
+      nuevoTitulo: 'New fixed expense',
+      editarTitulo: 'Edit fixed expense',
+      cerrarAria: 'Close',
+      nombreLabel: 'Name',
+      nombrePlaceholder: 'E.g. Rent',
+      montoLabel: 'Monthly amount',
+      montoBloqueadoAyuda:
+        'This expense is already paid. To change the amount, first unmark it from the main screen.',
+      diaPagoLabel: 'Due day (optional)',
+      diaPagoPlaceholder: 'E.g. 5',
+      errorNombreVacio: 'Enter a name for the fixed expense',
+      errorMontoInvalido: 'Enter a valid amount',
+      errorDiaPagoInvalido: 'The due day must be between 1 and 31',
+      errorGuardar: "Couldn't save the fixed expense: ",
+      guardando: 'Saving...',
+      guardarCambios: 'Save changes',
+      guardarGastoFijo: 'Save fixed expense',
+    },
+  },
+
+  movimientos: {
+    formulario: {
+      nuevoTitulo: 'New transaction',
+      editarTitulo: 'Edit transaction',
+      cerrarAria: 'Close',
+      trasladoBadge: '🔄 Transfer between accounts',
+      tipoLabel: 'Type',
+      tipoGasto: 'Expense',
+      tipoIngreso: 'Income',
+      tipoTraslado: 'Transfer',
+      montoLabel: 'Amount',
+      errorMontoVacio: 'Enter an amount',
+      errorCuentasTraslado: 'Select the source and destination accounts',
+      errorCuentasIguales: 'The source and destination accounts must be different',
+      cuentasBloqueadasLabel: "Accounts (can't be changed while editing)",
+      cuentasBloqueadasAyuda: 'Picked the wrong account? Delete this transfer and create a new one.',
+      cuentaOrigenLabel: 'Source account',
+      cuentaDestinoLabel: 'Destination account',
+      sufijoOrigen: ' (source)',
+      minimoCuentasTraslado: 'You need at least 2 accounts to make a transfer.',
+      cuentaLabel: 'Account',
+      categoriaLabel: 'Category',
+      descripcionLabel: 'Description (optional)',
+      descripcionPlaceholderTraslado: 'E.g. Monthly savings',
+      descripcionPlaceholderGasto: 'E.g. Movies with friends',
+      errorGuardar: "Couldn't save the transaction: ",
+      guardando: 'Saving...',
+      guardarCambios: 'Save changes',
+      guardarMovimiento: 'Save transaction',
+      cuentaGenerica: 'Account',
+      cuentaEliminada: 'Deleted account',
+    },
+    elegirCuentaPago: {
+      titulo: 'Mark as paid',
+      cerrarAria: 'Close',
+      preguntaCuenta: 'Which account was it paid from?',
+      sinCuentas: "You don't have any accounts registered yet.",
+      errorSinCuenta: 'Select an account',
+      errorGuardar: "Couldn't mark it as paid: ",
+      guardando: 'Saving...',
+      confirmar: 'Confirm payment',
+    },
   },
 
   viajes: {
@@ -220,6 +433,16 @@ export default {
       gastosSinCategoriaTitulo: 'Expenses without a category',
       gastosSinCategoriaNota:
         'These expenses ended up without a category (for example, because the category they belonged to was deleted).',
+      verResumen: 'View summary',
+    },
+    resumen: {
+      titulo: 'Trip summary',
+      volverAria: 'Back to trip details',
+      cargando: 'Loading summary...',
+      errorCargar: 'Error loading summary: ',
+      sinGastos: "You haven't logged any expenses for this trip yet.",
+      totalesTitulo: 'Total spent',
+      listaTitulo: 'All expenses',
     },
     categoriaFormulario: {
       nuevoTitulo: 'New category',
@@ -259,6 +482,86 @@ export default {
     },
   },
 
+  calculadoraCredito: {
+    volverAria: 'Back',
+    titulo: 'Loan payment',
+    subtitulo: 'French amortization system (fixed installment)',
+    montoLabel: 'Loan amount',
+    tasaLabel: 'Interest rate (% E.A. — Annual Effective Rate)',
+    plazoLabel: 'Term',
+    plazoMeses: { uno: '{{count}} month', otro: '{{count}} months' },
+    plazoAnios: { uno: '{{count}} year', otro: '{{count}} years' },
+    plazoVivienda: 'mortgage',
+    errorMontoVacio: 'Enter the loan amount',
+    errorTasaVacia: 'Enter the interest rate (% E.A.)',
+    errorTasaExcesiva: 'Enter a reasonable rate (up to 300% E.A.)',
+    errorCalculo: "Couldn't calculate with this data. Check the amount, rate, and term.",
+    cuotaMensualLabel: 'Monthly payment',
+    totalAPagar: {
+      uno: 'Total to pay ({{count}} installment)',
+      otro: 'Total to pay ({{count}} installments)',
+    },
+    totalInteresesLabel: 'Total interest',
+    tasaMensualLabel: 'Equivalent monthly rate',
+    notaEducativa:
+      "This is an estimate for educational purposes. Your bank's actual figures may vary due to insurance, fees, or other charges. Check the exact terms with your bank.",
+  },
+
+  calculadoraCdt: {
+    volverAria: 'Back',
+    titulo: 'CD vs. high-yield savings account',
+    subtitulo: 'Compare where your money grows more',
+    montoLabel: 'Amount to invest',
+    plazoLabel: 'Term (months)',
+    plazoPlaceholder: 'E.g. 6',
+    tasaCdtLabel: 'CD rate (% E.A.)',
+    tasaCuentaLabel: 'Account rate (% E.A.)',
+    frecuenciaLabel: 'Compounding frequency (high-yield account)',
+    frecuenciaDiaria: 'Daily',
+    frecuenciaMensual: 'Monthly',
+    errorMontoVacio: 'Enter the amount to invest',
+    errorPlazoVacio: 'Enter the term in months',
+    errorTasasVacias: 'Enter both interest rates (% E.A.)',
+    errorTasasExcesivas: 'Enter reasonable rates (up to 100% E.A.)',
+    errorCalculo: "Couldn't calculate with this data. Check the amount, rates, and term.",
+    cdtBadge: 'CD',
+    cuentaAltoRendimientoLabel: 'High-yield account',
+    ganadorCuenta: 'The high-yield account',
+    ganadorCdt: 'The CD',
+    comparacion: '{{ganador}} earns {{monto}} more by the end of the term',
+    empate: 'Both options perform about the same',
+    notaFrecuencia:
+      'Daily or monthly — which pays more? When two products advertise the same annual effective rate (E.A.), they actually perform almost identically no matter how often interest is paid out — the effective rate already "bakes in" the effect of compounding, which is why it\'s called "effective." What is true in general is this: the more often interest is paid out, the sooner it starts earning interest on itself (compound interest). You\'ll see a real edge from daily compounding when the two options start from a different rate at that frequency (not the same effective annual rate), or in real life, from small differences in how each institution counts days.',
+    notaSupuestos:
+      "Assumptions behind this calculation: the CD pays interest at maturity, with its effective annual rate applied over the term in years. The high-yield account pays out interest at the frequency you choose above, so its effective annual rate is converted to the equivalent rate per period (daily or monthly) and compounds period by period, using the real average days per month (365/12) so the term in days and in months represent exactly the same amount of time. This is an estimate for educational purposes: actual returns can vary due to financial transaction taxes, withholding tax, or other conditions specific to your country and bank. Check with your financial institution.",
+  },
+
+  calculadoraAhorro: {
+    volverAria: 'Back',
+    titulo: 'Compound interest savings',
+    subtitulo: "Project how much you'd save each month",
+    aporteLabel: 'Monthly contribution',
+    montoInicialLabel: 'Initial amount (optional)',
+    plazoLabel: 'Term',
+    plazoPlaceholderMeses: 'E.g. 24',
+    plazoPlaceholderAnios: 'E.g. 5',
+    unidadMesesLabel: 'Months',
+    unidadAniosLabel: 'Years',
+    unidadMesesTexto: 'months',
+    unidadAniosTexto: 'years',
+    tasaLabel: 'Return rate (% E.A.)',
+    errorSinAporte: 'Enter a monthly contribution or an initial amount',
+    errorPlazoVacio: 'Enter the term in {{unidad}}',
+    errorTasaVacia: 'Enter the return rate (% E.A.)',
+    errorTasaExcesiva: 'Enter a reasonable rate (up to 100% E.A.)',
+    errorCalculo: "Couldn't calculate with this data. Check the contribution, rate, and term.",
+    totalAcumuladoLabel: 'Total accumulated',
+    totalAportadoLabel: 'Total contributed by you',
+    interesesGanadosLabel: 'Interest earned',
+    notaEducativa:
+      'Assumes the contribution is made at the end of each month and that returns compound monthly based on the effective annual rate you entered. This is an estimate for educational purposes: actual products may have different terms. Check the exact terms with your bank.',
+  },
+
   login: {
     bienvenida: 'Welcome back',
     subtitulo: 'Sign in to see your accounts',
@@ -272,6 +575,16 @@ export default {
     entrar: 'Sign in',
     noTienesCuenta: "Don't have an account?",
     registrate: 'Sign up',
+  },
+
+  auth: {
+    errorCredenciales: 'Incorrect email or password',
+    errorEmailNoConfirmado: 'You need to confirm your email before signing in. Check your inbox.',
+    errorYaRegistrado: 'This email is already registered. Try signing in instead.',
+    errorPasswordCorta: 'Password must be at least 6 characters',
+    errorEmailInvalido: "That email address isn't valid",
+    errorLimiteIntentos: 'Too many attempts. Wait a moment and try again.',
+    errorGenerico: 'Something went wrong. Please try again.',
   },
 
   perfil: {
@@ -293,6 +606,184 @@ export default {
     calcCdtDescripcion: 'Compare where your money earns more',
     calcAhorroTitulo: 'Savings with compound interest',
     calcAhorroDescripcion: 'Project your monthly savings',
+    ayudaTitulo: 'Help',
+    guiaTitulo: 'User guide',
+    guiaDescripcion: 'How every part of the app works',
+  },
+
+  // Content for GuiaUso.jsx (Phase 1 of the user guide, reachable from
+  // More -> User guide). This is long text and will keep growing as the app
+  // gains new features -- REVIEW AND UPDATE this section whenever a big
+  // feature gets added, so the guide doesn't go stale. `completa.<section>.texto`
+  // can hold several paragraphs separated by '\n\n' (GuiaUso.jsx renders
+  // them with "whitespace-pre-line").
+  guia: {
+    volverAria: 'Back',
+    titulo: 'User guide',
+    subtitulo: 'How every part of Saldo works',
+    intro:
+      "This is Saldo's full guide. Tap any section to see how it works -- come back anytime, there's nothing to memorize.",
+    // Welcome carousel cards (Phase 3, GuiaBienvenida.jsx): shown ONLY the
+    // first time a new user signs in (see GuiaContext.jsx / perfiles.guia_vista).
+    // Capped at 4 cards on purpose, to avoid overwhelming -- the last one
+    // always points to this full guide.
+    bienvenida: {
+      saltar: 'Skip',
+      anterior: 'Back',
+      siguiente: 'Next',
+      empezar: 'Get started',
+      tarjeta1Titulo: 'Welcome to Saldo! 👋',
+      tarjeta1Texto:
+        "Your app for keeping track of your personal finances, without the hassle. Let's walk through the essentials in a few seconds.",
+      tarjeta2Titulo: 'Log your transactions',
+      tarjeta2Texto:
+        'Add income and expenses with the "+" button on Home. You can also log transfers between your own accounts, without affecting your stats.',
+      tarjeta3Titulo: 'Take care of your emergency fund',
+      tarjeta3Texto:
+        'The Emergency tab shows how many months of expenses you have covered, and lets you create savings goals for what comes next.',
+      tarjeta4Titulo: 'The full guide is waiting for you',
+      tarjeta4Texto:
+        "You'll find the complete User guide under More, with details on every part of the app -- come back anytime you need it.",
+    },
+    // Text for the "?" help icons (Phase 2, AyudaContextual.jsx): 1-2 short
+    // sentences next to specific features, unlike "completa" (below), which
+    // is the long per-topic explanation. Each key also has its "...Aria"
+    // (the "?" button's aria-label: describes WHAT it explains, since a "?"
+    // alone says nothing to a screen reader).
+    ayuda: {
+      movimientoTipos:
+        'Income is money coming in, expense is money going out, and a transfer moves money between two of your own accounts without counting as either.',
+      movimientoTiposAria: 'Help: difference between income, expense, and transfer',
+      gastoFijoPagado:
+        "Marking it as paid lets you choose which account the money came out of: the app creates a real transaction, deducts that account's balance, and logs it in your history.",
+      gastoFijoPagadoAria: 'Help: what happens when you mark a fixed expense as paid',
+      fondoEmergenciaCalculo:
+        "It's calculated by adding up the balance of your accounts marked as savings and dividing it by your average monthly spending: the result is how many months you could get by without income.",
+      fondoEmergenciaCalculoAria: 'Help: how the emergency fund is calculated',
+      cuentaEsAhorro:
+        "Turn this on if the account is savings or an investment: its balance will automatically count toward your emergency fund.",
+      cuentaEsAhorroAria: 'Help: what marking an account as part of the emergency fund means',
+      presupuestoOpcional:
+        "It's optional: leave it empty and the category has no cap -- it'll just show how much you've spent.",
+      presupuestoOpcionalAria: "Help: a category's monthly cap is optional",
+      // Phase 3: tooltips expand to the rest of the app's key features.
+      gastosVariables:
+        "These are your everyday expenses (groceries, transport, leisure...). They're grouped by category automatically, so you can see at a glance where your money goes each month.",
+      gastosVariablesAria: "Help: what variable expenses are and how they're grouped",
+      categoriaSistema:
+        "This category is created automatically by the app for your paid fixed expenses. It can't be edited or deleted, so you always have one consistent place to see them.",
+      categoriaSistemaAria: 'Help: what the system category Fixed expenses is',
+      categoriaDescripcion:
+        'It\'s a short optional text shown below the category\'s name, handy for remembering what kind of expenses belong there (like "coffee, snacks, tips...").',
+      categoriaDescripcionAria: "Help: what a category's description is for",
+      metaFecha:
+        "It's the month and year you want to reach this goal by. The app uses that date to calculate how much is left and project whether you'll get there in time.",
+      metaFechaAria: "Help: what a goal's target date is for",
+      metaProyeccion:
+        "It compares how much you need to save each month to reach the goal against your current saving capacity (your average income minus your average expenses), and tells you whether you're on track or need to adjust something.",
+      metaProyeccionAria: "Help: what a goal's projection means",
+      quincena:
+        "The 1st half covers days 1 to 15 of the month, and the 2nd half covers day 16 to the end. Fixed expenses always show for the whole month, no matter which half you pick.",
+      quincenaAria: 'Help: what the 1st and 2nd half of the month mean',
+      traslados:
+        "A transfer moves money between two of your own accounts (like from savings to your everyday account). It doesn't count as income or expense, and it's excluded from your Summary stats.",
+      trasladosAria: 'Help: what a transfer is and how it affects your stats',
+      resumenTotales:
+        'Total income and expenses for the period you\'ve selected, with expenses split into fixed and variable, plus your final balance (income minus expenses).',
+      resumenTotalesAria: 'Help: what the Summary totals show',
+      resumenGrafico:
+        'It compares your income and expenses month by month across the whole year, so you can spot at a glance which months you spent more or earned less.',
+      resumenGraficoAria: 'Help: what the monthly chart shows',
+      resumenDesglose:
+        'It shows which categories your money went to during the period, from highest to lowest, with the percentage each one represents of your total spending.',
+      resumenDesgloseAria: 'Help: what the category breakdown shows',
+      viajeEspacioAparte:
+        "Trips are a separate space for budgeting: expenses you log here do NOT affect your real accounts or transactions -- they're just for planning.",
+      viajeEspacioAparteAria: 'Help: how trips relate to your real accounts',
+      viajeCategoriaPresupuesto:
+        "Each trip category has its own budget and its own currency (say, lodging in USD and food in COP), independent of your profile's currency.",
+      viajeCategoriaPresupuestoAria: "Help: how a trip category's budget works",
+      viajeGastoMoneda:
+        "You can log each expense in the currency of the country you're visiting -- it doesn't have to match your profile's currency. The trip summary groups totals by every currency you use.",
+      viajeGastoMonedaAria: 'Help: how expenses in different currencies work',
+      viajeDashboard:
+        "Each category's bar compares how much you've spent against its budget: it stays calm while you're on track, and warns you as you get close to or go over the cap.",
+      viajeDashboardAria: "Help: how to read each category's budget progress",
+      multiMoneda:
+        "Currency only changes the symbol and format your amounts are shown in across the app. It doesn't convert your values: if you had 1,000,000, you'll still see 1,000,000 in the new currency.",
+      multiMonedaAria: "Help: what your profile's currency does",
+      calcCuota:
+        "It works out your fixed monthly loan payment (French amortization system) from the amount, the interest rate (E.A.), and the term. It doesn't move real money -- it's just for simulating.",
+      calcCuotaAria: 'Help: what this calculator does',
+      calcCdt:
+        'It compares how much your money earns in a CD (which pays interest at the end) versus a high-yield account (which compounds daily or monthly), for the same amount and term.',
+      calcCdtAria: 'Help: what this calculator does',
+      calcAhorroInteres:
+        "It projects how much you'd build up by saving a fixed amount every month (plus an optional starting amount) at a given compound interest rate.",
+      calcAhorroInteresAria: 'Help: what this calculator does',
+    },
+    completa: {
+      movimientos: {
+        titulo: 'Transactions',
+        texto:
+          'A transaction is any money moving in or out: an income (like your paycheck), an expense (a purchase), or a transfer (moving money between two of your own accounts, like from savings to your everyday account).\n\nTap "+ Add transaction" on Home to log one: choose the type, the amount, the account (and a category, for expenses). To edit or delete a transaction you already logged, just tap it in the Home list.',
+      },
+      cuentas: {
+        titulo: 'Accounts',
+        texto:
+          "Accounts represent where your money actually sits: a bank account, cash, a digital wallet, an investment, and so on. Every transaction you log moves money in or out of some account, so its balance updates on its own.\n\nYou can mark an account as part of your emergency fund (your savings, say, or a low-risk investment) -- its balance then counts automatically toward how many months of expenses you have covered.",
+      },
+      categorias: {
+        titulo: 'Categories',
+        texto:
+          'Categories classify your expenses (Groceries, Transport, Leisure...) so the Summary can show you where your money actually goes. You can create your own, pick an emoji and color, and set an optional monthly cap if you want to keep a closer eye on one.\n\nThere\'s a special "Fixed expenses" category the app creates for you: it\'s used for the fixed expenses you mark as paid, and it can\'t be edited or deleted, so you always have one consistent place to see them.',
+      },
+      gastosFijos: {
+        titulo: 'Fixed expenses',
+        texto:
+          "Fixed expenses are the ones that repeat every month for roughly the same amount: rent, utilities, subscriptions. You set them up once, with a name and expected amount.\n\nEach month you mark them as paid from the Fixed Expenses screen, choose which account the money came out of, and the app automatically creates a real transaction: that account's balance drops and the expense is logged in your history -- no need to enter it twice.",
+      },
+      gastosVariables: {
+        titulo: 'Variable expenses',
+        texto:
+          "These are your everyday expenses without a fixed amount: groceries, transport, leisure. You log them like any other expense transaction, picking the matching category.\n\nIf you set a monthly cap on a category, the app shows you how much you've spent against that cap, to help you keep it in check.",
+      },
+      fondoEmergencia: {
+        titulo: 'Emergency fund',
+        texto:
+          'Your emergency fund is your cushion for the unexpected: how many months you could get by if your income stopped. The app calculates it for you, adding up the balance of the accounts you marked as "savings" and comparing it to your average monthly spending.\n\nSet how many months you want as your goal (3 to 6 is the recommended range) and you\'ll see your progress on a visual ring: the fuller it is, the better covered you are.',
+      },
+      metas: {
+        titulo: 'Savings goals',
+        texto:
+          "Beyond the emergency fund, you can create savings goals for specific things (a trip, a new laptop...): give it a name, an amount, and a target date.\n\nBased on your current saving capacity, the app projects whether you're on track to reach it in time, ahead of schedule, or need to adjust the amount, the date, or how much you save each month.",
+      },
+      periodo: {
+        titulo: 'Month and pay-period filter',
+        texto:
+          "On Home you can filter your transactions by month, and within a month, by pay period (1st half, 2nd half, or the whole month) -- handy if you get paid twice a month and just want to see what's happened since your last paycheck.\n\nThis filter also controls which period you're looking at in the Summary.",
+      },
+      resumen: {
+        titulo: 'Summary',
+        texto:
+          "Summary gives you the full picture for a period: total income, expenses (split into fixed and variable), and your balance. There's also a chart comparing every month of the year, and a breakdown of which categories your money went to, from highest to lowest.",
+      },
+      viajes: {
+        titulo: 'Plan your trips',
+        texto:
+          "A separate space to budget a trip without mixing those numbers with your real accounts and transactions. Create a trip, add categories with their own budget (lodging, food, transport...), and log expenses as they happen.\n\nEach expense can be logged in the currency of the country you're visiting (it doesn't have to match your profile's currency), and the trip summary shows the total spent grouped by every currency you used.",
+      },
+      calculadoras: {
+        titulo: 'Calculators',
+        texto:
+          "Three educational tools to help you plan ahead, found under More:\n\n• Loan payment: works out your monthly payment (French amortization system) from an amount, rate, and term.\n• CD vs. high-yield savings account: compares which one earns more for the same money over the same time.\n• Compound interest savings: projects how much you'd build up by saving a set amount every month.\n\nThey don't move real money and nothing gets saved -- they're just for simulating.",
+      },
+      preferencias: {
+        titulo: 'Currency and language',
+        texto:
+          "You choose your currency (COP, USD, or EUR) and your language (Spanish or English) when you sign up. Currency controls how amounts are displayed across the app -- it doesn't convert your numbers, only the format.\n\nYou can change your currency anytime from More -> Profile. Language, on the other hand, is set once, when you create your account.",
+      },
+    },
   },
 
   registro: {

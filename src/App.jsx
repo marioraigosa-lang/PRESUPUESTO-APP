@@ -9,9 +9,13 @@ import PantallaAuth from './views/PantallaAuth'
 import NavegacionInferior from './components/NavegacionInferior'
 import BotonAgregar from './components/BotonAgregar'
 import HojaNuevoMovimiento from './components/HojaNuevoMovimiento'
+import GuiaBienvenida from './components/GuiaBienvenida'
 import Resumen from './views/Resumen'
 import Viajes from './views/Viajes'
 import { useAuth } from './context/AuthContext'
+import { useMoneda } from './context/MonedaContext'
+import { useIdioma } from './context/IdiomaContext'
+import { useGuia } from './context/GuiaContext'
 import { useDatosUsuario } from './lib/datosUsuario'
 import * as categoriasService from './services/categorias'
 import * as cuentasService from './services/cuentas'
@@ -20,6 +24,9 @@ import * as gastosFijosService from './services/gastosFijos'
 
 function App() {
   const { sesion, cargando } = useAuth()
+  const { cargando: cargandoMoneda } = useMoneda()
+  const { cargando: cargandoIdioma } = useIdioma()
+  const { guiaVista, cargando: cargandoGuia } = useGuia()
   const datosUsuario = useDatosUsuario()
   const { seleccionarPropio } = datosUsuario
   const [vista, setVista] = useState('inicio')
@@ -279,8 +286,19 @@ function App() {
     return <PantallaAuth />
   }
 
+  // Espera a que moneda/idioma/guia_vista ya hayan cargado (los 3 se leen
+  // de "perfiles" al iniciar sesión, cada uno en su propio contexto) antes
+  // de decidir si mostrar la bienvenida. Sin esto, guiaVista empezaría en
+  // su valor por defecto (true) y GuiaBienvenida podría alcanzar a
+  // mostrarse un instante en español para un usuario en inglés, antes de
+  // que IdiomaContext termine de leer su idioma real -- el mismo problema
+  // de parpadeo que ya evita, por ejemplo, useConsulta.
+  const mostrarBienvenida = !cargandoMoneda && !cargandoIdioma && !cargandoGuia && !guiaVista
+
   return (
     <>
+      {mostrarBienvenida && <GuiaBienvenida />}
+
       {vista === 'inicio' && (
         <Home
           cuentas={cuentas}
@@ -334,7 +352,7 @@ function App() {
       {vista === 'viajes' && <Viajes />}
       {vista === 'mas' && <Perfil />}
 
-      <BotonAgregar onClick={abrirNuevoMovimiento} />
+      {vista === 'inicio' && <BotonAgregar onClick={abrirNuevoMovimiento} />}
 
       <HojaNuevoMovimiento
         abierta={hojaAbierta}

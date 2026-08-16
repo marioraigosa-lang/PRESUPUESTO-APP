@@ -3,6 +3,7 @@ import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { mesAnioLargoDesdeISO } from '../utils/formatoFecha'
 import { generarRecomendacionMeta } from '../utils/proyeccionMeta'
+import AyudaContextual from './AyudaContextual'
 
 const CLASES_TONO = {
   alerta: 'bg-coral/10 text-coral',
@@ -20,11 +21,8 @@ function TarjetaMeta({ meta, ahorrado, capacidadAhorroMensual, eliminando, onEdi
   const logrado = porcentaje >= 100
   const anchoBarra = Math.min(Math.max(porcentaje, 0), 100)
 
-  // generarRecomendacionMeta (y el mensaje de respaldo sin fecha objetivo,
-  // acá abajo) todavía no distinguen idioma -- son "generadores de mensaje"
-  // como traducirErrorAuth, y esos se traducen en una fase posterior. Se
-  // siguen mostrando en español aunque el resto de la tarjeta ya esté en
-  // inglés.
+  // generarRecomendacionMeta devuelve clave+valores (no el texto ya
+  // armado), así que acá es donde se decide el idioma con t().
   const recomendacion = meta.fecha_objetivo
     ? generarRecomendacionMeta({
         ahorroActual: ahorrado,
@@ -32,11 +30,9 @@ function TarjetaMeta({ meta, ahorrado, capacidadAhorroMensual, eliminando, onEdi
         fechaObjetivo: meta.fecha_objetivo,
         montoObjetivo: objetivo,
         formatear,
+        idioma,
       })
-    : {
-        tono: 'aviso',
-        mensaje: 'Esta meta no tiene fecha objetivo. Edítala y elige un mes y año para ver la proyección.',
-      }
+    : { tono: 'aviso', clave: 'emergencia.metaSinFecha' }
 
   return (
     <div className={`flex flex-col gap-3 rounded-2xl p-4 ${logrado ? 'bg-mint/10' : 'bg-panel'}`}>
@@ -79,7 +75,7 @@ function TarjetaMeta({ meta, ahorrado, capacidadAhorroMensual, eliminando, onEdi
 
       <div className="flex items-center justify-between">
         <p className={`text-xs ${logrado ? 'text-mint' : 'text-text-dim'}`}>
-          {formatear(ahorrado)} de {formatear(objetivo)}
+          {t('emergencia.metaProgreso', { ahorrado: formatear(ahorrado), objetivo: formatear(objetivo) })}
         </p>
         <p className={`text-xs font-semibold ${logrado ? 'text-mint' : 'text-text'}`}>
           {Math.round(porcentaje)}%
@@ -88,17 +84,20 @@ function TarjetaMeta({ meta, ahorrado, capacidadAhorroMensual, eliminando, onEdi
 
       {logrado && <p className="text-xs font-medium text-mint">{t('emergencia.metaAlcanzada')}</p>}
 
-      <button
-        type="button"
-        onClick={() => setDetalleAbierto((actual) => !actual)}
-        className="self-start text-xs font-semibold text-text-dim hover:text-text"
-      >
-        {detalleAbierto ? t('emergencia.ocultarProyeccion') : t('emergencia.verProyeccion')}
-      </button>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => setDetalleAbierto((actual) => !actual)}
+          className="self-start text-xs font-semibold text-text-dim hover:text-text"
+        >
+          {detalleAbierto ? t('emergencia.ocultarProyeccion') : t('emergencia.verProyeccion')}
+        </button>
+        <AyudaContextual clave="guia.ayuda.metaProyeccion" etiqueta={t('guia.ayuda.metaProyeccionAria')} />
+      </div>
 
       {detalleAbierto && (
         <p className={`rounded-xl px-3 py-2 text-xs leading-relaxed ${CLASES_TONO[recomendacion.tono]}`}>
-          {recomendacion.mensaje}
+          {t(recomendacion.clave, recomendacion.valores)}
         </p>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useIdioma } from '../context/IdiomaContext'
 import { MONEDA_POR_DEFECTO, MONEDAS, configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import AyudaContextual from './AyudaContextual'
 
 const EMOJIS_SUGERIDOS = ['🎟️', '🚗', '🛍️', '🏖️', '📷', '🎒', '⛱️', '🍹']
 
@@ -206,9 +207,15 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
         </div>
 
         <div>
-          <label htmlFor="presupuestoCategoriaViaje" className="mb-1 block text-xs text-text-dim">
-            {t('viajes.categoriaFormulario.presupuestoLabel')}
-          </label>
+          <div className="mb-1 flex items-center gap-1.5">
+            <label htmlFor="presupuestoCategoriaViaje" className="text-xs text-text-dim">
+              {t('viajes.categoriaFormulario.presupuestoLabel')}
+            </label>
+            <AyudaContextual
+              clave="guia.ayuda.viajeCategoriaPresupuesto"
+              etiqueta={t('guia.ayuda.viajeCategoriaPresupuestoAria')}
+            />
+          </div>
           <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
             <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
             <input

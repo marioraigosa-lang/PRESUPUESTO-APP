@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import Interruptor from './Interruptor'
+import AyudaContextual from './AyudaContextual'
+import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
@@ -17,6 +19,7 @@ const COLORES = [
 
 function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando }) {
   const editando = Boolean(cuentaEditando)
+  const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
 
@@ -71,11 +74,11 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
     evento.preventDefault()
 
     if (!nombre.trim()) {
-      setError('Ingresa un nombre para la cuenta')
+      setError(t('cuentas.formulario.errorNombreVacio'))
       return
     }
     if (saldo === '' || Number(saldo) < 0) {
-      setError('Ingresa un saldo válido')
+      setError(t('cuentas.formulario.errorSaldoInvalido'))
       return
     }
 
@@ -111,7 +114,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t('cuentas.formulario.cerrarAria')}
         onClick={cerrarYLimpiar}
         className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
       />
@@ -124,12 +127,12 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-text">
-            {editando ? 'Editar cuenta' : 'Nueva cuenta'}
+            {editando ? t('cuentas.formulario.editarTitulo') : t('cuentas.formulario.nuevoTitulo')}
           </h2>
           <button
             type="button"
             onClick={cerrarYLimpiar}
-            aria-label="Cerrar"
+            aria-label={t('cuentas.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ×
@@ -138,40 +141,40 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
         <div>
           <label htmlFor="nombreCuenta" className="mb-1 block text-xs text-text-dim">
-            Nombre
+            {t('cuentas.formulario.nombreLabel')}
           </label>
           <input
             id="nombreCuenta"
             type="text"
             value={nombre}
             onChange={manejarCambioNombre}
-            placeholder="Ej: Nequi"
+            placeholder={t('cuentas.formulario.nombrePlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
         </div>
 
         <div>
           <label htmlFor="tipoCuenta" className="mb-1 block text-xs text-text-dim">
-            Tipo (opcional)
+            {t('cuentas.formulario.tipoLabel')}
           </label>
           <input
             id="tipoCuenta"
             type="text"
             value={tipo}
             onChange={(evento) => setTipo(evento.target.value)}
-            placeholder="Ej: Cuenta de ahorros"
+            placeholder={t('cuentas.formulario.tipoPlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-text-dim">Color</p>
+          <p className="mb-1 text-xs text-text-dim">{t('cuentas.formulario.colorLabel')}</p>
           <div className="flex flex-wrap gap-2">
             {COLORES.map((opcion) => (
               <button
                 key={opcion}
                 type="button"
-                aria-label={`Color ${opcion}`}
+                aria-label={t('cuentas.formulario.colorAria', { color: opcion })}
                 onClick={() => setColor(opcion)}
                 className={`h-8 w-8 rounded-full transition-shadow ${
                   color === opcion ? 'ring-2 ring-text ring-offset-2 ring-offset-panel' : ''
@@ -184,7 +187,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
         <div>
           <label htmlFor="saldoCuenta" className="mb-1 block text-xs text-text-dim">
-            Saldo
+            {t('cuentas.formulario.saldoLabel')}
           </label>
           <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
             <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
@@ -202,23 +205,30 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-panel-2 px-4 py-3">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-text">
-              ¿El saldo de esta cuenta es parte de tu fondo de emergencia?
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-text">{t('cuentas.formulario.esAhorroPregunta')}</p>
+              <AyudaContextual
+                clave="guia.ayuda.cuentaEsAhorro"
+                etiqueta={t('guia.ayuda.cuentaEsAhorroAria')}
+              />
+            </div>
             <p className="mt-0.5 text-xs leading-snug text-text-dim">
-              Las cuentas de ahorro o inversión suman a tu colchón para imprevistos.
+              {t('cuentas.formulario.esAhorroAyuda')}
             </p>
           </div>
           <Interruptor
             activo={esAhorro}
             onCambiar={() => setEsAhorro((actual) => !actual)}
-            etiqueta="¿Esta cuenta es parte de tu fondo de emergencia?"
+            etiqueta={t('cuentas.formulario.esAhorroAria')}
           />
         </div>
 
         {error && <p className="text-xs text-coral">{error}</p>}
         {errorGuardado && (
-          <p className="text-xs text-coral">No se pudo guardar la cuenta: {errorGuardado}</p>
+          <p className="text-xs text-coral">
+            {t('cuentas.formulario.errorGuardar')}
+            {errorGuardado}
+          </p>
         )}
 
         <button
@@ -226,7 +236,11 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
           disabled={guardando}
           className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
         >
-          {guardando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Guardar cuenta'}
+          {guardando
+            ? t('cuentas.formulario.guardando')
+            : editando
+              ? t('cuentas.formulario.guardarCambios')
+              : t('cuentas.formulario.guardarCuenta')}
         </button>
       </form>
     </div>

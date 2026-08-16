@@ -1,5 +1,6 @@
 import { tituloMes, etiquetaQuincena } from '../utils/formatoPeriodo'
 import { useIdioma } from '../context/IdiomaContext'
+import AyudaContextual from './AyudaContextual'
 
 const OPCIONES_QUINCENA = ['primera', 'segunda', 'completo']
 
@@ -30,22 +31,25 @@ function SelectorPeriodo({ periodo, onMesAnterior, onMesSiguiente, onCambiarQuin
         </button>
       </div>
 
-      <div className="flex gap-2">
-        {OPCIONES_QUINCENA.map((opcion) => {
-          const activo = opcion === periodo.quincena
-          return (
-            <button
-              key={opcion}
-              type="button"
-              onClick={() => onCambiarQuincena(opcion)}
-              className={`flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                activo ? 'bg-mint text-bg' : 'bg-panel-2 text-text-dim hover:text-text'
-              }`}
-            >
-              {etiquetaQuincena(opcion, idioma)}
-            </button>
-          )
-        })}
+      <div className="flex items-center gap-2">
+        <div className="flex flex-1 gap-2">
+          {OPCIONES_QUINCENA.map((opcion) => {
+            const activo = opcion === periodo.quincena
+            return (
+              <button
+                key={opcion}
+                type="button"
+                onClick={() => onCambiarQuincena(opcion)}
+                className={`flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  activo ? 'bg-mint text-bg' : 'bg-panel-2 text-text-dim hover:text-text'
+                }`}
+              >
+                {etiquetaQuincena(opcion, idioma)}
+              </button>
+            )
+          })}
+        </div>
+        <AyudaContextual clave="guia.ayuda.quincena" etiqueta={t('guia.ayuda.quincenaAria')} />
       </div>
     </section>
   )

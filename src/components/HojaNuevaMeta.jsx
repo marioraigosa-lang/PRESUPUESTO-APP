@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import AyudaContextual from './AyudaContextual'
 
 function mesAnioActual() {
   const hoy = new Date()
@@ -18,6 +20,7 @@ function ultimoDiaDelMes(mesAnio) {
 
 function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditando }) {
   const editando = Boolean(metaEditando)
+  const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
 
@@ -73,15 +76,15 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
     evento.preventDefault()
 
     if (!nombre.trim()) {
-      setError('Ingresa un nombre para la meta')
+      setError(t('emergencia.metaFormulario.errorNombreVacio'))
       return
     }
     if (!monto || Number(monto) <= 0) {
-      setError('Ingresa un monto objetivo mayor a cero')
+      setError(t('emergencia.metaFormulario.errorMontoInvalido'))
       return
     }
     if (!mesAnioObjetivo) {
-      setError('Elige el mes y año para tu meta')
+      setError(t('emergencia.metaFormulario.errorFechaVacia'))
       return
     }
 
@@ -118,7 +121,7 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t('emergencia.metaFormulario.cerrarAria')}
         onClick={cerrarYLimpiar}
         className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
       />
@@ -131,12 +134,14 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
 
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-text">
-            {editando ? 'Editar meta de ahorro' : 'Nueva meta de ahorro'}
+            {editando
+              ? t('emergencia.metaFormulario.editarTitulo')
+              : t('emergencia.metaFormulario.nuevoTitulo')}
           </h2>
           <button
             type="button"
             onClick={cerrarYLimpiar}
-            aria-label="Cerrar"
+            aria-label={t('emergencia.metaFormulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ×
@@ -145,21 +150,21 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
 
         <div>
           <label htmlFor="nombreMeta" className="mb-1 block text-xs text-text-dim">
-            Nombre
+            {t('emergencia.metaFormulario.nombreLabel')}
           </label>
           <input
             id="nombreMeta"
             type="text"
             value={nombre}
             onChange={manejarCambioNombre}
-            placeholder="Ej: Meta de ahorro 2026"
+            placeholder={t('emergencia.metaFormulario.nombrePlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
         </div>
 
         <div>
           <label htmlFor="montoMeta" className="mb-1 block text-xs text-text-dim">
-            Monto objetivo
+            {t('emergencia.metaFormulario.montoLabel')}
           </label>
           <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
             <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
@@ -176,9 +181,12 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
         </div>
 
         <div>
-          <label htmlFor="fechaMeta" className="mb-1 block text-xs text-text-dim">
-            Fecha objetivo (mes y año)
-          </label>
+          <div className="mb-1 flex items-center gap-1.5">
+            <label htmlFor="fechaMeta" className="text-xs text-text-dim">
+              {t('emergencia.metaFormulario.fechaLabel')}
+            </label>
+            <AyudaContextual clave="guia.ayuda.metaFecha" etiqueta={t('guia.ayuda.metaFechaAria')} />
+          </div>
           <input
             id="fechaMeta"
             type="month"
@@ -190,7 +198,10 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
 
         {error && <p className="text-xs text-coral">{error}</p>}
         {errorGuardado && (
-          <p className="text-xs text-coral">No se pudo guardar la meta: {errorGuardado}</p>
+          <p className="text-xs text-coral">
+            {t('emergencia.metaFormulario.errorGuardar')}
+            {errorGuardado}
+          </p>
         )}
 
         <button
@@ -198,7 +209,11 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
           disabled={guardando}
           className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
         >
-          {guardando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Guardar meta'}
+          {guardando
+            ? t('emergencia.metaFormulario.guardando')
+            : editando
+              ? t('emergencia.metaFormulario.guardarCambios')
+              : t('emergencia.metaFormulario.guardarMeta')}
         </button>
       </form>
     </div>

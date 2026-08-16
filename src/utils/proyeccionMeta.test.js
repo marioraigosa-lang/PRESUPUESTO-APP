@@ -8,10 +8,15 @@ const HOY = new Date(2026, 0, 15)
 
 // `formatear` en la app de verdad viene de useFormatoMoneda() (formatea con
 // el símbolo de la moneda activa). Aquí usamos una versión simple que solo
-// antepone "$", así los mensajes son fáciles de leer y las pruebas no
+// antepone "$", así los valores son fáciles de leer y las pruebas no
 // dependen del formato de moneda (eso ya se prueba aparte en formatoMoneda.test.js).
 const formatear = (valor) => `$${valor}`
 
+// Desde esta fase, generarRecomendacionMeta devuelve clave+valores (no un
+// string ya armado en español) -- mismo patrón que mensajeFondo.js -- así
+// que las pruebas verifican qué clave cae en cada caso y qué valores se le
+// pasarían a t(clave, valores), en vez de buscar fragmentos de texto en
+// español dentro de un mensaje.
 describe('generarRecomendacionMeta', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -34,8 +39,8 @@ describe('generarRecomendacionMeta', () => {
     })
 
     expect(resultado.tono).toBe('positivo')
-    expect(resultado.mensaje).toContain('sobrado')
-    expect(resultado.mensaje).toContain('julio 2026')
+    expect(resultado.clave).toBe('emergencia.proyeccion.sobrado')
+    expect(resultado.valores).toEqual({ fecha: 'julio 2026' })
   })
 
   it('escenario "justo alcanza": la proyección llega exactamente al 100% de la meta', () => {
@@ -51,16 +56,15 @@ describe('generarRecomendacionMeta', () => {
     })
 
     expect(resultado.tono).toBe('positivo')
-    expect(resultado.mensaje).toContain('Vas en camino')
-    expect(resultado.mensaje).toContain('$200000')
-    expect(resultado.mensaje).toContain('noviembre 2026')
+    expect(resultado.clave).toBe('emergencia.proyeccion.enCamino')
+    expect(resultado.valores).toEqual({ ahorroMensual: '$200000', fecha: 'noviembre 2026' })
   })
 
   it('escenario "no alcanza": la proyección queda por debajo de la meta', () => {
     // 3 meses por delante, ahorrando 50.000/mes desde 100.000: se proyectan
     // 250.000 contra una meta de 1.000.000 -> 25%, muy por debajo.
-    // Verificamos los 3 números clave que el mensaje debe calcular:
-    // cuánto faltaría, cuánto habría que ahorrar al mes, y cuánto recortar.
+    // Verificamos los valores clave que el mensaje debe calcular: cuánto
+    // faltaría, cuánto habría que ahorrar al mes, y cuánto recortar.
     const resultado = generarRecomendacionMeta({
       ahorroActual: 100000,
       capacidadAhorroMensual: 50000,
@@ -70,10 +74,14 @@ describe('generarRecomendacionMeta', () => {
     })
 
     expect(resultado.tono).toBe('aviso')
-    expect(resultado.mensaje).toContain('$250000') // proyección
-    expect(resultado.mensaje).toContain('$750000') // lo que faltaría (1.000.000 - 250.000)
-    expect(resultado.mensaje).toContain('$300000') // necesario al mes ((1.000.000-100.000)/3)
-    expect(resultado.mensaje).toContain('$250000') // recorte necesario (300.000 - 50.000)
+    expect(resultado.clave).toBe('emergencia.proyeccion.noAlcanza')
+    expect(resultado.valores).toEqual({
+      proyeccion: '$250000',
+      diferencia: '$750000', // lo que faltaría (1.000.000 - 250.000)
+      necesario: '$300000', // necesario al mes ((1.000.000-100.000)/3)
+      ahorroMensual: '$50000',
+      recorte: '$250000', // recorte necesario (300.000 - 50.000)
+    })
   })
 
   it('escenario "capacidad de ahorro negativa": los gastos superan los ingresos', () => {
@@ -88,8 +96,8 @@ describe('generarRecomendacionMeta', () => {
     })
 
     expect(resultado.tono).toBe('alerta')
-    expect(resultado.mensaje).toContain('gastos superan')
-    expect(resultado.mensaje).toContain('$100000')
+    expect(resultado.clave).toBe('emergencia.proyeccion.capacidadNegativa')
+    expect(resultado.valores).toEqual({ exceso: '$100000' })
   })
 
   it('escenario "fecha objetivo ya pasó"', () => {
@@ -102,8 +110,8 @@ describe('generarRecomendacionMeta', () => {
     })
 
     expect(resultado.tono).toBe('alerta')
-    expect(resultado.mensaje).toContain('ya pasó')
-    expect(resultado.mensaje).toContain('diciembre 2025')
+    expect(resultado.clave).toBe('emergencia.proyeccion.fechaPasada')
+    expect(resultado.valores).toEqual({ fecha: 'diciembre 2025' })
   })
 
   it('caso límite: el día de la meta ya pasó este mes -> 0 meses restantes (sin división entre cero)', () => {
@@ -125,6 +133,23 @@ describe('generarRecomendacionMeta', () => {
     // como no hay meses para prorratear, "necesario al mes" también da
     // 300.000 (monto que falta, de una sola vez).
     expect(resultado.tono).toBe('aviso')
-    expect(resultado.mensaje).toContain('$300000')
+    expect(resultado.clave).toBe('emergencia.proyeccion.noAlcanza')
+    expect(resultado.valores.necesario).toBe('$300000')
+  })
+
+  it('usa el idioma pasado para formatear la fecha objetivo (mesAnioLargoDesdeISO)', () => {
+    // El idioma no cambia qué clave/caso aplica (la lógica es la misma),
+    // solo el texto de la fecha que viaja en `valores.fecha`.
+    const resultado = generarRecomendacionMeta({
+      ahorroActual: 1000000,
+      capacidadAhorroMensual: 500000,
+      fechaObjetivo: '2026-07-15',
+      montoObjetivo: 3000000,
+      formatear,
+      idioma: 'en',
+    })
+
+    expect(resultado.clave).toBe('emergencia.proyeccion.sobrado')
+    expect(resultado.valores).toEqual({ fecha: 'july 2026' })
   })
 })

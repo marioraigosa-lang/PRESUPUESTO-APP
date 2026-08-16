@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import HojaGastoFijo from '../components/HojaGastoFijo'
+import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
@@ -10,6 +11,7 @@ function GestionGastosFijos({
   onActualizarGastoFijo,
   onEliminarGastoFijo,
 }) {
+  const { t } = useIdioma()
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
   const [hojaAbierta, setHojaAbierta] = useState(false)
@@ -66,8 +68,11 @@ function GestionGastosFijos({
   async function manejarEliminar(gasto) {
     const confirmado = window.confirm(
       gasto.pagado
-        ? `"${gasto.nombre}" ya está pagado. Al eliminarlo se devolverá ${formatear(gasto.monto)} a la cuenta y se borrará el movimiento vinculado. Esta acción no se puede deshacer. ¿Continuar?`
-        : `¿Eliminar el gasto fijo "${gasto.nombre}"? Esta acción no se puede deshacer.`,
+        ? t('gastosFijos.gestion.confirmarEliminarPagado', {
+            nombre: gasto.nombre,
+            monto: formatear(gasto.monto),
+          })
+        : t('gastosFijos.gestion.confirmarEliminarPendiente', { nombre: gasto.nombre }),
     )
     if (!confirmado) return
 
@@ -77,7 +82,7 @@ function GestionGastosFijos({
       await onEliminarGastoFijo(gasto)
       setGastos((actuales) => actuales.filter((g) => g.id !== gasto.id))
     } catch (error) {
-      setErrorAccion(`No se pudo eliminar el gasto fijo: ${error.message}`)
+      setErrorAccion(t('gastosFijos.gestion.errorEliminar') + error.message)
     } finally {
       setEliminandoId(null)
     }
@@ -90,14 +95,14 @@ function GestionGastosFijos({
           <button
             type="button"
             onClick={onVolver}
-            aria-label="Volver"
+            aria-label={t('gastosFijos.gestion.volverAria')}
             className="flex h-8 w-8 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ←
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-text">Gestionar gastos fijos</h1>
-            <p className="text-xs text-text-dim">Crea, edita y elimina tus gastos fijos</p>
+            <h1 className="text-lg font-semibold text-text">{t('gastosFijos.gestion.titulo')}</h1>
+            <p className="text-xs text-text-dim">{t('gastosFijos.gestion.subtitulo')}</p>
           </div>
         </header>
 
@@ -106,24 +111,25 @@ function GestionGastosFijos({
           onClick={abrirCrear}
           className="w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg"
         >
-          + Agregar gasto fijo
+          {t('gastosFijos.gestion.agregarGastoFijo')}
         </button>
 
         {errorAccion && (
           <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{errorAccion}</p>
         )}
 
-        {cargandoGastos && <p className="px-2 text-sm text-text-dim">Cargando gastos fijos...</p>}
+        {cargandoGastos && <p className="px-2 text-sm text-text-dim">{t('gastosFijos.gestion.cargando')}</p>}
 
         {errorGastos && (
           <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            Error al cargar los gastos fijos: {errorGastos}
+            {t('gastosFijos.gestion.errorCargar')}
+            {errorGastos}
           </p>
         )}
 
         {!cargandoGastos && !errorGastos && gastos.length === 0 && (
           <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">
-            Aún no tienes gastos fijos. Crea el primero con "+ Agregar gasto fijo".
+            {t('gastosFijos.gestion.sinGastosFijos')}
           </p>
         )}
 
@@ -138,18 +144,21 @@ function GestionGastosFijos({
                       gasto.pagado ? 'bg-mint/10 text-mint' : 'bg-line text-text-dim'
                     }`}
                   >
-                    {gasto.pagado ? 'Pagado' : 'Pendiente'}
+                    {gasto.pagado
+                      ? t('gastosFijos.gestion.estadoPagado')
+                      : t('gastosFijos.gestion.estadoPendiente')}
                   </span>
                 </div>
                 <p className="truncate text-xs text-text-dim">
-                  {gasto.dia_pago ? `Vence día ${gasto.dia_pago}` : 'Sin fecha'} · {formatear(gasto.monto)}
+                  {gasto.dia_pago ? t('home.venceDia', { dia: gasto.dia_pago }) : t('home.sinFecha')} ·{' '}
+                  {formatear(gasto.monto)}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <button
                   type="button"
                   onClick={() => abrirEditar(gasto)}
-                  aria-label={`Editar gasto fijo ${gasto.nombre}`}
+                  aria-label={t('gastosFijos.gestion.editarAria', { nombre: gasto.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
                 >
                   ✏️
@@ -158,7 +167,7 @@ function GestionGastosFijos({
                   type="button"
                   onClick={() => manejarEliminar(gasto)}
                   disabled={eliminandoId === gasto.id}
-                  aria-label={`Eliminar gasto fijo ${gasto.nombre}`}
+                  aria-label={t('gastosFijos.gestion.eliminarAria', { nombre: gasto.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-coral disabled:opacity-60"
                 >
                   🗑

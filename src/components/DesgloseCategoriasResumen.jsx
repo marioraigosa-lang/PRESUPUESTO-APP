@@ -1,14 +1,18 @@
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
+import AyudaContextual from './AyudaContextual'
 
 function DesgloseCategoriasResumen({ items }) {
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-        {t('resumen.categoriasTitulo')}
-      </h2>
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+          {t('resumen.categoriasTitulo')}
+        </h2>
+        <AyudaContextual clave="guia.ayuda.resumenDesglose" etiqueta={t('guia.ayuda.resumenDesgloseAria')} />
+      </div>
 
       <div className="flex flex-col gap-2 rounded-2xl bg-panel p-2">
         {items.map((item) => (

@@ -9,6 +9,7 @@ import { mensajeFondo } from '../utils/mensajeFondo'
 import { gastoMensualPromedio } from '../utils/gastoMensualPromedio'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
+import AyudaContextual from '../components/AyudaContextual'
 
 const CLASES_TONO = {
   alerta: 'bg-coral/10 text-coral',
@@ -230,7 +231,13 @@ function Emergencia() {
       <div className="mx-auto flex max-w-[460px] flex-col gap-6 pb-28">
         <header className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-text">{t('emergencia.titulo')}</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-lg font-semibold text-text">{t('emergencia.titulo')}</h1>
+              <AyudaContextual
+                clave="guia.ayuda.fondoEmergenciaCalculo"
+                etiqueta={t('guia.ayuda.fondoEmergenciaCalculoAria')}
+              />
+            </div>
             <p className="text-xs text-text-dim">{t('emergencia.subtitulo')}</p>
           </div>
           <AvatarUsuario />

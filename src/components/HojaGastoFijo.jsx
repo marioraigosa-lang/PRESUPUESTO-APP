@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
@@ -6,6 +7,7 @@ import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda
 function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditando }) {
   const editando = Boolean(gastoEditando)
   const montoBloqueado = editando && gastoEditando.pagado
+  const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
 
@@ -59,15 +61,15 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
     evento.preventDefault()
 
     if (!nombre.trim()) {
-      setError('Ingresa un nombre para el gasto fijo')
+      setError(t('gastosFijos.formulario.errorNombreVacio'))
       return
     }
     if (monto === '' || Number(monto) <= 0) {
-      setError('Ingresa un monto válido')
+      setError(t('gastosFijos.formulario.errorMontoInvalido'))
       return
     }
     if (diaPago !== '' && (Number(diaPago) < 1 || Number(diaPago) > 31)) {
-      setError('El día de pago debe estar entre 1 y 31')
+      setError(t('gastosFijos.formulario.errorDiaPagoInvalido'))
       return
     }
 
@@ -101,7 +103,7 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={t('gastosFijos.formulario.cerrarAria')}
         onClick={cerrarYLimpiar}
         className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
       />
@@ -114,12 +116,12 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
 
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-text">
-            {editando ? 'Editar gasto fijo' : 'Nuevo gasto fijo'}
+            {editando ? t('gastosFijos.formulario.editarTitulo') : t('gastosFijos.formulario.nuevoTitulo')}
           </h2>
           <button
             type="button"
             onClick={cerrarYLimpiar}
-            aria-label="Cerrar"
+            aria-label={t('gastosFijos.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
             ×
@@ -128,21 +130,21 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
 
         <div>
           <label htmlFor="nombreGastoFijo" className="mb-1 block text-xs text-text-dim">
-            Nombre
+            {t('gastosFijos.formulario.nombreLabel')}
           </label>
           <input
             id="nombreGastoFijo"
             type="text"
             value={nombre}
             onChange={manejarCambioNombre}
-            placeholder="Ej: Arriendo"
+            placeholder={t('gastosFijos.formulario.nombrePlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
         </div>
 
         <div>
           <label htmlFor="montoGastoFijo" className="mb-1 block text-xs text-text-dim">
-            Monto mensual
+            {t('gastosFijos.formulario.montoLabel')}
           </label>
           <div
             className={`flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3 ${
@@ -162,15 +164,13 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
             />
           </div>
           {montoBloqueado && (
-            <p className="mt-1 text-xs text-text-dim">
-              Este gasto ya está pagado. Para cambiar el monto, primero desmárcalo desde la pantalla principal.
-            </p>
+            <p className="mt-1 text-xs text-text-dim">{t('gastosFijos.formulario.montoBloqueadoAyuda')}</p>
           )}
         </div>
 
         <div>
           <label htmlFor="diaPagoGastoFijo" className="mb-1 block text-xs text-text-dim">
-            Día de pago (opcional)
+            {t('gastosFijos.formulario.diaPagoLabel')}
           </label>
           <input
             id="diaPagoGastoFijo"
@@ -178,14 +178,17 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
             inputMode="numeric"
             value={diaPago}
             onChange={manejarCambioDiaPago}
-            placeholder="Ej: 5"
+            placeholder={t('gastosFijos.formulario.diaPagoPlaceholder')}
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
         </div>
 
         {error && <p className="text-xs text-coral">{error}</p>}
         {errorGuardado && (
-          <p className="text-xs text-coral">No se pudo guardar el gasto fijo: {errorGuardado}</p>
+          <p className="text-xs text-coral">
+            {t('gastosFijos.formulario.errorGuardar')}
+            {errorGuardado}
+          </p>
         )}
 
         <button
@@ -193,7 +196,11 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
           disabled={guardando}
           className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
         >
-          {guardando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Guardar gasto fijo'}
+          {guardando
+            ? t('gastosFijos.formulario.guardando')
+            : editando
+              ? t('gastosFijos.formulario.guardarCambios')
+              : t('gastosFijos.formulario.guardarGastoFijo')}
         </button>
       </form>
     </div>

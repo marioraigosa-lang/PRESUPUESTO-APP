@@ -1,4 +1,5 @@
 import CategoriaGasto from './CategoriaGasto'
+import AyudaContextual from './AyudaContextual'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -61,9 +62,12 @@ function GastosVariables({ version, periodo, onGestionarCategorias }) {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-          {t('home.gastosVariablesTitulo')}
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+            {t('home.gastosVariablesTitulo')}
+          </h2>
+          <AyudaContextual clave="guia.ayuda.gastosVariables" etiqueta={t('guia.ayuda.gastosVariablesAria')} />
+        </div>
         <button
           type="button"
           onClick={onGestionarCategorias}
