@@ -375,7 +375,11 @@ export default {
     cargando: 'Cargando viajes...',
     errorCargar: 'Error al cargar los viajes: ',
     errorEliminar: 'No se pudo eliminar el viaje: ',
-    sinViajes: 'Aún no has planificado ningún viaje. Crea el primero con "+ Nuevo viaje".',
+    vacio: {
+      titulo: '¡Planea tu primer viaje!',
+      descripcion: 'Organiza fechas, presupuesto y gastos de tu próxima escapada en un solo lugar.',
+      boton: 'Crear mi primer viaje',
+    },
     confirmarEliminar: '¿Eliminar el viaje "{{nombre}}"? Esta acción no se puede deshacer.',
     editarViajeAria: 'Editar viaje {{nombre}}',
     eliminarViajeAria: 'Eliminar viaje {{nombre}}',
@@ -591,6 +595,45 @@ export default {
     entrar: 'Entrar',
     noTienesCuenta: '¿No tienes cuenta?',
     registrate: 'Regístrate',
+    olvidasteContrasena: '¿Olvidaste tu contraseña?',
+  },
+
+  // Pantalla "Recuperar contraseña" (RecuperarContrasena.jsx): pide el
+  // correo y llama a supabase.auth.resetPasswordForEmail. El mensaje que se
+  // muestra tras enviar es el mismo exista o no una cuenta con ese correo
+  // (Supabase no lo distingue en la respuesta, a propósito, para no revelar
+  // qué correos están registrados).
+  recuperar: {
+    titulo: 'Recuperar contraseña',
+    subtitulo: 'Te enviaremos un enlace para restablecerla',
+    correo: 'Correo',
+    correoPlaceholder: 'tucorreo@ejemplo.com',
+    errorCorreoInvalido: 'Ingresa un correo válido',
+    enviando: 'Enviando...',
+    enviar: 'Enviar enlace de recuperación',
+    mensajeEnviado:
+      'Si el correo existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.',
+    volverLogin: 'Volver a iniciar sesión',
+  },
+
+  // Pantalla "Establecer nueva contraseña" (EstablecerNuevaContrasena.jsx):
+  // se muestra sola, fuera de PantallaAuth, cuando AuthContext detecta que
+  // el usuario volvió desde el enlace de recuperación (App.jsx).
+  restablecer: {
+    titulo: 'Establecer nueva contraseña',
+    subtitulo: 'Elige una contraseña nueva para tu cuenta',
+    contrasenaNueva: 'Nueva contraseña',
+    contrasenaNuevaPlaceholder: 'Mínimo 6 caracteres',
+    confirmarContrasena: 'Confirmar contraseña',
+    confirmarContrasenaPlaceholder: '••••••••',
+    errorContrasenaCorta: 'La contraseña debe tener al menos 6 caracteres',
+    errorContrasenasNoCoinciden: 'Las contraseñas no coinciden',
+    guardando: 'Guardando...',
+    guardar: 'Guardar nueva contraseña',
+    mensajeExito: 'Tu contraseña se actualizó. Ya puedes iniciar sesión.',
+    irALogin: 'Ir a iniciar sesión',
+    errorEnlaceExpirado: 'Este enlace de recuperación venció o ya no es válido. Solicita uno nuevo.',
+    volverLogin: 'Volver a iniciar sesión',
   },
 
   // Claves de traducirErrorAuth (erroresAuth.js). Ese util detecta el error
@@ -604,6 +647,7 @@ export default {
     errorPasswordCorta: 'La contraseña debe tener al menos 6 caracteres',
     errorEmailInvalido: 'El correo no tiene un formato válido',
     errorLimiteIntentos: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+    errorSesionExpirada: 'Tu sesión de recuperación expiró. Solicita un nuevo enlace.',
     errorGenerico: 'Ocurrió un error. Inténtalo de nuevo.',
   },
 
@@ -639,9 +683,9 @@ export default {
   guia: {
     volverAria: 'Volver',
     titulo: 'Guía de uso',
-    subtitulo: 'Cómo funciona cada parte de Saldo',
+    subtitulo: 'Cómo funciona cada parte de Seed',
     intro:
-      'Esta es la guía completa de Saldo. Toca cualquier sección para ver cómo funciona. Puedes volver aquí cuando quieras -- no hace falta memorizar nada.',
+      'Esta es la guía completa de Seed. Toca cualquier sección para ver cómo funciona. Puedes volver aquí cuando quieras -- no hace falta memorizar nada.',
     // Tarjetas del carrusel de bienvenida (Fase 3, GuiaBienvenida.jsx): se
     // muestra SOLO la primera vez que un usuario nuevo entra a la app (ver
     // GuiaContext.jsx / perfiles.guia_vista). Máximo 4 tarjetas a propósito,
@@ -651,7 +695,7 @@ export default {
       anterior: 'Atrás',
       siguiente: 'Siguiente',
       empezar: 'Empezar',
-      tarjeta1Titulo: '¡Bienvenido a Saldo! 👋',
+      tarjeta1Titulo: '¡Bienvenido a Seed! 👋',
       tarjeta1Texto:
         'Tu app para llevar el control de tus finanzas personales, sin complicarte. Te mostramos en unos segundos lo esencial para empezar.',
       tarjeta2Titulo: 'Registra tus movimientos',

@@ -360,7 +360,11 @@ export default {
     cargando: 'Loading trips...',
     errorCargar: "Couldn't load your trips: ",
     errorEliminar: "Couldn't delete the trip: ",
-    sinViajes: 'You haven\'t planned any trips yet. Create your first one with "+ New trip".',
+    vacio: {
+      titulo: 'Plan your first trip!',
+      descripcion: 'Organize the dates, budget, and expenses of your next getaway in one place.',
+      boton: 'Create my first trip',
+    },
     confirmarEliminar: 'Delete the trip "{{nombre}}"? This action cannot be undone.',
     editarViajeAria: 'Edit trip {{nombre}}',
     eliminarViajeAria: 'Delete trip {{nombre}}',
@@ -575,6 +579,36 @@ export default {
     entrar: 'Sign in',
     noTienesCuenta: "Don't have an account?",
     registrate: 'Sign up',
+    olvidasteContrasena: 'Forgot your password?',
+  },
+
+  recuperar: {
+    titulo: 'Reset password',
+    subtitulo: "We'll send you a link to reset it",
+    correo: 'Email',
+    correoPlaceholder: 'youremail@example.com',
+    errorCorreoInvalido: 'Enter a valid email',
+    enviando: 'Sending...',
+    enviar: 'Send reset link',
+    mensajeEnviado: "If that email is registered, we've sent a link to reset your password. Check your inbox.",
+    volverLogin: 'Back to sign in',
+  },
+
+  restablecer: {
+    titulo: 'Set new password',
+    subtitulo: 'Choose a new password for your account',
+    contrasenaNueva: 'New password',
+    contrasenaNuevaPlaceholder: 'At least 6 characters',
+    confirmarContrasena: 'Confirm password',
+    confirmarContrasenaPlaceholder: '••••••••',
+    errorContrasenaCorta: 'Password must be at least 6 characters',
+    errorContrasenasNoCoinciden: 'Passwords do not match',
+    guardando: 'Saving...',
+    guardar: 'Save new password',
+    mensajeExito: 'Your password has been updated. You can now sign in.',
+    irALogin: 'Go to sign in',
+    errorEnlaceExpirado: 'This reset link has expired or is no longer valid. Request a new one.',
+    volverLogin: 'Back to sign in',
   },
 
   auth: {
@@ -584,6 +618,7 @@ export default {
     errorPasswordCorta: 'Password must be at least 6 characters',
     errorEmailInvalido: "That email address isn't valid",
     errorLimiteIntentos: 'Too many attempts. Wait a moment and try again.',
+    errorSesionExpirada: 'Your password reset session expired. Request a new link.',
     errorGenerico: 'Something went wrong. Please try again.',
   },
 
@@ -620,9 +655,9 @@ export default {
   guia: {
     volverAria: 'Back',
     titulo: 'User guide',
-    subtitulo: 'How every part of Saldo works',
+    subtitulo: 'How every part of Seed works',
     intro:
-      "This is Saldo's full guide. Tap any section to see how it works -- come back anytime, there's nothing to memorize.",
+      "This is Seed's full guide. Tap any section to see how it works -- come back anytime, there's nothing to memorize.",
     // Welcome carousel cards (Phase 3, GuiaBienvenida.jsx): shown ONLY the
     // first time a new user signs in (see GuiaContext.jsx / perfiles.guia_vista).
     // Capped at 4 cards on purpose, to avoid overwhelming -- the last one
@@ -632,7 +667,7 @@ export default {
       anterior: 'Back',
       siguiente: 'Next',
       empezar: 'Get started',
-      tarjeta1Titulo: 'Welcome to Saldo! 👋',
+      tarjeta1Titulo: 'Welcome to Seed! 👋',
       tarjeta1Texto:
         "Your app for keeping track of your personal finances, without the hassle. Let's walk through the essentials in a few seconds.",
       tarjeta2Titulo: 'Log your transactions',
