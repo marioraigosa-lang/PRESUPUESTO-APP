@@ -11,6 +11,7 @@ const traducciones = [
   { patron: /password should be at least/i, clave: 'auth.errorPasswordCorta' },
   { patron: /unable to validate email address/i, clave: 'auth.errorEmailInvalido' },
   { patron: /rate limit/i, clave: 'auth.errorLimiteIntentos' },
+  { patron: /auth session missing|session.*expired|jwt expired/i, clave: 'auth.errorSesionExpirada' },
 ]
 
 export function traducirErrorAuth(mensaje) {

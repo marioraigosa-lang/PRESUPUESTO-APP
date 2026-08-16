@@ -2,8 +2,11 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
 import { useIdioma } from '../context/IdiomaContext'
+import CampoTexto from '../components/ui/CampoTexto'
+import BotonPrimario from '../components/ui/BotonPrimario'
+import MensajeError from '../components/ui/MensajeError'
 
-function Login({ onCambiarModo }) {
+function Login({ onCambiarModo, onRecuperar }) {
   const { t } = useIdioma()
   const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
@@ -48,48 +51,40 @@ function Login({ onCambiarModo }) {
           </div>
         </div>
 
-        <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel p-5">
-          <div>
-            <label htmlFor="correo" className="mb-1 block text-xs text-text-dim">
-              {t('login.correo')}
-            </label>
-            <input
-              id="correo"
-              type="email"
-              autoComplete="email"
-              value={correo}
-              onChange={(evento) => setCorreo(evento.target.value)}
-              placeholder={t('login.correoPlaceholder')}
-              className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
-            />
-          </div>
+        <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-5">
+          <CampoTexto
+            id="correo"
+            type="email"
+            autoComplete="email"
+            label={t('login.correo')}
+            value={correo}
+            onChange={(evento) => setCorreo(evento.target.value)}
+            placeholder={t('login.correoPlaceholder')}
+          />
 
-          <div>
-            <label htmlFor="contrasena" className="mb-1 block text-xs text-text-dim">
-              {t('login.contrasena')}
-            </label>
-            <input
-              id="contrasena"
-              type="password"
-              autoComplete="current-password"
-              value={contrasena}
-              onChange={(evento) => setContrasena(evento.target.value)}
-              placeholder={t('login.contrasenaPlaceholder')}
-              className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
-            />
-          </div>
-
-          {error && (
-            <p className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>
-          )}
+          <CampoTexto
+            id="contrasena"
+            type="password"
+            autoComplete="current-password"
+            label={t('login.contrasena')}
+            value={contrasena}
+            onChange={(evento) => setContrasena(evento.target.value)}
+            placeholder={t('login.contrasenaPlaceholder')}
+          />
 
           <button
-            type="submit"
-            disabled={enviando}
-            className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
+            type="button"
+            onClick={onRecuperar}
+            className="self-end text-xs text-text-dim underline underline-offset-2"
           >
-            {enviando ? t('login.entrando') : t('login.entrar')}
+            {t('login.olvidasteContrasena')}
           </button>
+
+          <MensajeError>{error}</MensajeError>
+
+          <BotonPrimario type="submit" cargando={enviando} className="mt-1">
+            {enviando ? t('login.entrando') : t('login.entrar')}
+          </BotonPrimario>
         </form>
 
         <p className="text-center text-sm text-text-dim">

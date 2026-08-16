@@ -6,6 +6,7 @@ import GestionCategorias from './views/GestionCategorias'
 import GestionGastosFijos from './views/GestionGastosFijos'
 import Perfil from './views/Perfil'
 import PantallaAuth from './views/PantallaAuth'
+import EstablecerNuevaContrasena from './views/EstablecerNuevaContrasena'
 import NavegacionInferior from './components/NavegacionInferior'
 import BotonAgregar from './components/BotonAgregar'
 import HojaNuevoMovimiento from './components/HojaNuevoMovimiento'
@@ -23,7 +24,7 @@ import * as movimientosService from './services/movimientos'
 import * as gastosFijosService from './services/gastosFijos'
 
 function App() {
-  const { sesion, cargando } = useAuth()
+  const { sesion, cargando, recuperacion } = useAuth()
   const { cargando: cargandoMoneda } = useMoneda()
   const { cargando: cargandoIdioma } = useIdioma()
   const { guiaVista, cargando: cargandoGuia } = useGuia()
@@ -43,11 +44,15 @@ function App() {
 
   useEffect(() => {
     // Sin sesión todavía no hay user_id que filtrar: esperamos a que
-    // useAuth() confirme la sesión antes de pedir cualquier dato.
-    if (!sesion) return
+    // useAuth() confirme la sesión antes de pedir cualquier dato. La sesión
+    // temporal de recuperación de contraseña (recuperacion === 'activo')
+    // también cuenta como "sin sesión" aquí: no se muestra la app mientras
+    // el usuario está en la pantalla de "Establecer nueva contraseña", así
+    // que no tiene sentido pedir sus cuentas/categorías todavía.
+    if (!sesion || recuperacion) return
     cargarCuentas()
     cargarCategorias()
-  }, [sesion])
+  }, [sesion, recuperacion])
 
   // Cada vez que arranca una sesión nueva (login recién hecho, recarga de
   // página estando logueado, o cambio a otro usuario) volvemos a "inicio".
@@ -280,6 +285,15 @@ function App() {
         <p className="text-sm text-text-dim">Cargando...</p>
       </main>
     )
+  }
+
+  // Se revisa antes que `sesion`: el enlace de recuperación de contraseña
+  // deja a Supabase con una sesión temporal activa (o, si el enlace ya
+  // venció, sin sesión pero con el error marcado en la URL -- ver
+  // AuthContext.jsx), así que en cualquiera de los dos casos hay que
+  // mostrar esta pantalla en vez de la app o del login normal.
+  if (recuperacion) {
+    return <EstablecerNuevaContrasena />
   }
 
   if (!sesion) {
