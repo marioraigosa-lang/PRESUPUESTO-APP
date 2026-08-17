@@ -616,7 +616,7 @@ export default {
   auth: {
     errorCredenciales: 'Incorrect email or password',
     errorEmailNoConfirmado: 'You need to confirm your email before signing in. Check your inbox.',
-    errorYaRegistrado: 'This email is already registered. Try signing in instead.',
+    errorYaRegistrado: 'This email already has an account. Sign in or reset your password.',
     errorPasswordCorta: 'Password must be at least 6 characters',
     errorEmailInvalido: "That email address isn't valid",
     errorLimiteIntentos: 'Too many attempts. Wait a moment and try again.',

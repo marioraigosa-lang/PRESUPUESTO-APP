@@ -60,6 +60,17 @@ function Registro({ onCambiarModo }) {
       return
     }
 
+    // Con la confirmación de correo activada, Supabase no devuelve error si
+    // el correo ya está registrado (para no permitir enumerar usuarios):
+    // responde 200 con data.user.identities vacío y sin sesión, igual que
+    // una cuenta nueva de verdad. Lo detectamos aquí para avisarle al
+    // usuario en vez de mostrarle "cuenta creada" con un correo que ya es
+    // suyo.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError(t('auth.errorYaRegistrado'))
+      return
+    }
+
     if (!data.session) {
       setMensaje(t('registro.mensajeCuentaCreada'))
     }

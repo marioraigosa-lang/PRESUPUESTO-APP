@@ -644,7 +644,7 @@ export default {
   auth: {
     errorCredenciales: 'Correo o contraseña incorrectos',
     errorEmailNoConfirmado: 'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.',
-    errorYaRegistrado: 'Este correo ya está registrado. Intenta iniciar sesión.',
+    errorYaRegistrado: 'Este correo ya tiene una cuenta. Inicia sesión o recupera tu contraseña.',
     errorPasswordCorta: 'La contraseña debe tener al menos 6 caracteres',
     errorEmailInvalido: 'El correo no tiene un formato válido',
     errorLimiteIntentos: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
