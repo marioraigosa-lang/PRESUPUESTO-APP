@@ -11,7 +11,7 @@
 export default {
   nav: {
     inicio: 'Inicio',
-    emergencia: 'Emergencia',
+    emergencia: 'Fondo',
     resumen: 'Resumen',
     viajes: 'Viajes',
     mas: 'Más',
@@ -704,7 +704,7 @@ export default {
         'Anota tus ingresos y gastos con el botón "+" de Inicio. También puedes registrar traslados entre tus propias cuentas, sin que afecten tus estadísticas.',
       tarjeta3Titulo: 'Cuida tu fondo de emergencia',
       tarjeta3Texto:
-        'En la pestaña Emergencia ves cuántos meses de gastos tienes cubiertos, y puedes crear metas de ahorro para tus próximos objetivos.',
+        'En la pestaña Fondo ves cuántos meses de gastos tienes cubiertos, y puedes crear metas de ahorro para tus próximos objetivos.',
       tarjeta4Titulo: 'La guía completa te espera',
       tarjeta4Texto:
         'En la pestaña Más encontrarás la Guía de uso completa, con el detalle de cada función de la app -- vuelve ahí cuando la necesites.',

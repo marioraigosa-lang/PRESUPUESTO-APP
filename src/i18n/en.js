@@ -4,7 +4,7 @@
 export default {
   nav: {
     inicio: 'Home',
-    emergencia: 'Emergency',
+    emergencia: 'Fund',
     resumen: 'Summary',
     viajes: 'Trips',
     mas: 'More',
@@ -677,7 +677,7 @@ export default {
         'Add income and expenses with the "+" button on Home. You can also log transfers between your own accounts, without affecting your stats.',
       tarjeta3Titulo: 'Take care of your emergency fund',
       tarjeta3Texto:
-        'The Emergency tab shows how many months of expenses you have covered, and lets you create savings goals for what comes next.',
+        'The Fund tab shows how many months of expenses you have covered, and lets you create savings goals for what comes next.',
       tarjeta4Titulo: 'The full guide is waiting for you',
       tarjeta4Texto:
         "You'll find the complete User guide under More, with details on every part of the app -- come back anytime you need it.",
