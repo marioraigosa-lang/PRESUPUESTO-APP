@@ -39,7 +39,8 @@ function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }
     try {
       await onConfirmar(cuentaId)
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(t('movimientos.elegirCuentaPago.errorGuardar'))
     } finally {
       setGuardando(false)
     }
@@ -115,12 +116,7 @@ function HojaElegirCuentaPago({ abierta, onCerrar, cuentas, gasto, onConfirmar }
           )}
         </div>
 
-        {errorGuardado && (
-          <MensajeError>
-            {t('movimientos.elegirCuentaPago.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{errorGuardado}</MensajeError>}
 
         <button
           type="submit"

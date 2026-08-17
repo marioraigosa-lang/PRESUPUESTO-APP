@@ -47,7 +47,8 @@ function HojaReasignarCategoria({
     try {
       await onConfirmar(categoriaDestinoId)
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(t('categorias.reasignar.errorGuardar'))
     } finally {
       setGuardando(false)
     }
@@ -126,12 +127,7 @@ function HojaReasignarCategoria({
           )}
         </div>
 
-        {errorGuardado && (
-          <MensajeError>
-            {t('categorias.reasignar.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{errorGuardado}</MensajeError>}
 
         <button
           type="submit"

@@ -94,7 +94,8 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -216,12 +217,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
         </div>
 
         <MensajeError>{error}</MensajeError>
-        {errorGuardado && (
-          <MensajeError>
-            {t('cuentas.formulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('cuentas.formulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"

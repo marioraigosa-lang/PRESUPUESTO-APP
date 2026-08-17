@@ -85,7 +85,8 @@ function GestionGastosFijos({
       await onEliminarGastoFijo(gasto)
       setGastos((actuales) => actuales.filter((g) => g.id !== gasto.id))
     } catch (error) {
-      setErrorAccion(t('gastosFijos.gestion.errorEliminar') + error.message)
+      console.error(error)
+      setErrorAccion(t('gastosFijos.gestion.errorEliminar'))
     } finally {
       setEliminandoId(null)
     }
@@ -114,12 +115,7 @@ function GestionGastosFijos({
 
         {cargandoGastos && <p className="px-2 text-sm text-text-dim">{t('gastosFijos.gestion.cargando')}</p>}
 
-        {errorGastos && (
-          <MensajeError>
-            {t('gastosFijos.gestion.errorCargar')}
-            {errorGastos}
-          </MensajeError>
-        )}
+        {errorGastos && <MensajeError>{t('gastosFijos.gestion.errorCargar')}</MensajeError>}
 
         {!cargandoGastos && !errorGastos && gastos.length === 0 && (
           <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">

@@ -104,7 +104,8 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -249,12 +250,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
         </div>
 
         <MensajeError>{error}</MensajeError>
-        {errorGuardado && (
-          <MensajeError>
-            {t('categorias.formulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('categorias.formulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"

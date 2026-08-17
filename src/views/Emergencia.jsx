@@ -167,8 +167,9 @@ function Emergencia() {
 
       if (error) throw error
     } catch (error) {
+      console.error(error)
       setDatosFondo((actual) => ({ ...actual, metaMeses: anterior }))
-      setErrorGuardado(t('emergencia.metaErrorGuardar') + error.message)
+      setErrorGuardado(t('emergencia.metaErrorGuardar'))
     } finally {
       setGuardandoFondo(false)
     }
@@ -239,7 +240,8 @@ function Emergencia() {
 
       setMetas((actuales) => actuales.filter((m) => m.id !== meta.id))
     } catch (error) {
-      setErrorEliminarMeta(t('emergencia.metaErrorEliminar') + error.message)
+      console.error(error)
+      setErrorEliminarMeta(t('emergencia.metaErrorEliminar'))
     } finally {
       setEliminandoMetaId(null)
     }
@@ -266,12 +268,7 @@ function Emergencia() {
           <p className="px-2 text-sm text-text-dim">{t('emergencia.cargando')}</p>
         )}
 
-        {errorFondo && (
-          <MensajeError>
-            {t('emergencia.fondoErrorCarga')}
-            {errorFondo}
-          </MensajeError>
-        )}
+        {errorFondo && <MensajeError>{t('emergencia.fondoErrorCarga')}</MensajeError>}
 
         {!cargandoFondo && !errorFondo && (
           <>
@@ -338,12 +335,7 @@ function Emergencia() {
 
           {cargandoMetas && <p className="px-2 text-sm text-text-dim">{t('emergencia.cargandoMetas')}</p>}
 
-          {errorMetas && (
-            <MensajeError>
-              {t('emergencia.metasErrorCarga')}
-              {errorMetas}
-            </MensajeError>
-          )}
+          {errorMetas && <MensajeError>{t('emergencia.metasErrorCarga')}</MensajeError>}
 
           <MensajeError>{errorEliminarMeta}</MensajeError>
 

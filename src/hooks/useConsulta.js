@@ -38,7 +38,11 @@ import { useEffect, useRef, useState } from 'react'
 // Devuelve:
 // - `datos`: el resultado de `consulta`, o `valorInicial` mientras carga.
 // - `cargando`: true mientras la consulta está en curso.
-// - `error`: el mensaje de error (string) si algo falló, o null.
+// - `error`: `true` si algo falló, o null. Ya no expone `err.message` (que
+//   puede traer texto crudo de Supabase/Postgres con nombres de tabla o
+//   columna) -- solo indica que hubo un error, y quien llama muestra su
+//   propio mensaje traducido y genérico. El detalle técnico completo queda
+//   en la consola (console.error) para depuración.
 // - `recargar()`: vuelve a ejecutar la consulta sin esperar a que cambien
 //   las dependencias (útil después de guardar algo, por ejemplo).
 // - `establecerDatos`: el setState crudo, para actualizaciones optimistas
@@ -71,7 +75,8 @@ export function useConsulta(consulta, dependencias = [], valorInicial = null) {
         }
       } catch (err) {
         if (!cancelado) {
-          setError(err.message)
+          console.error(err)
+          setError(true)
         }
       } finally {
         if (!cancelado) {

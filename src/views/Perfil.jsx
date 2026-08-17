@@ -72,7 +72,8 @@ function Perfil() {
     try {
       await cambiarMoneda(nuevaMoneda)
     } catch (err) {
-      setErrorMoneda(err.message)
+      console.error(err)
+      setErrorMoneda(true)
     } finally {
       setCambiandoMoneda(false)
     }
@@ -134,10 +135,7 @@ function Perfil() {
           </div>
           <p className="mt-2 text-xs text-text-dim">{t('perfil.monedaNota')}</p>
           {errorMoneda && (
-            <MensajeError className="mt-2 px-3 py-2 text-xs">
-              {t('perfil.monedaError')}
-              {errorMoneda}
-            </MensajeError>
+            <MensajeError className="mt-2 px-3 py-2 text-xs">{t('perfil.monedaError')}</MensajeError>
           )}
         </Tarjeta>
 

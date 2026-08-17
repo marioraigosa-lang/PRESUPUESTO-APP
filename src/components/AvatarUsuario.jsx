@@ -43,7 +43,8 @@ function AvatarUsuario() {
       await cerrarSesion()
       setAbierto(false)
     } catch (err) {
-      setError(err.message || t('comun.errorCerrarSesion'))
+      console.error(err)
+      setError(t('comun.errorCerrarSesion'))
     } finally {
       setCerrandoSesion(false)
     }

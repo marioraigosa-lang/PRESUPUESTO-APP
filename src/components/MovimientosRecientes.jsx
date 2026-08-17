@@ -69,7 +69,8 @@ function MovimientosRecientes({ version, periodo, onEditarMovimiento, onEliminar
       await onEliminarMovimiento(movimiento)
       setMovimientos((actuales) => actuales.filter((m) => m.id !== movimiento.id))
     } catch (error) {
-      setErrorEliminar(error.message)
+      console.error(error)
+      setErrorEliminar(true)
     } finally {
       setEliminandoId(null)
     }
@@ -85,19 +86,9 @@ function MovimientosRecientes({ version, periodo, onEditarMovimiento, onEliminar
         <p className="px-2 text-sm text-text-dim">{t('home.cargandoMovimientos')}</p>
       )}
 
-      {errorMovimientos && (
-        <MensajeError>
-          {t('home.errorCargarMovimientos')}
-          {errorMovimientos}
-        </MensajeError>
-      )}
+      {errorMovimientos && <MensajeError>{t('home.errorCargarMovimientos')}</MensajeError>}
 
-      {errorEliminar && (
-        <MensajeError>
-          {t('home.errorEliminarMovimiento')}
-          {errorEliminar}
-        </MensajeError>
-      )}
+      {errorEliminar && <MensajeError>{t('home.errorEliminarMovimiento')}</MensajeError>}
 
       {!cargandoMovimientos && !errorMovimientos && movimientos.length === 0 && (
         <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">

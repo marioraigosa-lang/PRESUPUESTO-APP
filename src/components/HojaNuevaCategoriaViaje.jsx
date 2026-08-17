@@ -111,7 +111,8 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -233,12 +234,7 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
         </div>
 
         <MensajeError>{error}</MensajeError>
-        {errorGuardado && (
-          <MensajeError>
-            {t('viajes.categoriaFormulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('viajes.categoriaFormulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"

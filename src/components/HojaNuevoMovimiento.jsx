@@ -164,7 +164,8 @@ function HojaNuevoMovimiento({
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -391,12 +392,7 @@ function HojaNuevoMovimiento({
           />
         </div>
 
-        {errorGuardado && (
-          <MensajeError>
-            {t('movimientos.formulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('movimientos.formulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"

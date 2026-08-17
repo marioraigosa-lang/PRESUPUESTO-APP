@@ -84,12 +84,7 @@ function ResumenViaje({ viaje, onVolver }) {
 
         {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.resumen.cargando')}</p>}
 
-        {error && (
-          <MensajeError>
-            {t('viajes.resumen.errorCargar')}
-            {error}
-          </MensajeError>
-        )}
+        {error && <MensajeError>{t('viajes.resumen.errorCargar')}</MensajeError>}
 
         {!cargando && !error && gastos.length === 0 && (
           <Tarjeta className="flex flex-col items-center gap-2 p-6 text-center">

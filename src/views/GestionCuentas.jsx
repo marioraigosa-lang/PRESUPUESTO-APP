@@ -49,7 +49,8 @@ function GestionCuentas({
     try {
       await onEliminarCuenta(cuenta)
     } catch (error) {
-      setErrorAccion(t('cuentas.gestion.errorEliminar') + error.message)
+      console.error(error)
+      setErrorAccion(t('cuentas.gestion.errorEliminar'))
     } finally {
       setEliminandoId(null)
     }
@@ -61,7 +62,8 @@ function GestionCuentas({
     try {
       await onAlternarEsAhorro(cuenta)
     } catch (error) {
-      setErrorAccion(t('cuentas.gestion.errorActualizar') + error.message)
+      console.error(error)
+      setErrorAccion(t('cuentas.gestion.errorActualizar'))
     } finally {
       setActualizandoAhorroId(null)
     }
@@ -90,12 +92,7 @@ function GestionCuentas({
 
         {cargandoCuentas && <p className="px-2 text-sm text-text-dim">{t('cuentas.gestion.cargando')}</p>}
 
-        {errorCuentas && (
-          <MensajeError>
-            {t('cuentas.gestion.errorCargar')}
-            {errorCuentas}
-          </MensajeError>
-        )}
+        {errorCuentas && <MensajeError>{t('cuentas.gestion.errorCargar')}</MensajeError>}
 
         {!cargandoCuentas && !errorCuentas && cuentas.length === 0 && (
           <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">{t('cuentas.gestion.sinCuentas')}</p>

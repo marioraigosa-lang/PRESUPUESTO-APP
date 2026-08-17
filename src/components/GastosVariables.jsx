@@ -82,12 +82,7 @@ function GastosVariables({ version, periodo, onGestionarCategorias }) {
         <p className="px-2 text-sm text-text-dim">{t('home.cargandoCategorias')}</p>
       )}
 
-      {errorCategorias && (
-        <MensajeError>
-          {t('home.errorCargarCategorias')}
-          {errorCategorias}
-        </MensajeError>
-      )}
+      {errorCategorias && <MensajeError>{t('home.errorCargarCategorias')}</MensajeError>}
 
       {!cargandoCategorias && !errorCategorias && (
         <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">

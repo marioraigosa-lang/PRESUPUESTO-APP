@@ -93,7 +93,8 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -186,12 +187,7 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
         </div>
 
         <MensajeError>{error}</MensajeError>
-        {errorGuardado && (
-          <MensajeError>
-            {t('gastosFijos.formulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('gastosFijos.formulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"

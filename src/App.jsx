@@ -74,7 +74,8 @@ function App() {
     const { data, error } = await seleccionarPropio('cuentas').order('saldo', { ascending: false })
 
     if (error) {
-      setErrorCuentas(error.message)
+      console.error(error)
+      setErrorCuentas(true)
     } else {
       setCuentas(data)
     }
@@ -89,7 +90,8 @@ function App() {
     const { data, error } = await seleccionarPropio('categorias').order('nombre')
 
     if (error) {
-      setErrorCategorias(error.message)
+      console.error(error)
+      setErrorCategorias(true)
     } else {
       setCategorias(data)
     }

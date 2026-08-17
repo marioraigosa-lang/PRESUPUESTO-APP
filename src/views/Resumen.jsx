@@ -89,12 +89,7 @@ function Resumen() {
 
         {cargando && <p className="px-2 text-sm text-text-dim">{t('resumen.cargando')}</p>}
 
-        {error && (
-          <MensajeError>
-            {t('resumen.error')}
-            {error}
-          </MensajeError>
-        )}
+        {error && <MensajeError>{t('resumen.error')}</MensajeError>}
 
         {!cargando && !error && (
           <>

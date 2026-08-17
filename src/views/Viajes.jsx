@@ -97,7 +97,8 @@ function Viajes() {
     try {
       await categoriasViajeService.crearCategoriasPorDefecto(datosUsuario, data.id, t)
     } catch (err) {
-      setErrorCategoriasDefecto(t('viajes.detalle.errorCategoriasDefecto') + err.message)
+      console.error(err)
+      setErrorCategoriasDefecto(t('viajes.detalle.errorCategoriasDefecto'))
     }
   }
 
@@ -117,7 +118,8 @@ function Viajes() {
       await viajesService.eliminarViaje(datosUsuario, viaje)
       setViajes((actuales) => actuales.filter((v) => v.id !== viaje.id))
     } catch (err) {
-      setErrorEliminar(t('viajes.errorEliminar') + err.message)
+      console.error(err)
+      setErrorEliminar(t('viajes.errorEliminar'))
     } finally {
       setEliminandoId(null)
     }
@@ -161,12 +163,7 @@ function Viajes() {
 
           {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.cargando')}</p>}
 
-          {error && (
-            <MensajeError>
-              {t('viajes.errorCargar')}
-              {error}
-            </MensajeError>
-          )}
+          {error && <MensajeError>{t('viajes.errorCargar')}</MensajeError>}
 
           <MensajeError>{errorEliminar}</MensajeError>
           <MensajeError>{errorCategoriasDefecto}</MensajeError>

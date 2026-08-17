@@ -129,12 +129,7 @@ function Home({
             <p className="px-2 text-sm text-text-dim">{t('home.cargandoCuentas')}</p>
           )}
 
-          {errorCuentas && (
-            <MensajeError>
-              {t('home.errorCargarCuentas')}
-              {errorCuentas}
-            </MensajeError>
-          )}
+          {errorCuentas && <MensajeError>{t('home.errorCargarCuentas')}</MensajeError>}
 
           {!cargandoCuentas && !errorCuentas && (
             <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">

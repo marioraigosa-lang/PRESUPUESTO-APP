@@ -131,8 +131,9 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
     try {
       await onDesmarcarPagado(gasto, periodo)
     } catch (error) {
+      console.error(error)
       setMovimientosMes((actuales) => ({ ...actuales, [gasto.id]: movimientoAnterior }))
-      setErrorGuardado(t('home.errorDesmarcar', { nombre: gasto.nombre }) + error.message)
+      setErrorGuardado(t('home.errorDesmarcar', { nombre: gasto.nombre }))
     } finally {
       setGuardandoIds((actuales) => {
         const siguientes = new Set(actuales)
@@ -188,10 +189,7 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
       )}
 
       {(errorGastos || errorMovimientos) && (
-        <MensajeError>
-          {t('home.errorCargarGastosFijos')}
-          {errorGastos || errorMovimientos}
-        </MensajeError>
+        <MensajeError>{t('home.errorCargarGastosFijos')}</MensajeError>
       )}
 
       <MensajeError>{errorGuardado}</MensajeError>

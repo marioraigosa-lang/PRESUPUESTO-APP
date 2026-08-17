@@ -116,7 +116,16 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
       await categoriasViajeService.eliminarCategoriaViaje(datosUsuario, categoria, t)
       actualizarCategorias((actuales) => actuales.filter((c) => c.id !== categoria.id))
     } catch (err) {
-      setErrorEliminarCategoria(t('viajes.detalle.errorEliminarCategoria') + err.message)
+      // eliminarCategoriaViaje puede lanzar un mensaje ya traducido y seguro
+      // (categoría con gastos registrados) o un error crudo de Supabase; solo
+      // el primero es seguro para mostrar tal cual, así que lo distinguimos
+      // comparándolo con el texto conocido en vez de mostrar err.message.
+      const mensajeCategoriaConGastos = t('viajes.detalle.errorCategoriaConGastos')
+      const esErrorConocido = err.message === mensajeCategoriaConGastos
+      if (!esErrorConocido) {
+        console.error(err)
+      }
+      setErrorEliminarCategoria(esErrorConocido ? err.message : t('viajes.detalle.errorEliminarCategoria'))
     } finally {
       setEliminandoCategoriaId(null)
     }
@@ -161,7 +170,8 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
       await gastosViajeService.eliminarGastoViaje(datosUsuario, gasto)
       actualizarGastos((actuales) => actuales.filter((g) => g.id !== gasto.id))
     } catch (err) {
-      setErrorEliminarGasto(t('viajes.detalle.errorEliminarGasto') + err.message)
+      console.error(err)
+      setErrorEliminarGasto(t('viajes.detalle.errorEliminarGasto'))
     } finally {
       setEliminandoGastoId(null)
     }
@@ -239,7 +249,7 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
           )}
         </section>
 
-        <MensajeError>{error}</MensajeError>
+        {error && <MensajeError>{t('viajes.detalle.errorCargar')}</MensajeError>}
 
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">

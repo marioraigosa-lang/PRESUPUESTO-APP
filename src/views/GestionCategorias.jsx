@@ -74,7 +74,8 @@ function GestionCategorias({
 
       await onEliminarCategoria(categoria)
     } catch (error) {
-      setErrorAccion(t('categorias.gestion.errorEliminar') + error.message)
+      console.error(error)
+      setErrorAccion(t('categorias.gestion.errorEliminar'))
     } finally {
       setEliminandoId(null)
     }
@@ -110,12 +111,7 @@ function GestionCategorias({
           <p className="px-2 text-sm text-text-dim">{t('categorias.gestion.cargando')}</p>
         )}
 
-        {errorCategorias && (
-          <MensajeError>
-            {t('categorias.gestion.errorCargar')}
-            {errorCategorias}
-          </MensajeError>
-        )}
+        {errorCategorias && <MensajeError>{t('categorias.gestion.errorCargar')}</MensajeError>}
 
         {!cargandoCategorias && !errorCategorias && categoriasGestionables.length === 0 && (
           <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">

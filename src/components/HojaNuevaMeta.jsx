@@ -111,7 +111,8 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -199,12 +200,7 @@ function HojaNuevaMeta({ abierta, onCerrar, onGuardar, onActualizar, metaEditand
         </div>
 
         <MensajeError>{error}</MensajeError>
-        {errorGuardado && (
-          <MensajeError>
-            {t('emergencia.metaFormulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('emergencia.metaFormulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"

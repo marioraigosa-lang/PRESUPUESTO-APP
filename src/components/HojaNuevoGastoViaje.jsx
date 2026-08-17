@@ -107,7 +107,8 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
 
       cerrarYLimpiar()
     } catch (err) {
-      setErrorGuardado(err.message)
+      console.error(err)
+      setErrorGuardado(true)
     } finally {
       setGuardando(false)
     }
@@ -246,12 +247,7 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
         </div>
 
         <MensajeError>{error}</MensajeError>
-        {errorGuardado && (
-          <MensajeError>
-            {t('viajes.gastoFormulario.errorGuardar')}
-            {errorGuardado}
-          </MensajeError>
-        )}
+        {errorGuardado && <MensajeError>{t('viajes.gastoFormulario.errorGuardar')}</MensajeError>}
 
         <button
           type="submit"
