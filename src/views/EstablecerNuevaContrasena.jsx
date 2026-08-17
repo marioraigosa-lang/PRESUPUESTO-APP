@@ -23,7 +23,7 @@ function EstablecerNuevaContrasena() {
     evento.preventDefault()
     setError('')
 
-    if (contrasena.length < 6) {
+    if (contrasena.length < 8) {
       setError(t('restablecer.errorContrasenaCorta'))
       return
     }

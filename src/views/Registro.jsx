@@ -34,7 +34,7 @@ function Registro({ onCambiarModo }) {
       setError(t('registro.errorCorreoInvalido'))
       return
     }
-    if (contrasena.length < 6) {
+    if (contrasena.length < 8) {
       setError(t('registro.errorContrasenaCorta'))
       return
     }
