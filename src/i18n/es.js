@@ -624,10 +624,10 @@ export default {
     titulo: 'Establecer nueva contraseña',
     subtitulo: 'Elige una contraseña nueva para tu cuenta',
     contrasenaNueva: 'Nueva contraseña',
-    contrasenaNuevaPlaceholder: 'Mínimo 8 caracteres',
+    contrasenaNuevaPlaceholder: 'Mínimo 10 caracteres',
     confirmarContrasena: 'Confirmar contraseña',
     confirmarContrasenaPlaceholder: '••••••••',
-    errorContrasenaCorta: 'La contraseña debe tener al menos 8 caracteres',
+    errorContrasenaCorta: 'La contraseña debe tener al menos 10 caracteres',
     errorContrasenasNoCoinciden: 'Las contraseñas no coinciden',
     guardando: 'Guardando...',
     guardar: 'Guardar nueva contraseña',
@@ -645,7 +645,7 @@ export default {
     errorCredenciales: 'Correo o contraseña incorrectos',
     errorEmailNoConfirmado: 'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.',
     errorYaRegistrado: 'Este correo ya tiene una cuenta. Inicia sesión o recupera tu contraseña.',
-    errorPasswordCorta: 'La contraseña debe tener al menos 8 caracteres',
+    errorPasswordCorta: 'La contraseña debe tener al menos 10 caracteres',
     errorEmailInvalido: 'El correo no tiene un formato válido',
     errorLimiteIntentos: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
     errorSesionExpirada: 'Tu sesión de recuperación expiró. Solicita un nuevo enlace.',
@@ -673,6 +673,82 @@ export default {
     ayudaTitulo: 'Ayuda',
     guiaTitulo: 'Guía de uso',
     guiaDescripcion: 'Cómo funciona cada parte de la app',
+    seguridadTitulo: 'Seguridad',
+    seguridadItemTitulo: 'Verificación en dos pasos',
+  },
+
+  // Pantalla "Seguridad" (SeguridadPerfil.jsx), accesible desde Perfil:
+  // activar/desactivar la verificación en dos pasos (2FA/TOTP) usando el MFA
+  // nativo de Supabase (supabase.auth.mfa). Las claves errorXxx las usa
+  // erroresMfa.js para traducir los mensajes que devuelve esa API.
+  seguridad: {
+    volverAria: 'Volver',
+    titulo: 'Seguridad',
+    subtitulo: 'Protege el acceso a tu cuenta',
+    cargando: 'Cargando...',
+    estadoLabel: 'Verificación en dos pasos',
+    estadoActivo: 'Activada',
+    estadoInactivo: 'Desactivada',
+    activarBoton: 'Activar verificación en dos pasos',
+    activando: 'Preparando...',
+    avisoRespaldoTitulo: 'Actívalo con cuidado',
+    avisoRespaldoTexto:
+      'Si pierdes el acceso a tu app autenticadora (por ejemplo, cambias de teléfono) y no tienes un método de respaldo, no podrás desactivar la verificación en dos pasos tú mismo, y necesitarás contactar a soporte para recuperar el acceso a tu cuenta. Guarda el código secreto en un lugar seguro antes de continuar.',
+    qrInstrucciones:
+      'Escanea este código QR con tu app autenticadora (Google Authenticator, Authy, o similar). Si no puedes escanearlo, ingresa el código secreto manualmente.',
+    qrTituloPrincipal: 'Configura tu app autenticadora',
+    qrTituloRespaldo: 'Configura tu método de respaldo',
+    qrAlt: 'Código QR para configurar la verificación en dos pasos',
+    secretoLabel: 'Código secreto (si no puedes escanear)',
+    codigoLabel: 'Código de 6 dígitos',
+    codigoPlaceholder: '123456',
+    verificarYActivar: 'Verificar y activar',
+    verificarYAgregar: 'Verificar y agregar',
+    verificando: 'Verificando...',
+    cancelar: 'Cancelar',
+    cancelando: 'Cancelando...',
+    reautenticarTitulo: 'Confirma tu identidad',
+    reautenticarTexto:
+      'Para hacer este cambio necesitamos confirmar tu identidad de nuevo. Ingresa el código de cualquiera de tus métodos activos.',
+    verificarYContinuar: 'Verificar y continuar',
+    errorCodigoInvalido: 'Ingresa el código de 6 dígitos que muestra tu app autenticadora',
+    errorRequiereAal2: 'Necesitamos confirmar tu identidad de nuevo antes de hacer este cambio.',
+    errorLimiteIntentos: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+    errorFactorDuplicado: 'Ya hay una verificación en dos pasos en proceso. Intenta de nuevo.',
+    errorGenerico: 'Ocurrió un error. Inténtalo de nuevo.',
+
+    // Fase 3, parte A: varios factores TOTP por usuario (uno "principal" y,
+    // opcionalmente, uno o más "de respaldo"). factoresMfa.js asigna el
+    // nombre técnico al inscribir y estas claves lo traducen para mostrarlo.
+    metodosTitulo: 'Tus métodos',
+    factorPrincipal: 'Principal',
+    factorRespaldo: 'Respaldo',
+    factorRespaldoNumerado: 'Respaldo {{numero}}',
+    agregadoEl: 'Agregado el {{fecha}}',
+    eliminarFactorAria: 'Eliminar el método {{nombre}}',
+    confirmarEliminarFactor:
+      '¿Eliminar el método "{{nombre}}"? Ya no podrás usarlo para verificar tu identidad.',
+    confirmarEliminarUltimo:
+      'Este es tu único método de verificación en dos pasos. Al eliminarlo, el 2FA quedará desactivado y tu cuenta se protegerá solo con tu contraseña. ¿Deseas continuar?',
+    sugerenciaRespaldoTitulo: 'Agrega un método de respaldo',
+    sugerenciaRespaldoTexto:
+      'Si pierdes el acceso a tu app autenticadora sin un respaldo configurado en otro dispositivo, no podrás entrar a tu cuenta tú mismo. Te toma un minuto agregar uno.',
+    sugerenciaDescartarAria: 'Descartar esta sugerencia',
+    agregarRespaldoBoton: 'Agregar método de respaldo',
+    agregarOtroBoton: '+ Agregar otro método',
+
+    // VerificarMfa.jsx (login con código, Fase 2): eligeMetodoLabel solo se
+    // muestra cuando el usuario tiene más de un factor verificado.
+    eligeMetodoLabel: '¿Con cuál método vas a verificar?',
+
+    // Pantalla VerificarMfa.jsx: se muestra tras correo+contraseña cuando la
+    // cuenta tiene 2FA activo (App.jsx la agrega entre "recuperación" y
+    // "!sesion" en su cascada de decisión).
+    verificarTitulo: 'Verificación en dos pasos',
+    verificarSubtitulo: 'Ingresa el código de 6 dígitos de tu app autenticadora para continuar',
+    verificarYEntrar: 'Verificar y entrar',
+    usarOtraCuenta: 'Usar otra cuenta',
+    saliendo: 'Saliendo...',
   },
 
   // Contenido de GuiaUso.jsx (Fase 1 de la guía de uso, accesible desde
@@ -856,7 +932,7 @@ export default {
     correo: 'Correo',
     correoPlaceholder: 'tucorreo@ejemplo.com',
     contrasena: 'Contraseña',
-    contrasenaPlaceholder: 'Mínimo 8 caracteres',
+    contrasenaPlaceholder: 'Mínimo 10 caracteres',
     confirmarContrasena: 'Confirmar contraseña',
     confirmarContrasenaPlaceholder: '••••••••',
     monedaTitulo: 'Moneda de tu cuenta',
@@ -865,7 +941,7 @@ export default {
     idiomaTitulo: 'Idioma de la app',
     idiomaNota: 'Elige con cuidado: no podrás cambiarlo después.',
     errorCorreoInvalido: 'Ingresa un correo válido',
-    errorContrasenaCorta: 'La contraseña debe tener al menos 8 caracteres',
+    errorContrasenaCorta: 'La contraseña debe tener al menos 10 caracteres',
     errorContrasenasNoCoinciden: 'Las contraseñas no coinciden',
     mensajeCuentaCreada:
       'Cuenta creada. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',

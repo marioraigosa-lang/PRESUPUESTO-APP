@@ -600,10 +600,10 @@ export default {
     titulo: 'Set new password',
     subtitulo: 'Choose a new password for your account',
     contrasenaNueva: 'New password',
-    contrasenaNuevaPlaceholder: 'At least 8 characters',
+    contrasenaNuevaPlaceholder: 'At least 10 characters',
     confirmarContrasena: 'Confirm password',
     confirmarContrasenaPlaceholder: '••••••••',
-    errorContrasenaCorta: 'Password must be at least 8 characters',
+    errorContrasenaCorta: 'Password must be at least 10 characters',
     errorContrasenasNoCoinciden: 'Passwords do not match',
     guardando: 'Saving...',
     guardar: 'Save new password',
@@ -617,7 +617,7 @@ export default {
     errorCredenciales: 'Incorrect email or password',
     errorEmailNoConfirmado: 'You need to confirm your email before signing in. Check your inbox.',
     errorYaRegistrado: 'This email already has an account. Sign in or reset your password.',
-    errorPasswordCorta: 'Password must be at least 8 characters',
+    errorPasswordCorta: 'Password must be at least 10 characters',
     errorEmailInvalido: "That email address isn't valid",
     errorLimiteIntentos: 'Too many attempts. Wait a moment and try again.',
     errorSesionExpirada: 'Your password reset session expired. Request a new link.',
@@ -646,6 +646,81 @@ export default {
     ayudaTitulo: 'Help',
     guiaTitulo: 'User guide',
     guiaDescripcion: 'How every part of the app works',
+    seguridadTitulo: 'Security',
+    seguridadItemTitulo: 'Two-step verification',
+  },
+
+  // "Security" screen (SeguridadPerfil.jsx), reachable from Profile:
+  // activate/deactivate two-step verification (2FA/TOTP) using Supabase's
+  // native MFA (supabase.auth.mfa). The errorXxx keys are used by
+  // erroresMfa.js to translate that API's error messages.
+  seguridad: {
+    volverAria: 'Back',
+    titulo: 'Security',
+    subtitulo: 'Protect access to your account',
+    cargando: 'Loading...',
+    estadoLabel: 'Two-step verification',
+    estadoActivo: 'On',
+    estadoInactivo: 'Off',
+    activarBoton: 'Turn on two-step verification',
+    activando: 'Preparing...',
+    avisoRespaldoTitulo: 'Turn this on with care',
+    avisoRespaldoTexto:
+      "If you lose access to your authenticator app (for example, you switch phones) and don't have a backup method, you won't be able to turn off two-step verification yourself, and you'll need to contact support to recover access to your account. Save the secret code somewhere safe before continuing.",
+    qrInstrucciones:
+      "Scan this QR code with your authenticator app (Google Authenticator, Authy, or similar). If you can't scan it, enter the secret code manually.",
+    qrTituloPrincipal: 'Set up your authenticator app',
+    qrTituloRespaldo: 'Set up your backup method',
+    qrAlt: 'QR code to set up two-step verification',
+    secretoLabel: "Secret code (if you can't scan)",
+    codigoLabel: '6-digit code',
+    codigoPlaceholder: '123456',
+    verificarYActivar: 'Verify and turn on',
+    verificarYAgregar: 'Verify and add',
+    verificando: 'Verifying...',
+    cancelar: 'Cancel',
+    cancelando: 'Cancelling...',
+    reautenticarTitulo: 'Confirm your identity',
+    reautenticarTexto:
+      'To make this change we need to confirm your identity again. Enter the code from any of your active methods.',
+    verificarYContinuar: 'Verify and continue',
+    errorCodigoInvalido: 'Enter the 6-digit code shown in your authenticator app',
+    errorRequiereAal2: 'We need to confirm your identity again before making this change.',
+    errorLimiteIntentos: 'Too many attempts. Wait a moment and try again.',
+    errorFactorDuplicado: 'A two-step verification setup is already in progress. Please try again.',
+    errorGenerico: 'Something went wrong. Please try again.',
+
+    // Phase 3, part A: several TOTP factors per user (one "primary" and,
+    // optionally, one or more "backup"). factoresMfa.js assigns the
+    // technical name on enroll and these keys translate it for display.
+    metodosTitulo: 'Your methods',
+    factorPrincipal: 'Primary',
+    factorRespaldo: 'Backup',
+    factorRespaldoNumerado: 'Backup {{numero}}',
+    agregadoEl: 'Added on {{fecha}}',
+    eliminarFactorAria: 'Remove the {{nombre}} method',
+    confirmarEliminarFactor: 'Remove the "{{nombre}}" method? You will no longer be able to use it to verify your identity.',
+    confirmarEliminarUltimo:
+      "This is your only two-step verification method. Removing it will turn off 2FA, and your account will only be protected by your password. Do you want to continue?",
+    sugerenciaRespaldoTitulo: 'Add a backup method',
+    sugerenciaRespaldoTexto:
+      "If you lose access to your authenticator app without a backup set up on another device, you won't be able to get back into your account on your own. It only takes a minute to add one.",
+    sugerenciaDescartarAria: 'Dismiss this suggestion',
+    agregarRespaldoBoton: 'Add a backup method',
+    agregarOtroBoton: '+ Add another method',
+
+    // VerificarMfa.jsx (login with code, Phase 2): eligeMetodoLabel only
+    // shows up when the user has more than one verified factor.
+    eligeMetodoLabel: 'Which method are you verifying with?',
+
+    // VerificarMfa.jsx screen: shown after email+password when the account
+    // has 2FA enabled (App.jsx inserts it between "recovery" and "!sesion"
+    // in its rendering cascade).
+    verificarTitulo: 'Two-step verification',
+    verificarSubtitulo: 'Enter the 6-digit code from your authenticator app to continue',
+    verificarYEntrar: 'Verify and continue',
+    usarOtraCuenta: 'Use a different account',
+    saliendo: 'Signing out...',
   },
 
   // Content for GuiaUso.jsx (Phase 1 of the user guide, reachable from
@@ -829,7 +904,7 @@ export default {
     correo: 'Email',
     correoPlaceholder: 'youremail@example.com',
     contrasena: 'Password',
-    contrasenaPlaceholder: 'At least 8 characters',
+    contrasenaPlaceholder: 'At least 10 characters',
     confirmarContrasena: 'Confirm password',
     confirmarContrasenaPlaceholder: '••••••••',
     monedaTitulo: 'Account currency',
@@ -838,7 +913,7 @@ export default {
     idiomaTitulo: 'App language',
     idiomaNota: "Choose carefully: you won't be able to change it later.",
     errorCorreoInvalido: 'Enter a valid email',
-    errorContrasenaCorta: 'Password must be at least 8 characters',
+    errorContrasenaCorta: 'Password must be at least 10 characters',
     errorContrasenasNoCoinciden: 'Passwords do not match',
     mensajeCuentaCreada: 'Account created. Check your email to confirm it before signing in.',
     creandoCuenta: 'Creating account...',

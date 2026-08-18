@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(undefined)
@@ -30,11 +30,36 @@ export function AuthProvider({ children }) {
     if (!vieneDeEnlaceRecuperacion()) return null
     return errorEnHashDeRecuperacion() ? 'error' : null
   })
+  // Factores TOTP verificados del usuario (vacío si no tiene 2FA activo).
+  // `listFactors()` separa `data.totp` (solo factores YA verificados) de
+  // `data.all` (incluye también los que quedaron a medio inscribir) -- acá
+  // solo nos interesa `data.totp`. Un usuario puede tener más de uno desde
+  // la Fase 3 (factor "principal" + factores "de respaldo"), por eso es un
+  // arreglo: SeguridadPerfil.jsx los administra todos, y VerificarMfa.jsx
+  // deja elegir con cuál de ellos verificar si hay más de uno.
+  const [factoresMfa, setFactoresMfa] = useState([])
+  const [cargandoMfa, setCargandoMfa] = useState(true)
+  // true cuando la sesión está en AAL1 pero el usuario tiene un factor TOTP
+  // verificado (AAL2 disponible como "siguiente nivel"): significa que
+  // inició sesión con correo+contraseña pero todavía no confirmó su código
+  // de dos pasos. App.jsx usa esto para mostrar VerificarMfa.jsx en vez de
+  // la app. Para un usuario sin 2FA, `nextLevel` nunca es 'aal2', así que
+  // esto queda en `false` siempre y su login no cambia en nada.
+  const [requiereVerificacionMfa, setRequiereVerificacionMfa] = useState(false)
 
   useEffect(() => {
+    // Sin sesión no hay nada que verificar. Con sesión, currentLevel/nextLevel
+    // de getAuthenticatorAssuranceLevel() dicen si falta el segundo factor.
+    async function calcularRequiereMfa(sesionActual) {
+      if (!sesionActual) return false
+      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      return data?.currentLevel === 'aal1' && data?.nextLevel === 'aal2'
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setSesion(data.session)
       setCargando(false)
+      calcularRequiereMfa(data.session).then(setRequiereVerificacionMfa)
     })
 
     const { data: escucha } = supabase.auth.onAuthStateChange((evento, nuevaSesion) => {
@@ -42,12 +67,61 @@ export function AuthProvider({ children }) {
       if (evento === 'PASSWORD_RECOVERY') {
         setRecuperacion('activo')
       }
+      // getAuthenticatorAssuranceLevel() es, en sí, otra llamada al mismo
+      // cliente de auth de Supabase -- según su propia documentación,
+      // llamar a otro método de supabase.auth de forma awaited DENTRO del
+      // callback de onAuthStateChange puede dejar el cliente bloqueado
+      // (deadlock conocido de la librería). Por eso se difiere con
+      // setTimeout(…, 0): corre justo después de que este callback termina,
+      // nunca dentro de él.
+      setTimeout(() => {
+        calcularRequiereMfa(nuevaSesion).then(setRequiereVerificacionMfa)
+      }, 0)
     })
 
     return () => {
       escucha.subscription.unsubscribe()
     }
   }, [])
+
+  // `refrescarMfa` queda expuesto para que SeguridadPerfil.jsx vuelva a
+  // consultar el estado real justo después de activar/agregar/eliminar (en
+  // vez de asumir el resultado a mano), así el resto de la app (ej. la
+  // tarjeta de promoción en Perfil) siempre ve el mismo estado ya
+  // confirmado por Supabase.
+  const refrescarMfa = useCallback(async () => {
+    const { data, error } = await supabase.auth.mfa.listFactors()
+    setFactoresMfa(error ? [] : (data.totp ?? []))
+  }, [])
+
+  useEffect(() => {
+    let cancelado = false
+
+    if (!sesion?.user) {
+      // Sin sesión no hay factores que consultar (mismo criterio que
+      // GuiaContext/IdiomaContext con "perfiles": sin usuario, ni siquiera
+      // se intenta la consulta).
+      setFactoresMfa([])
+      setCargandoMfa(false)
+      return
+    }
+
+    setCargandoMfa(true)
+    supabase.auth.mfa.listFactors().then(({ data, error }) => {
+      if (cancelado) return
+      setFactoresMfa(error ? [] : (data.totp ?? []))
+      setCargandoMfa(false)
+    })
+
+    return () => {
+      cancelado = true
+    }
+    // Se compara por id (no por el objeto `sesion` completo) para no volver
+    // a pedir los factores cada vez que Supabase solo refresca el token en
+    // segundo plano de la misma sesión -- mismo motivo que App.jsx usa
+    // usuarioIdAnteriorRef en vez de depender de `sesion`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sesion?.user?.id])
 
   async function cerrarSesion() {
     await supabase.auth.signOut()
@@ -75,8 +149,13 @@ export function AuthProvider({ children }) {
         usuario: sesion?.user ?? null,
         cargando,
         recuperacion,
+        requiereVerificacionMfa,
         cerrarSesion,
         finalizarRecuperacion,
+        factoresMfa,
+        tieneMfaActivo: factoresMfa.length > 0,
+        cargandoMfa,
+        refrescarMfa,
       }}
     >
       {children}

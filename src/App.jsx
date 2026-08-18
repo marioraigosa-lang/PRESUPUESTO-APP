@@ -7,6 +7,7 @@ import GestionGastosFijos from './views/GestionGastosFijos'
 import Perfil from './views/Perfil'
 import PantallaAuth from './views/PantallaAuth'
 import EstablecerNuevaContrasena from './views/EstablecerNuevaContrasena'
+import VerificarMfa from './views/VerificarMfa'
 import NavegacionInferior from './components/NavegacionInferior'
 import BotonAgregar from './components/BotonAgregar'
 import HojaNuevoMovimiento from './components/HojaNuevoMovimiento'
@@ -24,7 +25,7 @@ import * as movimientosService from './services/movimientos'
 import * as gastosFijosService from './services/gastosFijos'
 
 function App() {
-  const { sesion, cargando, recuperacion } = useAuth()
+  const { sesion, cargando, recuperacion, requiereVerificacionMfa } = useAuth()
   const { cargando: cargandoMoneda } = useMoneda()
   const { cargando: cargandoIdioma } = useIdioma()
   const { guiaVista, cargando: cargandoGuia } = useGuia()
@@ -40,6 +41,13 @@ function App() {
   const [movimientosVersion, setMovimientosVersion] = useState(0)
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [movimientoEditando, setMovimientoEditando] = useState(null)
+  // Señal de una sola vez para que la tarjeta de promoción del 2FA en
+  // Home.jsx pueda llevar al usuario directo a la sección Seguridad de
+  // Perfil (no solo a la pantalla de Perfil en general). Perfil.jsx la
+  // consume apenas monta (ver onSeguridadInicialConsumida) para que quede
+  // en false de nuevo -- así una visita normal a "Más" por la barra de
+  // navegación, después de esta, no vuelva a abrir Seguridad sola.
+  const [abrirSeguridadAlEntrarAPerfil, setAbrirSeguridadAlEntrarAPerfil] = useState(false)
   const usuarioIdAnteriorRef = useRef(null)
 
   useEffect(() => {
@@ -48,11 +56,15 @@ function App() {
     // temporal de recuperación de contraseña (recuperacion === 'activo')
     // también cuenta como "sin sesión" aquí: no se muestra la app mientras
     // el usuario está en la pantalla de "Establecer nueva contraseña", así
-    // que no tiene sentido pedir sus cuentas/categorías todavía.
-    if (!sesion || recuperacion) return
+    // que no tiene sentido pedir sus cuentas/categorías todavía. Lo mismo
+    // aplica mientras falta el segundo factor (requiereVerificacionMfa): no
+    // tiene sentido traer datos de la cuenta a memoria antes de que el
+    // usuario termine de demostrar que es él (aunque RLS ya los protege,
+    // acá evitamos pedirlos de más).
+    if (!sesion || recuperacion || requiereVerificacionMfa) return
     cargarCuentas()
     cargarCategorias()
-  }, [sesion, recuperacion])
+  }, [sesion, recuperacion, requiereVerificacionMfa])
 
   // Cada vez que arranca una sesión nueva (login recién hecho, recarga de
   // página estando logueado, o cambio a otro usuario) volvemos a "inicio".
@@ -139,6 +151,11 @@ function App() {
   function cerrarHojaMovimiento() {
     setHojaAbierta(false)
     setMovimientoEditando(null)
+  }
+
+  function irASeguridadDesdeHome() {
+    setAbrirSeguridadAlEntrarAPerfil(true)
+    setVista('mas')
   }
 
   async function actualizarMovimiento(movimientoOriginal, datos) {
@@ -298,6 +315,16 @@ function App() {
     return <EstablecerNuevaContrasena />
   }
 
+  // Entre "hay sesión" y "se puede mostrar la app" falta este paso: si el
+  // usuario tiene 2FA activo, signInWithPassword lo deja en AAL1 (Supabase
+  // no pide el código en el signIn en sí) -- requiereVerificacionMfa detecta
+  // justo ese caso y muestra la pantalla de código en vez de la app. Un
+  // usuario sin 2FA nunca pasa por acá (requiereVerificacionMfa es siempre
+  // false), así que su login no cambia en nada.
+  if (sesion && requiereVerificacionMfa) {
+    return <VerificarMfa />
+  }
+
   if (!sesion) {
     return <PantallaAuth />
   }
@@ -328,6 +355,7 @@ function App() {
           onDesmarcarGastoFijoPagado={desmarcarGastoFijoPagado}
           onEditarMovimiento={abrirEditarMovimiento}
           onEliminarMovimiento={eliminarMovimiento}
+          onIrASeguridad={irASeguridadDesdeHome}
         />
       )}
       {vista === 'cuentas' && (
@@ -366,7 +394,12 @@ function App() {
       {vista === 'emergencia' && <Emergencia />}
       {vista === 'resumen' && <Resumen />}
       {vista === 'viajes' && <Viajes />}
-      {vista === 'mas' && <Perfil />}
+      {vista === 'mas' && (
+        <Perfil
+          abrirSeguridadInicial={abrirSeguridadAlEntrarAPerfil}
+          onSeguridadInicialConsumida={() => setAbrirSeguridadAlEntrarAPerfil(false)}
+        />
+      )}
 
       {vista === 'inicio' && <BotonAgregar onClick={abrirNuevoMovimiento} />}
 

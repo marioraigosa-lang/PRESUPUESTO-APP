@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { CreditCard, TrendingUp, Sprout, BookOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CreditCard, TrendingUp, Sprout, BookOpen, ShieldCheck } from 'lucide-react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import CalculadoraCuotaCredito from './CalculadoraCuotaCredito'
 import CalculadoraCdt from './CalculadoraCdt'
 import CalculadoraAhorro from './CalculadoraAhorro'
 import GuiaUso from './GuiaUso'
+import SeguridadPerfil from './SeguridadPerfil'
 import AyudaContextual from '../components/AyudaContextual'
 import { useAuth } from '../context/AuthContext'
 import { useMoneda } from '../context/MonedaContext'
@@ -40,15 +41,29 @@ const CALCULADORAS = [
   },
 ]
 
-function Perfil() {
-  const { usuario, cerrarSesion } = useAuth()
+function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) {
+  const { usuario, cerrarSesion, tieneMfaActivo } = useAuth()
   const { moneda, cambiarMoneda } = useMoneda()
   const { t } = useIdioma()
   const [cerrando, setCerrando] = useState(false)
   const [calculadoraAbierta, setCalculadoraAbierta] = useState(null)
   const [guiaAbierta, setGuiaAbierta] = useState(false)
+  // Si se llegó acá desde la tarjeta de promoción de Home.jsx, abre
+  // Seguridad de una vez -- el valor inicial se lee UNA sola vez (lazy
+  // init) porque Perfil se monta de cero cada vez que `vista` vuelve a
+  // 'mas' en App.jsx.
+  const [seguridadAbierta, setSeguridadAbierta] = useState(() => abrirSeguridadInicial)
   const [cambiandoMoneda, setCambiandoMoneda] = useState(false)
   const [errorMoneda, setErrorMoneda] = useState('')
+
+  useEffect(() => {
+    if (abrirSeguridadInicial) {
+      onSeguridadInicialConsumida?.()
+    }
+    // Solo debe correr una vez, al montar: es lo que "consume" la señal de
+    // App.jsx para que no se repita en la próxima visita normal a Perfil.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function manejarCerrarSesion() {
     setCerrando(true)
@@ -85,6 +100,10 @@ function Perfil() {
 
   if (guiaAbierta) {
     return <GuiaUso onVolver={() => setGuiaAbierta(false)} />
+  }
+
+  if (seguridadAbierta) {
+    return <SeguridadPerfil onVolver={() => setSeguridadAbierta(false)} />
   }
 
   if (calculadoraAbierta === 'cuota') {
@@ -138,6 +157,28 @@ function Perfil() {
             <MensajeError className="mt-2 px-3 py-2 text-xs">{t('perfil.monedaError')}</MensajeError>
           )}
         </Tarjeta>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+            {t('perfil.seguridadTitulo')}
+          </h2>
+          <button
+            type="button"
+            onClick={() => setSeguridadAbierta(true)}
+            className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4 text-left transition-colors hover:bg-panel-2"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-text-dim">
+              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-text">{t('perfil.seguridadItemTitulo')}</p>
+              <p className="truncate text-xs text-text-dim">
+                {tieneMfaActivo ? t('seguridad.estadoActivo') : t('seguridad.estadoInactivo')}
+              </p>
+            </div>
+            <span className="shrink-0 text-text-dim">›</span>
+          </button>
+        </section>
 
         <BotonSecundario onClick={manejarCerrarSesion} disabled={cerrando} className="text-coral">
           {cerrando ? t('perfil.cerrandoSesion') : t('perfil.cerrarSesion')}
