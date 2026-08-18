@@ -737,6 +737,14 @@ export default {
     agregarRespaldoBoton: 'Agregar método de respaldo',
     agregarOtroBoton: '+ Agregar otro método',
 
+    // TarjetaPromoMfa.jsx: tarjeta descartable en Inicio que invita a
+    // activar el 2FA (solo a quien todavía no lo tiene activo).
+    promoTitulo: 'Protege tu cuenta con verificación en dos pasos',
+    promoTexto:
+      'Además de tu contraseña, te pedimos un código de tu app autenticadora al iniciar sesión. Toma un minuto activarlo.',
+    promoBoton: 'Activar verificación en dos pasos',
+    promoDescartarAria: 'Descartar, no mostrar de nuevo',
+
     // VerificarMfa.jsx (login con código, Fase 2): eligeMetodoLabel solo se
     // muestra cuando el usuario tiene más de un factor verificado.
     eligeMetodoLabel: '¿Con cuál método vas a verificar?',

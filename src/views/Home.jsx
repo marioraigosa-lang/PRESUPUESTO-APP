@@ -6,6 +6,7 @@ import Cuenta from '../components/Cuenta'
 import GastosFijos from '../components/GastosFijos'
 import GastosVariables from '../components/GastosVariables'
 import MovimientosRecientes from '../components/MovimientosRecientes'
+import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -27,6 +28,7 @@ function Home({
   onDesmarcarGastoFijoPagado,
   onEditarMovimiento,
   onEliminarMovimiento,
+  onIrASeguridad,
 }) {
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
@@ -110,6 +112,8 @@ function Home({
           monto={total}
           resumen={errorResumen ? null : resumenPeriodo}
         />
+
+        <TarjetaPromoMfa onActivar={onIrASeguridad} />
 
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">

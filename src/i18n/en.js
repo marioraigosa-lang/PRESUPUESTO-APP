@@ -709,6 +709,14 @@ export default {
     agregarRespaldoBoton: 'Add a backup method',
     agregarOtroBoton: '+ Add another method',
 
+    // TarjetaPromoMfa.jsx: dismissible card on Home inviting the user to
+    // turn on 2FA (only shown to someone who doesn't have it on yet).
+    promoTitulo: 'Protect your account with two-step verification',
+    promoTexto:
+      "Besides your password, we'll ask for a code from your authenticator app when you sign in. It only takes a minute to turn on.",
+    promoBoton: 'Turn on two-step verification',
+    promoDescartarAria: "Dismiss, don't show again",
+
     // VerificarMfa.jsx (login with code, Phase 2): eligeMetodoLabel only
     // shows up when the user has more than one verified factor.
     eligeMetodoLabel: 'Which method are you verifying with?',
