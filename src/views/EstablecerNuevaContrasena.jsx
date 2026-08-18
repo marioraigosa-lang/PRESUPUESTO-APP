@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
 import { useIdioma } from '../context/IdiomaContext'
 import { useAuth } from '../context/AuthContext'
+import CampoTexto from '../components/ui/CampoTexto'
 import MensajeError from '../components/ui/MensajeError'
 
 // Se muestra en lugar de la app cuando AuthContext detecta que el usuario
@@ -23,7 +24,7 @@ function EstablecerNuevaContrasena() {
     evento.preventDefault()
     setError('')
 
-    if (contrasena.length < 8) {
+    if (contrasena.length < 10) {
       setError(t('restablecer.errorContrasenaCorta'))
       return
     }
@@ -83,35 +84,29 @@ function EstablecerNuevaContrasena() {
           </div>
         ) : (
           <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-5">
-            <div>
-              <label htmlFor="contrasena" className="mb-1 block text-xs text-text-dim">
-                {t('restablecer.contrasenaNueva')}
-              </label>
-              <input
-                id="contrasena"
-                type="password"
-                autoComplete="new-password"
-                value={contrasena}
-                onChange={(evento) => setContrasena(evento.target.value)}
-                placeholder={t('restablecer.contrasenaNuevaPlaceholder')}
-                className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
-              />
-            </div>
+            <CampoTexto
+              id="contrasena"
+              type="password"
+              autoComplete="new-password"
+              label={t('restablecer.contrasenaNueva')}
+              value={contrasena}
+              onChange={(evento) => setContrasena(evento.target.value)}
+              placeholder={t('restablecer.contrasenaNuevaPlaceholder')}
+              etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
+              etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
+            />
 
-            <div>
-              <label htmlFor="confirmarContrasena" className="mb-1 block text-xs text-text-dim">
-                {t('restablecer.confirmarContrasena')}
-              </label>
-              <input
-                id="confirmarContrasena"
-                type="password"
-                autoComplete="new-password"
-                value={confirmarContrasena}
-                onChange={(evento) => setConfirmarContrasena(evento.target.value)}
-                placeholder={t('restablecer.confirmarContrasenaPlaceholder')}
-                className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
-              />
-            </div>
+            <CampoTexto
+              id="confirmarContrasena"
+              type="password"
+              autoComplete="new-password"
+              label={t('restablecer.confirmarContrasena')}
+              value={confirmarContrasena}
+              onChange={(evento) => setConfirmarContrasena(evento.target.value)}
+              placeholder={t('restablecer.confirmarContrasenaPlaceholder')}
+              etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
+              etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
+            />
 
             <MensajeError>{error}</MensajeError>
 

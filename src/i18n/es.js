@@ -44,6 +44,8 @@ export default {
     },
     menuCuenta: 'Menú de tu cuenta',
     errorCerrarSesion: 'No se pudo cerrar la sesión. Intenta de nuevo.',
+    mostrarContrasena: 'Mostrar contraseña',
+    ocultarContrasena: 'Ocultar contraseña',
   },
 
   home: {

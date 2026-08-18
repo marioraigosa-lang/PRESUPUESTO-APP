@@ -33,6 +33,8 @@ export default {
     },
     menuCuenta: 'Account menu',
     errorCerrarSesion: "Couldn't sign out. Please try again.",
+    mostrarContrasena: 'Show password',
+    ocultarContrasena: 'Hide password',
   },
 
   home: {

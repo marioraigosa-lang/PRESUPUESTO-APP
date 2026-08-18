@@ -4,6 +4,7 @@ import { traducirErrorAuth } from '../utils/erroresAuth'
 import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
 import { IDIOMA_POR_DEFECTO, IDIOMAS } from '../utils/idiomas'
 import { traducir } from '../i18n'
+import CampoTexto from '../components/ui/CampoTexto'
 import MensajeError from '../components/ui/MensajeError'
 
 function Registro({ onCambiarModo }) {
@@ -34,7 +35,7 @@ function Registro({ onCambiarModo }) {
       setError(t('registro.errorCorreoInvalido'))
       return
     }
-    if (contrasena.length < 8) {
+    if (contrasena.length < 10) {
       setError(t('registro.errorContrasenaCorta'))
       return
     }
@@ -107,35 +108,29 @@ function Registro({ onCambiarModo }) {
             />
           </div>
 
-          <div>
-            <label htmlFor="contrasena" className="mb-1 block text-xs text-text-dim">
-              {t('registro.contrasena')}
-            </label>
-            <input
-              id="contrasena"
-              type="password"
-              autoComplete="new-password"
-              value={contrasena}
-              onChange={(evento) => setContrasena(evento.target.value)}
-              placeholder={t('registro.contrasenaPlaceholder')}
-              className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
-            />
-          </div>
+          <CampoTexto
+            id="contrasena"
+            type="password"
+            autoComplete="new-password"
+            label={t('registro.contrasena')}
+            value={contrasena}
+            onChange={(evento) => setContrasena(evento.target.value)}
+            placeholder={t('registro.contrasenaPlaceholder')}
+            etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
+            etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
+          />
 
-          <div>
-            <label htmlFor="confirmarContrasena" className="mb-1 block text-xs text-text-dim">
-              {t('registro.confirmarContrasena')}
-            </label>
-            <input
-              id="confirmarContrasena"
-              type="password"
-              autoComplete="new-password"
-              value={confirmarContrasena}
-              onChange={(evento) => setConfirmarContrasena(evento.target.value)}
-              placeholder={t('registro.confirmarContrasenaPlaceholder')}
-              className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
-            />
-          </div>
+          <CampoTexto
+            id="confirmarContrasena"
+            type="password"
+            autoComplete="new-password"
+            label={t('registro.confirmarContrasena')}
+            value={confirmarContrasena}
+            onChange={(evento) => setConfirmarContrasena(evento.target.value)}
+            placeholder={t('registro.confirmarContrasenaPlaceholder')}
+            etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
+            etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
+          />
 
           <div>
             <p className="mb-1 block text-xs text-text-dim">{t('registro.monedaTitulo')}</p>

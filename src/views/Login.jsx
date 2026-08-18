@@ -70,6 +70,8 @@ function Login({ onCambiarModo, onRecuperar }) {
             value={contrasena}
             onChange={(evento) => setContrasena(evento.target.value)}
             placeholder={t('login.contrasenaPlaceholder')}
+            etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
+            etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
           />
 
           <button
