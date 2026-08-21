@@ -1,4 +1,4 @@
-import { Home, LifeBuoy, BarChart3, Plane, MoreHorizontal } from 'lucide-react'
+import { Home, LifeBuoy, BarChart3, Plane, User } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 
 const ITEMS = [
@@ -6,7 +6,7 @@ const ITEMS = [
   { id: 'emergencia', clave: 'nav.emergencia', Icono: LifeBuoy },
   { id: 'resumen', clave: 'nav.resumen', Icono: BarChart3 },
   { id: 'viajes', clave: 'nav.viajes', Icono: Plane },
-  { id: 'mas', clave: 'nav.mas', Icono: MoreHorizontal },
+  { id: 'mas', clave: 'nav.mas', Icono: User },
 ]
 
 function NavegacionInferior({ vistaActiva, onCambiarVista }) {

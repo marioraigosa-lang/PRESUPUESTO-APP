@@ -5,7 +5,7 @@ import MensajeError from './ui/MensajeError'
 
 // Avatar circular con la inicial del correo del usuario. Se usa en el
 // encabezado de las 4 pestañas principales (Inicio, Emergencia, Resumen,
-// Más) para que cerrar sesión esté siempre a un toque de distancia, sin
+// Cuenta) para que cerrar sesión esté siempre a un toque de distancia, sin
 // importar en qué pantalla esté el usuario.
 function AvatarUsuario() {
   const { usuario, cerrarSesion } = useAuth()

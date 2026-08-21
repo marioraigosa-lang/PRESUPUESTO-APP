@@ -7,7 +7,7 @@ export default {
     emergencia: 'Fund',
     resumen: 'Summary',
     viajes: 'Trips',
-    mas: 'More',
+    mas: 'Account',
   },
 
   comun: {
@@ -774,7 +774,7 @@ export default {
         'The Fund tab shows how many months of expenses you have covered, and lets you create savings goals for what comes next.',
       tarjeta4Titulo: 'The full guide is waiting for you',
       tarjeta4Texto:
-        "You'll find the complete User guide under More, with details on every part of the app -- come back anytime you need it.",
+        "You'll find the complete User guide under Account, with details on every part of the app -- come back anytime you need it.",
     },
     // Text for the "?" help icons (Phase 2, AyudaContextual.jsx): 1-2 short
     // sentences next to specific features, unlike "completa" (below), which
@@ -907,12 +907,12 @@ export default {
       calculadoras: {
         titulo: 'Calculators',
         texto:
-          "Three educational tools to help you plan ahead, found under More:\n\n• Loan payment: works out your monthly payment (French amortization system) from an amount, rate, and term.\n• CD vs. high-yield savings account: compares which one earns more for the same money over the same time.\n• Compound interest savings: projects how much you'd build up by saving a set amount every month.\n\nThey don't move real money and nothing gets saved -- they're just for simulating.",
+          "Three educational tools to help you plan ahead, found under Account:\n\n• Loan payment: works out your monthly payment (French amortization system) from an amount, rate, and term.\n• CD vs. high-yield savings account: compares which one earns more for the same money over the same time.\n• Compound interest savings: projects how much you'd build up by saving a set amount every month.\n\nThey don't move real money and nothing gets saved -- they're just for simulating.",
       },
       preferencias: {
         titulo: 'Currency and language',
         texto:
-          "You choose your currency (COP, USD, or EUR) and your language (Spanish or English) when you sign up. Currency controls how amounts are displayed across the app -- it doesn't convert your numbers, only the format.\n\nYou can change your currency anytime from More -> Profile. Language, on the other hand, is set once, when you create your account.",
+          "You choose your currency (COP, USD, or EUR) and your language (Spanish or English) when you sign up. Currency controls how amounts are displayed across the app -- it doesn't convert your numbers, only the format.\n\nYou can change your currency anytime from Account -> Profile. Language, on the other hand, is set once, when you create your account.",
       },
     },
   },

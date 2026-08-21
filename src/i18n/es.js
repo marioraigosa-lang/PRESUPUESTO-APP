@@ -14,7 +14,7 @@ export default {
     emergencia: 'Fondo',
     resumen: 'Resumen',
     viajes: 'Viajes',
-    mas: 'Más',
+    mas: 'Cuenta',
   },
 
   // Textos compartidos por varias pantallas (nombres de meses, quincenas,
@@ -808,7 +808,7 @@ export default {
         'En la pestaña Fondo ves cuántos meses de gastos tienes cubiertos, y puedes crear metas de ahorro para tus próximos objetivos.',
       tarjeta4Titulo: 'La guía completa te espera',
       tarjeta4Texto:
-        'En la pestaña Más encontrarás la Guía de uso completa, con el detalle de cada función de la app -- vuelve ahí cuando la necesites.',
+        'En la pestaña Cuenta encontrarás la Guía de uso completa, con el detalle de cada función de la app -- vuelve ahí cuando la necesites.',
     },
     // Textos de los íconos de ayuda "?" (Fase 2, AyudaContextual.jsx): 1-2
     // frases breves junto a funciones puntuales, a diferencia de
@@ -941,12 +941,12 @@ export default {
       calculadoras: {
         titulo: 'Calculadoras',
         texto:
-          'Tres herramientas educativas para planear antes de decidir, en Más:\n\n• Cuota de crédito: calcula tu cuota mensual de un préstamo (sistema francés) según monto, tasa y plazo.\n• CDT vs. cuenta de alto rendimiento: compara cuál te rinde más para una misma plata e igual tiempo.\n• Ahorro con interés compuesto: proyecta cuánto acumularías ahorrando cada mes a una tasa dada.\n\nNo mueven dinero real ni se guardan: son solo para simular.',
+          'Tres herramientas educativas para planear antes de decidir, en Cuenta:\n\n• Cuota de crédito: calcula tu cuota mensual de un préstamo (sistema francés) según monto, tasa y plazo.\n• CDT vs. cuenta de alto rendimiento: compara cuál te rinde más para una misma plata e igual tiempo.\n• Ahorro con interés compuesto: proyecta cuánto acumularías ahorrando cada mes a una tasa dada.\n\nNo mueven dinero real ni se guardan: son solo para simular.',
       },
       preferencias: {
         titulo: 'Moneda e idioma',
         texto:
-          'Eliges tu moneda (COP, USD o EUR) y tu idioma (español o inglés) al registrarte. La moneda define cómo se muestran tus montos en toda la app -- no convierte tus números, solo cambia el formato.\n\nPuedes cambiar la moneda cuando quieras desde Más → Perfil. El idioma, en cambio, se elige una sola vez al crear la cuenta.',
+          'Eliges tu moneda (COP, USD o EUR) y tu idioma (español o inglés) al registrarte. La moneda define cómo se muestran tus montos en toda la app -- no convierte tus números, solo cambia el formato.\n\nPuedes cambiar la moneda cuando quieras desde Cuenta → Perfil. El idioma, en cambio, se elige una sola vez al crear la cuenta.',
       },
     },
   },
