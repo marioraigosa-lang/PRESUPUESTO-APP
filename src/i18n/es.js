@@ -652,6 +652,15 @@ export default {
     irALogin: 'Ir a iniciar sesión',
     errorEnlaceExpirado: 'Este enlace de recuperación venció o ya no es válido. Solicita uno nuevo.',
     volverLogin: 'Volver a iniciar sesión',
+
+    // Paso de 2FA (PasoCodigoMfa.jsx) intercalado ANTES del formulario de
+    // contraseña cuando la cuenta tiene verificación en dos pasos activa
+    // (ver EstablecerNuevaContrasena.jsx: Supabase exige AAL2 para cambiar
+    // la contraseña, y el enlace de recuperación solo deja AAL1).
+    mfaSubtitulo: 'Antes de cambiar tu contraseña, confirma tu identidad con el código de tu app autenticadora',
+    mfaVerificarYContinuar: 'Verificar y continuar',
+    mfaAyudaTexto:
+      'Si perdiste el acceso a tu app autenticadora y a tu método de respaldo, no podrás completar este paso tú mismo. Contacta a soporte para recuperar el acceso a tu cuenta.',
   },
 
   // Claves de traducirErrorAuth (erroresAuth.js). Ese util detecta el error

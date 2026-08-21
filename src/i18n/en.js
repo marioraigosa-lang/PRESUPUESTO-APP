@@ -622,6 +622,15 @@ export default {
     irALogin: 'Go to sign in',
     errorEnlaceExpirado: 'This reset link has expired or is no longer valid. Request a new one.',
     volverLogin: 'Back to sign in',
+
+    // 2FA step (PasoCodigoMfa.jsx) inserted BEFORE the password form when
+    // the account has two-step verification on (see
+    // EstablecerNuevaContrasena.jsx: Supabase requires AAL2 to change the
+    // password, and the recovery link only grants AAL1).
+    mfaSubtitulo: 'Before changing your password, confirm your identity with the code from your authenticator app',
+    mfaVerificarYContinuar: 'Verify and continue',
+    mfaAyudaTexto:
+      "If you lost access to your authenticator app and your backup method, you won't be able to complete this step yourself. Contact support to recover access to your account.",
   },
 
   auth: {

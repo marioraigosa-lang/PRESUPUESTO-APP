@@ -6,15 +6,29 @@ import { useAuth } from '../context/AuthContext'
 import CampoTexto from '../components/ui/CampoTexto'
 import MedidorFortaleza from '../components/ui/MedidorFortaleza'
 import MensajeError from '../components/ui/MensajeError'
+import PasoCodigoMfa from '../components/PasoCodigoMfa'
 
 // Se muestra en lugar de la app cuando AuthContext detecta que el usuario
 // llegó desde el enlace de recuperación de contraseña que le envió Supabase
 // (ver App.jsx: recuperacion === 'activo' | 'error'). No recibe `onVolver`
 // como Login/Registro porque no vive dentro de PantallaAuth: entra y sale
 // directamente vía AuthContext.finalizarRecuperacion().
+//
+// Si la cuenta tiene 2FA activo, el enlace de recuperación deja la sesión en
+// AAL1 (igual que un login con correo+contraseña) -- Supabase exige AAL2
+// para poder cambiar la contraseña (error "insufficient_aal"). AuthContext
+// ya calcula `requiereVerificacionMfa` para CUALQUIER sesión, incluida esta
+// temporal de recuperación, así que reusamos esa misma señal (la que usa
+// VerificarMfa.jsx en el login) para pedir el código antes de mostrar el
+// formulario de nueva contraseña. Cuando el código se verifica, Supabase
+// sube la sesión a AAL2 y dispara onAuthStateChange; AuthContext recalcula
+// requiereVerificacionMfa a false y este componente re-renderiza solo hacia
+// el formulario de contraseña -- no hace falta ningún estado local para
+// "ya pasé el 2FA". Un usuario sin 2FA nunca tiene requiereVerificacionMfa
+// en true, así que su flujo de recuperación no cambia en nada.
 function EstablecerNuevaContrasena() {
   const { t } = useIdioma()
-  const { recuperacion, finalizarRecuperacion } = useAuth()
+  const { recuperacion, finalizarRecuperacion, requiereVerificacionMfa, factoresMfa, cargandoMfa } = useAuth()
   const [contrasena, setContrasena] = useState('')
   const [confirmarContrasena, setConfirmarContrasena] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -55,7 +69,11 @@ function EstablecerNuevaContrasena() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-text">{t('restablecer.titulo')}</h1>
-            <p className="text-xs text-text-dim">{t('restablecer.subtitulo')}</p>
+            <p className="text-xs text-text-dim">
+              {recuperacion === 'activo' && requiereVerificacionMfa
+                ? t('restablecer.mfaSubtitulo')
+                : t('restablecer.subtitulo')}
+            </p>
           </div>
         </div>
 
@@ -82,6 +100,26 @@ function EstablecerNuevaContrasena() {
             >
               {t('restablecer.irALogin')}
             </button>
+          </div>
+        ) : requiereVerificacionMfa ? (
+          <div className="flex flex-col gap-4">
+            <PasoCodigoMfa
+              factoresMfa={factoresMfa}
+              cargandoMfa={cargandoMfa}
+              t={t}
+              textoBoton={t('restablecer.mfaVerificarYContinuar')}
+              textoVerificando={t('seguridad.verificando')}
+            />
+            <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-5 text-center">
+              <p className="text-xs text-text-dim">{t('restablecer.mfaAyudaTexto')}</p>
+              <button
+                type="button"
+                onClick={finalizarRecuperacion}
+                className="text-center text-sm font-semibold text-mint"
+              >
+                {t('restablecer.volverLogin')}
+              </button>
+            </div>
           </div>
         ) : (
           <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-5">
