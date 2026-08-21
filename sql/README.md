@@ -57,6 +57,9 @@ igual abajo para que quede claro de dónde salió la duda.
 **Guía de uso (Fase 3: bienvenida)**
 19. `supabase_guia_vista.sql` *(pendiente de ejecutar — en revisión)* — agrega `guia_vista` a `perfiles` para mostrar la guía de bienvenida solo la primera vez, con backfill a `true` para los usuarios existentes.
 
+**Constancia de consentimiento (Ley 1581 de Colombia)**
+20. `supabase_consentimientos.sql` *(⚠️ borrador, no ejecutar todavía — pendiente de revisión)* — crea la tabla `consentimientos` (historial append-only, sin UPDATE/DELETE desde la app) para guardar constancia de que el usuario aceptó la Política de Datos, los Términos de Uso y declaró ser mayor de edad, con fecha y versión de cada documento. Extiende `handle_new_user` para registrar el consentimiento dado en el registro; NO hace backfill retroactivo para usuarios existentes (queda para un gate de re-consentimiento en el código, aparte).
+
 ## Si agregas un script nuevo
 
 Nómbralo `supabase_<algo_descriptivo>.sql` (mismo estilo que los de arriba) y

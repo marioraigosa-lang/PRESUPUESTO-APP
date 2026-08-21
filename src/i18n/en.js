@@ -668,6 +668,11 @@ export default {
     guiaDescripcion: 'How every part of the app works',
     seguridadTitulo: 'Security',
     seguridadItemTitulo: 'Two-step verification',
+    legalTitulo: 'Legal',
+    politicaTitulo: 'Privacy policy',
+    politicaDescripcion: 'How we handle your personal data',
+    terminosTitulo: 'Terms and conditions',
+    terminosDescripcion: "Seed's rules of use",
   },
 
   // "Security" screen (SeguridadPerfil.jsx), reachable from Profile:
@@ -751,8 +756,19 @@ export default {
     saliendo: 'Signing out...',
   },
 
+  // "Chrome" for the legal document screens (DocumentoLegal.jsx, used by
+  // PoliticaDatos.jsx and TerminosCondiciones.jsx). The documents' TEXT
+  // itself lives in src/data/documentosLegales.js and is currently always
+  // shown in Spanish (they're documents drafted for Colombia) -- these keys
+  // only cover what does follow the app's language: the back button and the
+  // version/date line.
+  legal: {
+    volverAria: 'Back',
+    metaLinea: 'Version {{version}} · Last updated: {{fecha}}',
+  },
+
   // Content for GuiaUso.jsx (Phase 1 of the user guide, reachable from
-  // More -> User guide). This is long text and will keep growing as the app
+  // Account -> User guide). This is long text and will keep growing as the app
   // gains new features -- REVIEW AND UPDATE this section whenever a big
   // feature gets added, so the guide doesn't go stale. `completa.<section>.texto`
   // can hold several paragraphs separated by '\n\n' (GuiaUso.jsx renders

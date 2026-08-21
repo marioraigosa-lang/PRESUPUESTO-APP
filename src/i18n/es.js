@@ -701,6 +701,11 @@ export default {
     guiaDescripcion: 'Cómo funciona cada parte de la app',
     seguridadTitulo: 'Seguridad',
     seguridadItemTitulo: 'Verificación en dos pasos',
+    legalTitulo: 'Legal',
+    politicaTitulo: 'Política de privacidad',
+    politicaDescripcion: 'Cómo tratamos tus datos personales',
+    terminosTitulo: 'Términos y condiciones',
+    terminosDescripcion: 'Reglas de uso de Seed',
   },
 
   // Pantalla "Seguridad" (SeguridadPerfil.jsx), accesible desde Perfil:
@@ -785,8 +790,19 @@ export default {
     saliendo: 'Saliendo...',
   },
 
+  // "Chrome" de las pantallas de documentos legales (DocumentoLegal.jsx,
+  // usado por PoliticaDatos.jsx y TerminosCondiciones.jsx). El TEXTO de los
+  // documentos en sí vive en src/data/documentosLegales.js y por ahora se
+  // muestra siempre en español (son documentos redactados para Colombia) --
+  // estas claves solo cubren lo que sí sigue el idioma de la app: el botón
+  // volver y la línea de versión/fecha.
+  legal: {
+    volverAria: 'Volver',
+    metaLinea: 'Versión {{version}} · Última actualización: {{fecha}}',
+  },
+
   // Contenido de GuiaUso.jsx (Fase 1 de la guía de uso, accesible desde
-  // Más → Guía de uso). Es texto largo y va a seguir creciendo a medida que
+  // Cuenta → Guía de uso). Es texto largo y va a seguir creciendo a medida que
   // la app sume funciones nuevas -- REVISAR Y ACTUALIZAR esta sección cada
   // vez que se agregue una función grande, para que la guía no quede
   // desactualizada. `completa.<seccion>.texto` puede tener varios párrafos

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { CreditCard, TrendingUp, Sprout, BookOpen, ShieldCheck } from 'lucide-react'
+import { CreditCard, TrendingUp, Sprout, BookOpen, ShieldCheck, Lock, FileText } from 'lucide-react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import CalculadoraCuotaCredito from './CalculadoraCuotaCredito'
 import CalculadoraCdt from './CalculadoraCdt'
 import CalculadoraAhorro from './CalculadoraAhorro'
 import GuiaUso from './GuiaUso'
 import SeguridadPerfil from './SeguridadPerfil'
+import PoliticaDatos from './PoliticaDatos'
+import TerminosCondiciones from './TerminosCondiciones'
 import AyudaContextual from '../components/AyudaContextual'
 import { useAuth } from '../context/AuthContext'
 import { useMoneda } from '../context/MonedaContext'
@@ -48,6 +50,10 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) 
   const [cerrando, setCerrando] = useState(false)
   const [calculadoraAbierta, setCalculadoraAbierta] = useState(null)
   const [guiaAbierta, setGuiaAbierta] = useState(false)
+  // 'politica' | 'terminos' | null -- mismo criterio que calculadoraAbierta:
+  // un solo estado en vez de dos booleanos, porque nunca hay más de un
+  // documento legal abierto a la vez.
+  const [documentoLegalAbierto, setDocumentoLegalAbierto] = useState(null)
   // Si se llegó acá desde la tarjeta de promoción de Home.jsx, abre
   // Seguridad de una vez -- el valor inicial se lee UNA sola vez (lazy
   // init) porque Perfil se monta de cero cada vez que `vista` vuelve a
@@ -104,6 +110,14 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) 
 
   if (seguridadAbierta) {
     return <SeguridadPerfil onVolver={() => setSeguridadAbierta(false)} />
+  }
+
+  if (documentoLegalAbierto === 'politica') {
+    return <PoliticaDatos onVolver={() => setDocumentoLegalAbierto(null)} />
+  }
+
+  if (documentoLegalAbierto === 'terminos') {
+    return <TerminosCondiciones onVolver={() => setDocumentoLegalAbierto(null)} />
   }
 
   if (calculadoraAbierta === 'cuota') {
@@ -202,6 +216,42 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) 
             </div>
             <span className="shrink-0 text-text-dim">›</span>
           </button>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+            {t('perfil.legalTitulo')}
+          </h2>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setDocumentoLegalAbierto('politica')}
+              className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4 text-left transition-colors hover:bg-panel-2"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-text-dim">
+                <Lock className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-text">{t('perfil.politicaTitulo')}</p>
+                <p className="truncate text-xs text-text-dim">{t('perfil.politicaDescripcion')}</p>
+              </div>
+              <span className="shrink-0 text-text-dim">›</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDocumentoLegalAbierto('terminos')}
+              className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4 text-left transition-colors hover:bg-panel-2"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-text-dim">
+                <FileText className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-text">{t('perfil.terminosTitulo')}</p>
+                <p className="truncate text-xs text-text-dim">{t('perfil.terminosDescripcion')}</p>
+              </div>
+              <span className="shrink-0 text-text-dim">›</span>
+            </button>
+          </div>
         </section>
 
         <section className="flex flex-col gap-3">
