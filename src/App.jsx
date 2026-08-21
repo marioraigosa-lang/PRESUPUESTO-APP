@@ -8,6 +8,7 @@ import Perfil from './views/Perfil'
 import PantallaAuth from './views/PantallaAuth'
 import EstablecerNuevaContrasena from './views/EstablecerNuevaContrasena'
 import VerificarMfa from './views/VerificarMfa'
+import PantallaConsentimiento from './views/PantallaConsentimiento'
 import NavegacionInferior from './components/NavegacionInferior'
 import BotonAgregar from './components/BotonAgregar'
 import HojaNuevoMovimiento from './components/HojaNuevoMovimiento'
@@ -25,7 +26,7 @@ import * as movimientosService from './services/movimientos'
 import * as gastosFijosService from './services/gastosFijos'
 
 function App() {
-  const { sesion, cargando, recuperacion, requiereVerificacionMfa } = useAuth()
+  const { sesion, cargando, recuperacion, requiereVerificacionMfa, requiereConsentimiento } = useAuth()
   const { cargando: cargandoMoneda } = useMoneda()
   const { cargando: cargandoIdioma } = useIdioma()
   const { guiaVista, cargando: cargandoGuia } = useGuia()
@@ -45,7 +46,7 @@ function App() {
   // Home.jsx pueda llevar al usuario directo a la sección Seguridad de
   // Perfil (no solo a la pantalla de Perfil en general). Perfil.jsx la
   // consume apenas monta (ver onSeguridadInicialConsumida) para que quede
-  // en false de nuevo -- así una visita normal a "Más" por la barra de
+  // en false de nuevo -- así una visita normal a "Cuenta" por la barra de
   // navegación, después de esta, no vuelva a abrir Seguridad sola.
   const [abrirSeguridadAlEntrarAPerfil, setAbrirSeguridadAlEntrarAPerfil] = useState(false)
   const usuarioIdAnteriorRef = useRef(null)
@@ -57,14 +58,15 @@ function App() {
     // también cuenta como "sin sesión" aquí: no se muestra la app mientras
     // el usuario está en la pantalla de "Establecer nueva contraseña", así
     // que no tiene sentido pedir sus cuentas/categorías todavía. Lo mismo
-    // aplica mientras falta el segundo factor (requiereVerificacionMfa): no
+    // aplica mientras falta el segundo factor (requiereVerificacionMfa) o
+    // falta aceptar los documentos legales (requiereConsentimiento): no
     // tiene sentido traer datos de la cuenta a memoria antes de que el
-    // usuario termine de demostrar que es él (aunque RLS ya los protege,
-    // acá evitamos pedirlos de más).
-    if (!sesion || recuperacion || requiereVerificacionMfa) return
+    // usuario termine de demostrar que es él y de aceptar (aunque RLS ya
+    // los protege, acá evitamos pedirlos de más).
+    if (!sesion || recuperacion || requiereVerificacionMfa || requiereConsentimiento) return
     cargarCuentas()
     cargarCategorias()
-  }, [sesion, recuperacion, requiereVerificacionMfa])
+  }, [sesion, recuperacion, requiereVerificacionMfa, requiereConsentimiento])
 
   // Cada vez que arranca una sesión nueva (login recién hecho, recarga de
   // página estando logueado, o cambio a otro usuario) volvemos a "inicio".
@@ -327,6 +329,19 @@ function App() {
 
   if (!sesion) {
     return <PantallaAuth />
+  }
+
+  // Después de que la identidad quedó confirmada (pasó el gate de MFA de
+  // arriba, si aplica): si al usuario le falta aceptar la versión vigente de
+  // la Política de Datos, los Términos, o declarar mayoría de edad -- ver
+  // tieneConsentimientoVigente en utils/consentimientos.js -- se le pide
+  // aceptar antes de dejarlo entrar. Va DESPUÉS del gate de MFA a propósito:
+  // primero se confirma que es realmente el dueño de la cuenta (segundo
+  // factor), y solo entonces se le pide aceptar los documentos a su nombre.
+  // Cubre tanto cuentas viejas (de antes de que existieran los checkboxes de
+  // Registro.jsx) como una futura subida de versión de cualquier documento.
+  if (requiereConsentimiento) {
+    return <PantallaConsentimiento />
   }
 
   // Espera a que moneda/idioma/guia_vista ya hayan cargado (los 3 se leen

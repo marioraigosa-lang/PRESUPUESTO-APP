@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { tieneConsentimientoVigente } from '../utils/consentimientos'
+import VERSIONES_LEGALES from '../constants/versionesLegales'
 
 const AuthContext = createContext(undefined)
 
@@ -46,6 +48,17 @@ export function AuthProvider({ children }) {
   // la app. Para un usuario sin 2FA, `nextLevel` nunca es 'aal2', así que
   // esto queda en `false` siempre y su login no cambia en nada.
   const [requiereVerificacionMfa, setRequiereVerificacionMfa] = useState(false)
+  // true cuando el usuario autenticado NO tiene, para CADA UNO de los 3
+  // tipos de consentimiento (política de datos, términos, mayoría de edad),
+  // al menos una fila en "consentimientos" con la versión vigente
+  // (VERSIONES_LEGALES) -- ver tieneConsentimientoVigente en
+  // utils/consentimientos.js. Cubre tanto a usuarios que nunca aceptaron
+  // nada (cuentas de antes de que existieran los checkboxes de Registro.jsx)
+  // como a quienes aceptaron una versión que ya quedó vieja. App.jsx usa
+  // esto para mostrar PantallaConsentimiento.jsx en vez de la app, DESPUÉS
+  // del gate de MFA (ver el orden en App.jsx).
+  const [requiereConsentimiento, setRequiereConsentimiento] = useState(false)
+  const [cargandoConsentimiento, setCargandoConsentimiento] = useState(true)
 
   useEffect(() => {
     // Sin sesión no hay nada que verificar. Con sesión, currentLevel/nextLevel
@@ -123,6 +136,56 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sesion?.user?.id])
 
+  // Mismo patrón exacto que el efecto de factoresMfa de arriba, aplicado a
+  // la tabla "consentimientos" en vez de a supabase.auth.mfa. Se consulta
+  // directo con `supabase` (no con useDatosUsuario/seleccionarPropio) porque
+  // ese hook llama a useAuth() por dentro -- usarlo acá adentro del propio
+  // AuthProvider sería una dependencia circular.
+  useEffect(() => {
+    let cancelado = false
+
+    if (!sesion?.user) {
+      setRequiereConsentimiento(false)
+      setCargandoConsentimiento(false)
+      return
+    }
+
+    setCargandoConsentimiento(true)
+    supabase
+      .from('consentimientos')
+      .select('tipo, version')
+      .eq('user_id', sesion.user.id)
+      .then(({ data, error }) => {
+        if (cancelado) return
+        // Si la consulta falla (ej. problema de red), no atrapamos al
+        // usuario detrás de un gate que tampoco podría completar (aceptar
+        // también requeriría la misma conexión) -- mismo criterio "falla
+        // abierto" que calcularRequiereMfa de arriba, que trata cualquier
+        // `data` ausente/inesperado como "no hace falta el gate".
+        setRequiereConsentimiento(error ? false : !tieneConsentimientoVigente(data, VERSIONES_LEGALES))
+        setCargandoConsentimiento(false)
+      })
+
+    return () => {
+      cancelado = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sesion?.user?.id])
+
+  // PantallaConsentimiento.jsx la llama justo después de insertar las 3
+  // filas de consentimiento, para volver a consultar el estado real desde
+  // Supabase (en vez de asumir "ya quedó vigente" a mano) -- mismo criterio
+  // que refrescarMfa de arriba.
+  const refrescarConsentimiento = useCallback(async () => {
+    const usuarioId = sesion?.user?.id
+    if (!usuarioId) {
+      setRequiereConsentimiento(false)
+      return
+    }
+    const { data, error } = await supabase.from('consentimientos').select('tipo, version').eq('user_id', usuarioId)
+    setRequiereConsentimiento(error ? false : !tieneConsentimientoVigente(data, VERSIONES_LEGALES))
+  }, [sesion?.user?.id])
+
   async function cerrarSesion() {
     await supabase.auth.signOut()
   }
@@ -156,6 +219,9 @@ export function AuthProvider({ children }) {
         tieneMfaActivo: factoresMfa.length > 0,
         cargandoMfa,
         refrescarMfa,
+        requiereConsentimiento,
+        cargandoConsentimiento,
+        refrescarConsentimiento,
       }}
     >
       {children}

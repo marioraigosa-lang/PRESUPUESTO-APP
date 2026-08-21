@@ -678,6 +678,21 @@ export default {
     errorGenerico: 'Ocurrió un error. Inténtalo de nuevo.',
   },
 
+  // PantallaConsentimiento.jsx (el "gate" de consentimiento, App.jsx): se
+  // muestra en vez de la app cuando el usuario autenticado no tiene fila
+  // vigente de alguno de los 3 tipos en "consentimientos" -- cuentas viejas
+  // (de antes de los checkboxes) o una versión de documento que ya cambió.
+  // Los textos de los 3 checkboxes reutilizan registro.consentimiento* (ver
+  // ese comentario) en vez de duplicarse acá.
+  consentimiento: {
+    titulo: 'Actualizamos nuestros documentos legales',
+    subtitulo:
+      'Para seguir usando Seed, necesitamos que aceptes nuestros documentos actualizados.',
+    aceptarYContinuar: 'Aceptar y continuar',
+    guardando: 'Guardando...',
+    errorGuardar: 'No se pudo guardar tu aceptación. Intenta de nuevo.',
+  },
+
   perfil: {
     titulo: 'Perfil',
     subtitulo: 'Tu cuenta',
@@ -993,6 +1008,17 @@ export default {
     errorCorreoInvalido: 'Ingresa un correo válido',
     errorContrasenaCorta: 'La contraseña debe tener al menos 10 caracteres',
     errorContrasenasNoCoinciden: 'Las contraseñas no coinciden',
+    // Consentimientos exigidos por la Ley 1581 de 2012 (ver
+    // sql/supabase_consentimientos.sql). "...Pre" es el texto antes del
+    // enlace y "...Link" el nombre del documento en sí -- Registro.jsx los
+    // junta con un <button> clicable en medio de la frase.
+    consentimientoPoliticaPre: 'He leído y acepto la',
+    consentimientoPoliticaLink: 'Política de Tratamiento de Datos Personales',
+    consentimientoTerminosPre: 'He leído y acepto los',
+    consentimientoTerminosLink: 'Términos y Condiciones',
+    consentimientoMayorEdad: 'Declaro que soy mayor de 18 años.',
+    errorConsentimientoFaltante:
+      'Debes aceptar la política, los términos y confirmar tu mayoría de edad para continuar.',
     mensajeCuentaCreada:
       'Cuenta creada. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',
     creandoCuenta: 'Creando cuenta...',

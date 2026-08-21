@@ -644,6 +644,20 @@ export default {
     errorGenerico: 'Something went wrong. Please try again.',
   },
 
+  // PantallaConsentimiento.jsx (the consent "gate", App.jsx): shown instead
+  // of the app when the authenticated user is missing a current row for any
+  // of the 3 consent types in "consentimientos" -- old accounts (from
+  // before the checkboxes existed) or a document version that has since
+  // changed. The 3 checkboxes' text reuses registro.consentimiento* (see
+  // that comment) instead of duplicating it here.
+  consentimiento: {
+    titulo: 'We updated our legal documents',
+    subtitulo: 'To keep using Seed, we need you to accept our updated documents.',
+    aceptarYContinuar: 'Accept and continue',
+    guardando: 'Saving...',
+    errorGuardar: "Couldn't save your acceptance. Please try again.",
+  },
+
   perfil: {
     titulo: 'Profile',
     subtitulo: 'Your account',
@@ -959,6 +973,17 @@ export default {
     errorCorreoInvalido: 'Enter a valid email',
     errorContrasenaCorta: 'Password must be at least 10 characters',
     errorContrasenasNoCoinciden: 'Passwords do not match',
+    // Consent required by Colombian Law 1581 of 2012 (see
+    // sql/supabase_consentimientos.sql). "...Pre" is the text before the
+    // link and "...Link" is the document's name -- Registro.jsx joins them
+    // with a clickable <button> in the middle of the sentence.
+    consentimientoPoliticaPre: 'I have read and accept the',
+    consentimientoPoliticaLink: 'Personal Data Processing Policy',
+    consentimientoTerminosPre: 'I have read and accept the',
+    consentimientoTerminosLink: 'Terms and Conditions',
+    consentimientoMayorEdad: 'I declare that I am over 18 years old.',
+    errorConsentimientoFaltante:
+      'You must accept the policy, the terms, and confirm you are of legal age to continue.',
     mensajeCuentaCreada: 'Account created. Check your email to confirm it before signing in.',
     creandoCuenta: 'Creating account...',
     crearCuenta: 'Create account',

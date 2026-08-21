@@ -3,10 +3,14 @@ import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
 import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
 import { IDIOMA_POR_DEFECTO, IDIOMAS } from '../utils/idiomas'
+import { todosLosConsentimientosAceptados } from '../utils/consentimientos'
+import VERSIONES_LEGALES from '../constants/versionesLegales'
 import { traducir } from '../i18n'
 import CampoTexto from '../components/ui/CampoTexto'
 import MedidorFortaleza from '../components/ui/MedidorFortaleza'
 import MensajeError from '../components/ui/MensajeError'
+import PoliticaDatos from './PoliticaDatos'
+import TerminosCondiciones from './TerminosCondiciones'
 
 function Registro({ onCambiarModo }) {
   const [correo, setCorreo] = useState('')
@@ -21,11 +25,30 @@ function Registro({ onCambiarModo }) {
   // previsualizar el cambio de idioma antes de crear la cuenta), y se manda
   // en el signUp para que el trigger la guarde en el perfil nuevo.
   const [idioma, setIdioma] = useState(IDIOMA_POR_DEFECTO)
+  // Los 3 consentimientos exigidos por la Ley 1581 de 2012 (política de
+  // datos, términos de uso, mayoría de edad). Ninguno arranca marcado --
+  // tiene que ser una acción activa del usuario, nunca un valor por defecto.
+  const [aceptoDatos, setAceptoDatos] = useState(false)
+  const [aceptoTerminos, setAceptoTerminos] = useState(false)
+  const [mayorEdad, setMayorEdad] = useState(false)
+  // 'politica' | 'terminos' | null. A propósito NO es una pantalla aparte
+  // dentro de PantallaAuth.jsx: se resuelve con un estado local de ESTE
+  // mismo componente, igual que calculadoraAbierta en Perfil.jsx. Como
+  // Registro nunca se desmonta al abrir un documento (solo cambia qué
+  // devuelve su render), correo/contraseña/checkboxes que el usuario ya
+  // llenó quedan intactos en memoria al volver -- no hace falta pestaña
+  // nueva ni modal para lograrlo.
+  const [documentoAbierto, setDocumentoAbierto] = useState(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
 
   const t = (clave) => traducir(idioma, clave)
+  const consentimientosCompletos = todosLosConsentimientosAceptados({
+    aceptoDatos,
+    aceptoTerminos,
+    mayorEdad,
+  })
 
   async function manejarEnviar(evento) {
     evento.preventDefault()
@@ -44,16 +67,39 @@ function Registro({ onCambiarModo }) {
       setError(t('registro.errorContrasenasNoCoinciden'))
       return
     }
+    // Defensa además del botón deshabilitado: el botón ya impide llegar
+    // acá sin los 3 consentimientos marcados, pero este chequeo se queda
+    // como respaldo (mismo criterio que el resto de las validaciones de
+    // este formulario, todas repetidas dentro de manejarEnviar).
+    if (!consentimientosCompletos) {
+      setError(t('registro.errorConsentimientoFaltante'))
+      return
+    }
 
     setEnviando(true)
     const { data, error: errorSupabase } = await supabase.auth.signUp({
       email: correo.trim(),
       password: contrasena,
-      // El trigger handle_new_user (en Supabase) lee moneda e idioma de
-      // raw_user_meta_data para crear el perfil del usuario nuevo ya con
-      // las preferencias que eligió aquí, en vez de nacer siempre en
-      // COP/es.
-      options: { data: { moneda, idioma } },
+      // El trigger handle_new_user (en Supabase) lee estos campos de
+      // raw_user_meta_data: moneda/idioma para crear el perfil nuevo con las
+      // preferencias elegidas acá, y acepto*/mayorEdad + version* para dejar
+      // la constancia de consentimiento (Ley 1581 de 2012) en la tabla
+      // "consentimientos" -- solo inserta cada fila si el valor viene en
+      // 'true' y con versión (ver supabase_consentimientos.sql). Las
+      // versiones se mandan desde VERSIONES_LEGALES, nunca hardcodeadas acá,
+      // para que subir la versión de un documento sea cambiar un solo lugar.
+      options: {
+        data: {
+          moneda,
+          idioma,
+          aceptoDatos,
+          versionPolitica: VERSIONES_LEGALES.POLITICA_DATOS,
+          aceptoTerminos,
+          versionTerminos: VERSIONES_LEGALES.TERMINOS,
+          mayorEdad,
+          versionMayorEdad: VERSIONES_LEGALES.MAYOR_EDAD,
+        },
+      },
     })
     setEnviando(false)
 
@@ -78,6 +124,14 @@ function Registro({ onCambiarModo }) {
     }
     // Si data.session existe, el AuthProvider detecta el cambio de sesión
     // automáticamente (onAuthStateChange) y la app se muestra sola.
+  }
+
+  if (documentoAbierto === 'politica') {
+    return <PoliticaDatos onVolver={() => setDocumentoAbierto(null)} />
+  }
+
+  if (documentoAbierto === 'terminos') {
+    return <TerminosCondiciones onVolver={() => setDocumentoAbierto(null)} />
   }
 
   return (
@@ -172,6 +226,56 @@ function Registro({ onCambiarModo }) {
             <p className="mt-1 text-xs text-text-dim">{t('registro.idiomaNota')}</p>
           </div>
 
+          <div className="flex flex-col gap-3 rounded-2xl bg-panel-2 p-4">
+            <label className="flex items-start gap-3 text-sm text-text-dim">
+              <input
+                type="checkbox"
+                checked={aceptoDatos}
+                onChange={(evento) => setAceptoDatos(evento.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-mint"
+              />
+              <span>
+                {t('registro.consentimientoPoliticaPre')}{' '}
+                <button
+                  type="button"
+                  onClick={() => setDocumentoAbierto('politica')}
+                  className="font-medium text-mint underline underline-offset-2"
+                >
+                  {t('registro.consentimientoPoliticaLink')}
+                </button>
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 text-sm text-text-dim">
+              <input
+                type="checkbox"
+                checked={aceptoTerminos}
+                onChange={(evento) => setAceptoTerminos(evento.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-mint"
+              />
+              <span>
+                {t('registro.consentimientoTerminosPre')}{' '}
+                <button
+                  type="button"
+                  onClick={() => setDocumentoAbierto('terminos')}
+                  className="font-medium text-mint underline underline-offset-2"
+                >
+                  {t('registro.consentimientoTerminosLink')}
+                </button>
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 text-sm text-text-dim">
+              <input
+                type="checkbox"
+                checked={mayorEdad}
+                onChange={(evento) => setMayorEdad(evento.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-mint"
+              />
+              <span>{t('registro.consentimientoMayorEdad')}</span>
+            </label>
+          </div>
+
           <MensajeError>{error}</MensajeError>
 
           {mensaje && (
@@ -180,7 +284,7 @@ function Registro({ onCambiarModo }) {
 
           <button
             type="submit"
-            disabled={enviando}
+            disabled={enviando || !consentimientosCompletos}
             className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
           >
             {enviando ? t('registro.creandoCuenta') : t('registro.crearCuenta')}
