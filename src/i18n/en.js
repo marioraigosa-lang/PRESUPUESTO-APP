@@ -35,6 +35,15 @@ export default {
     errorCerrarSesion: "Couldn't sign out. Please try again.",
     mostrarContrasena: 'Show password',
     ocultarContrasena: 'Hide password',
+
+    fortalezaDebil: 'Weak',
+    fortalezaMedia: 'Medium',
+    fortalezaFuerte: 'Strong',
+    fortalezaMuyFuerte: 'Very strong',
+    fortalezaSugerenciaLongitud: 'A longer password makes it stronger.',
+    fortalezaSugerenciaMayuscula: 'Add an uppercase letter to make it stronger.',
+    fortalezaSugerenciaNumero: 'Add a number to make it stronger.',
+    fortalezaSugerenciaSimbolo: 'Add a symbol (like !, # or %) to make it stronger.',
   },
 
   home: {

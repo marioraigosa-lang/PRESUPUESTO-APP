@@ -46,6 +46,21 @@ export default {
     errorCerrarSesion: 'No se pudo cerrar la sesión. Intenta de nuevo.',
     mostrarContrasena: 'Mostrar contraseña',
     ocultarContrasena: 'Ocultar contraseña',
+
+    // Medidor de fortaleza (MedidorFortaleza.jsx + utils/fortalezaContrasena.js):
+    // se muestra bajo el campo de contraseña en Registro.jsx y
+    // EstablecerNuevaContrasena.jsx. Es solo informativo/motivacional, nunca
+    // bloquea el envío -- el único requisito bloqueante es el mínimo de 10
+    // caracteres, validado aparte. Las "sugerencia*" son pistas breves y no
+    // regañonas: solo se muestra UNA a la vez (la primera que aplique).
+    fortalezaDebil: 'Débil',
+    fortalezaMedia: 'Media',
+    fortalezaFuerte: 'Fuerte',
+    fortalezaMuyFuerte: 'Muy fuerte',
+    fortalezaSugerenciaLongitud: 'Una contraseña más larga la hace más fuerte.',
+    fortalezaSugerenciaMayuscula: 'Agrega una mayúscula para hacerla más fuerte.',
+    fortalezaSugerenciaNumero: 'Agrega un número para hacerla más fuerte.',
+    fortalezaSugerenciaSimbolo: 'Agrega un símbolo (como !, # o %) para hacerla más fuerte.',
   },
 
   home: {

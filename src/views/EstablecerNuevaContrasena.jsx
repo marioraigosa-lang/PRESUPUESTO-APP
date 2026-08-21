@@ -4,6 +4,7 @@ import { traducirErrorAuth } from '../utils/erroresAuth'
 import { useIdioma } from '../context/IdiomaContext'
 import { useAuth } from '../context/AuthContext'
 import CampoTexto from '../components/ui/CampoTexto'
+import MedidorFortaleza from '../components/ui/MedidorFortaleza'
 import MensajeError from '../components/ui/MensajeError'
 
 // Se muestra en lugar de la app cuando AuthContext detecta que el usuario
@@ -95,6 +96,7 @@ function EstablecerNuevaContrasena() {
               etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
               etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
             />
+            <MedidorFortaleza contrasena={contrasena} t={t} />
 
             <CampoTexto
               id="confirmarContrasena"

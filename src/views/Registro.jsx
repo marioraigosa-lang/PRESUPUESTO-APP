@@ -5,6 +5,7 @@ import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
 import { IDIOMA_POR_DEFECTO, IDIOMAS } from '../utils/idiomas'
 import { traducir } from '../i18n'
 import CampoTexto from '../components/ui/CampoTexto'
+import MedidorFortaleza from '../components/ui/MedidorFortaleza'
 import MensajeError from '../components/ui/MensajeError'
 
 function Registro({ onCambiarModo }) {
@@ -119,6 +120,7 @@ function Registro({ onCambiarModo }) {
             etiquetaMostrarContrasena={t('comun.mostrarContrasena')}
             etiquetaOcultarContrasena={t('comun.ocultarContrasena')}
           />
+          <MedidorFortaleza contrasena={contrasena} t={t} />
 
           <CampoTexto
             id="confirmarContrasena"
