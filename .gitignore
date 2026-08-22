@@ -18,6 +18,11 @@ dev-dist
 .env.*
 !.env.example
 
+# Caché local de la CLI de Supabase (project ref, versiones, url del pooler
+# de conexión a la base de datos): la regenera "supabase link"/"deploy" en
+# cada máquina, no es parte del código -- mismo criterio que dist/dev-dist.
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
