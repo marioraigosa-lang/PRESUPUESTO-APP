@@ -9,6 +9,7 @@ const FONDOS = {
   panel: 'bg-panel',
   panel2: 'bg-panel-2',
   mint: 'bg-mint/10',
+  coral: 'bg-coral/10',
 }
 
 const SOMBRAS = {

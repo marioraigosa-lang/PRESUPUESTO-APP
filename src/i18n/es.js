@@ -721,6 +721,44 @@ export default {
     politicaDescripcion: 'Cómo tratamos tus datos personales',
     terminosTitulo: 'Términos y condiciones',
     terminosDescripcion: 'Reglas de uso de Seed',
+    zonaPeligroTitulo: 'Zona de peligro',
+    eliminarCuentaTitulo: 'Eliminar cuenta',
+    eliminarCuentaDescripcion: 'Borra tu cuenta y todos tus datos de forma permanente',
+  },
+
+  // Pantalla "Eliminar cuenta" (EliminarCuenta.jsx), accesible desde Perfil ->
+  // Zona de peligro. Reautentica con la contraseña actual
+  // (supabase.auth.signInWithPassword) y, solo si es correcta, invoca la
+  // Edge Function "eliminar-cuenta" que borra al usuario del lado del
+  // servidor (con permisos de administrador) -- ver supabase/functions/
+  // eliminar-cuenta/index.ts. errorContrasena reutiliza traducirErrorAuth
+  // (erroresAuth.js), igual que Login.jsx, porque signInWithPassword
+  // devuelve el mismo tipo de error ahí.
+  eliminarCuenta: {
+    volverAria: 'Volver',
+    titulo: 'Eliminar cuenta',
+    subtitulo: 'Esta acción no se puede deshacer',
+    advertenciaTitulo: 'Vas a borrar tu cuenta permanentemente',
+    advertenciaTexto:
+      'Al confirmar, se eliminará tu cuenta de Seed y TODOS tus datos, sin posibilidad de recuperarlos:',
+    listaDatos: [
+      'Cuentas, movimientos e ingresos/gastos registrados',
+      'Gastos fijos y categorías',
+      'Metas de ahorro y fondo de emergencia',
+      'Viajes, categorías y gastos de viaje',
+      'Tu perfil, preferencias y verificación en dos pasos',
+    ],
+    advertenciaFinal: 'No hay forma de deshacer esta acción ni de recuperar tu información después.',
+    contrasenaLabel: 'Confirma tu contraseña para continuar',
+    contrasenaPlaceholder: 'Tu contraseña actual',
+    botonEliminar: 'Eliminar mi cuenta permanentemente',
+    eliminando: 'Eliminando cuenta...',
+    cancelar: 'Cancelar',
+    errorEliminar: 'No pudimos eliminar tu cuenta. Verifica tu conexión e intenta de nuevo.',
+    despedidaTitulo: 'Cuenta eliminada',
+    despedidaTexto: 'Tu cuenta ha sido eliminada. Gracias por usar Seed.',
+    despedidaBoton: 'Volver al inicio',
+    saliendo: 'Saliendo...',
   },
 
   // Pantalla "Seguridad" (SeguridadPerfil.jsx), accesible desde Perfil:

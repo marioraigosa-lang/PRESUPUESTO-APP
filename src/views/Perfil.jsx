@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CreditCard, TrendingUp, Sprout, BookOpen, ShieldCheck, Lock, FileText } from 'lucide-react'
+import { CreditCard, TrendingUp, Sprout, BookOpen, ShieldCheck, Lock, FileText, Trash2 } from 'lucide-react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import CalculadoraCuotaCredito from './CalculadoraCuotaCredito'
 import CalculadoraCdt from './CalculadoraCdt'
@@ -8,6 +8,7 @@ import GuiaUso from './GuiaUso'
 import SeguridadPerfil from './SeguridadPerfil'
 import PoliticaDatos from './PoliticaDatos'
 import TerminosCondiciones from './TerminosCondiciones'
+import EliminarCuenta from './EliminarCuenta'
 import AyudaContextual from '../components/AyudaContextual'
 import { useAuth } from '../context/AuthContext'
 import { useMoneda } from '../context/MonedaContext'
@@ -61,6 +62,7 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) 
   const [seguridadAbierta, setSeguridadAbierta] = useState(() => abrirSeguridadInicial)
   const [cambiandoMoneda, setCambiandoMoneda] = useState(false)
   const [errorMoneda, setErrorMoneda] = useState('')
+  const [eliminarCuentaAbierta, setEliminarCuentaAbierta] = useState(false)
 
   useEffect(() => {
     if (abrirSeguridadInicial) {
@@ -118,6 +120,10 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) 
 
   if (documentoLegalAbierto === 'terminos') {
     return <TerminosCondiciones onVolver={() => setDocumentoLegalAbierto(null)} />
+  }
+
+  if (eliminarCuentaAbierta) {
+    return <EliminarCuenta onVolver={() => setEliminarCuentaAbierta(false)} />
   }
 
   if (calculadoraAbierta === 'cuota') {
@@ -279,6 +285,26 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida }) 
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-coral/80">
+            {t('perfil.zonaPeligroTitulo')}
+          </h2>
+          <button
+            type="button"
+            onClick={() => setEliminarCuentaAbierta(true)}
+            className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4 text-left transition-colors hover:bg-coral/10"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-coral/10 text-coral">
+              <Trash2 className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-coral">{t('perfil.eliminarCuentaTitulo')}</p>
+              <p className="truncate text-xs text-text-dim">{t('perfil.eliminarCuentaDescripcion')}</p>
+            </div>
+            <span className="shrink-0 text-text-dim">›</span>
+          </button>
         </section>
       </div>
     </main>

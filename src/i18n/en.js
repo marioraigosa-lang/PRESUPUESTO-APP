@@ -687,6 +687,44 @@ export default {
     politicaDescripcion: 'How we handle your personal data',
     terminosTitulo: 'Terms and conditions',
     terminosDescripcion: "Seed's rules of use",
+    zonaPeligroTitulo: 'Danger zone',
+    eliminarCuentaTitulo: 'Delete account',
+    eliminarCuentaDescripcion: 'Permanently delete your account and all your data',
+  },
+
+  // "Delete account" screen (EliminarCuenta.jsx), reachable from Profile ->
+  // Danger zone. Re-authenticates with the current password
+  // (supabase.auth.signInWithPassword) and, only if it's correct, invokes
+  // the "eliminar-cuenta" Edge Function that deletes the user server-side
+  // (with admin privileges) -- see supabase/functions/eliminar-cuenta/
+  // index.ts. errorContrasena reuses traducirErrorAuth (erroresAuth.js),
+  // same as Login.jsx, because signInWithPassword returns the same kind of
+  // error there.
+  eliminarCuenta: {
+    volverAria: 'Back',
+    titulo: 'Delete account',
+    subtitulo: 'This action cannot be undone',
+    advertenciaTitulo: "You're about to permanently delete your account",
+    advertenciaTexto:
+      'Once confirmed, your Seed account and ALL your data will be deleted, with no way to recover it:',
+    listaDatos: [
+      'Accounts, transactions, and recorded income/expenses',
+      'Fixed expenses and categories',
+      'Savings goals and emergency fund',
+      'Trips, trip categories, and trip expenses',
+      'Your profile, preferences, and two-step verification',
+    ],
+    advertenciaFinal: 'There is no way to undo this action or recover your information afterward.',
+    contrasenaLabel: 'Confirm your password to continue',
+    contrasenaPlaceholder: 'Your current password',
+    botonEliminar: 'Permanently delete my account',
+    eliminando: 'Deleting account...',
+    cancelar: 'Cancel',
+    errorEliminar: "We couldn't delete your account. Check your connection and try again.",
+    despedidaTitulo: 'Account deleted',
+    despedidaTexto: 'Your account has been deleted. Thanks for using Seed.',
+    despedidaBoton: 'Back to start',
+    saliendo: 'Signing out...',
   },
 
   // "Security" screen (SeguridadPerfil.jsx), reachable from Profile:
