@@ -11,7 +11,11 @@ import VERSIONES_LEGALES from '../constants/versionesLegales'
 // Estructura pensada para que actualizar el texto sea editar esta lista, no
 // tocar ningún componente: cada documento es { titulo, version,
 // ultimaActualizacion, secciones }, y cada sección es { titulo, bloques },
-// donde cada bloque es uno de:
+// más un campo opcional `destacado` ('contacto' | 'derechos') que es pura
+// metadata de presentación -- le dice a DocumentoLegal.jsx que muestre esa
+// sección en una tarjeta resaltada (datos de contacto del responsable,
+// Derechos del Titular). No afecta el texto ni se muestra tal cual.
+// Cada bloque es uno de:
 //   { tipo: 'parrafo', texto }       -- un párrafo normal
 //   { tipo: 'subtitulo', texto }     -- un subtítulo dentro de la sección
 //   { tipo: 'lista', items }         -- lista con viñetas
@@ -27,6 +31,10 @@ export const POLITICA_DATOS = {
   secciones: [
     {
       titulo: '1. Identificación del Responsable del Tratamiento',
+      // Metadatos de presentación (no son texto legal): marcan esta sección
+      // para que DocumentoLegal.jsx la muestre en una tarjeta destacada --
+      // ver la nota de diseño al inicio de este archivo.
+      destacado: 'contacto',
       bloques: [
         {
           tipo: 'parrafo',
@@ -128,6 +136,7 @@ export const POLITICA_DATOS = {
     },
     {
       titulo: '5. Derechos del Titular',
+      destacado: 'derechos',
       bloques: [
         {
           tipo: 'parrafo',
@@ -392,6 +401,7 @@ export const TERMINOS_CONDICIONES = {
     },
     {
       titulo: '13. Contacto',
+      destacado: 'contacto',
       bloques: [
         {
           tipo: 'parrafo',

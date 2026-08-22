@@ -17,6 +17,7 @@ function TerminosCondiciones({ onVolver }) {
         version: TERMINOS_CONDICIONES.version,
         fecha: TERMINOS_CONDICIONES.ultimaActualizacion,
       })}
+      indiceTitulo={t('legal.indiceTitulo')}
     />
   )
 }

@@ -814,6 +814,7 @@ export default {
   legal: {
     volverAria: 'Volver',
     metaLinea: 'Versión {{version}} · Última actualización: {{fecha}}',
+    indiceTitulo: 'Contenido',
   },
 
   // Contenido de GuiaUso.jsx (Fase 1 de la guía de uso, accesible desde

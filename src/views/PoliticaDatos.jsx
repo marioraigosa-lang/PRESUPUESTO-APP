@@ -20,6 +20,7 @@ function PoliticaDatos({ onVolver }) {
         version: POLITICA_DATOS.version,
         fecha: POLITICA_DATOS.ultimaActualizacion,
       })}
+      indiceTitulo={t('legal.indiceTitulo')}
     />
   )
 }

@@ -58,6 +58,14 @@ body,
   height: 100%;
 }
 
+/* Scroll suave para los anclajes internos del índice de los documentos
+ * legales (DocumentoLegal.jsx: "#seccion-N"). No hay otro uso de anclas #
+ * en la app (es una SPA con estado, no rutas), así que es seguro global.
+ */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background-color: var(--color-bg);

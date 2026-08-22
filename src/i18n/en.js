@@ -779,6 +779,7 @@ export default {
   legal: {
     volverAria: 'Back',
     metaLinea: 'Version {{version}} · Last updated: {{fecha}}',
+    indiceTitulo: 'Contents',
   },
 
   // Content for GuiaUso.jsx (Phase 1 of the user guide, reachable from
