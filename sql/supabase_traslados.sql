@@ -1,11 +1,10 @@
 -- ============================================================================
 -- supabase_traslados.sql
 --
--- ⚠️  SOLO PARA REVISIÓN — NO EJECUTAR TODAVÍA.
--- Este script es el borrador de los cambios de base de datos que haría
--- falta para soportar TRASLADOS entre cuentas propias. Es parte del
--- diagnóstico y plan, no una aplicación. Se ejecuta solo cuando confirmes
--- que quieres construir la funcionalidad.
+-- ✅ APLICADO EN PRODUCCIÓN. Los traslados entre cuentas funcionan en la app,
+-- así que estos cambios ('traslado' como tercer valor válido de
+-- "movimientos.tipo" + columna "cuenta_destino_id") están en la base. Se
+-- conserva como historial del cambio. Ver sql/README.md (paso 15).
 --
 -- Qué resuelve: hoy "movimientos.tipo" solo acepta 'ingreso' o 'gasto'
 -- (restricción check en la columna). Un traslado no es ni lo uno ni lo

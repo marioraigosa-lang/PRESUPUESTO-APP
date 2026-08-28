@@ -1,7 +1,16 @@
 -- ============================================================================
 -- supabase_categorias_default.sql
 --
--- BORRADOR PARA REVISAR — NO EJECUTAR TODAVÍA.
+-- ❌ OBSOLETO — NO EJECUTAR. Esta versión de handle_new_user() NUNCA quedó
+-- activa en producción: se confirmó contra el trigger REAL de Supabase que
+-- el que estaba vivo seguía siendo el viejo (el de supabase_consentimientos.sql)
+-- hasta que supabase_fix_trigger_categorias.sql (2026-08-27) lo corrigió.
+-- El contenido útil de este script (lista nueva de 6 categorías, columna
+-- "es_sistema", nombres es/en) fue absorbido por
+-- supabase_fix_trigger_categorias.sql, que es el vigente. Las columnas
+-- "categorias.es_sistema" y "categorias.descripcion" sí existen hoy (las
+-- re-crea aquel script con "add column if not exists"). Se conserva este
+-- archivo solo como historial. Ver sql/README.md (paso 11).
 --
 -- Redefine la lista de CATEGORÍAS POR DEFECTO que el trigger handle_new_user()
 -- crea cuando un usuario se registra, y hace que nazcan en el idioma que el
@@ -188,10 +197,10 @@ where nombre in ('Gastos fijos', 'Fixed expenses')
 
 
 -- ============================================================================
--- Fin del script (BORRADOR).
+-- Fin del script (OBSOLETO — ver encabezado; reemplazado por
+-- supabase_fix_trigger_categorias.sql).
 --
--- SIGUIENTE PASO (aparte, no incluido aquí, y solo después de que confirmes
--- este SQL): el paso de CÓDIGO —
+-- PASO DE CÓDIGO que acompañó a este cambio (ya hecho en la app):
 --   1. Mostrar el texto de "descripcion" en la interfaz donde se vean las
 --      categorías (por ahora solo lo tendrá "Gastos hormiga").
 --   2. Traducir las pantallas que ya usan los nombres de categoría en

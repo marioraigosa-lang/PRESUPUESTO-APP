@@ -1,9 +1,13 @@
 -- ============================================================================
 -- supabase_reparar_usuarios.sql
 --
--- REVISAR ANTES DE EJECUTAR. NO forma parte todavía del historial numerado
--- de sql/README.md -- agrégalo ahí (con el número que le toque) el día que
--- confirmes que sí lo corriste en Supabase.
+-- ❌ OBSOLETO — NO EJECUTAR. Reemplazado por
+-- supabase_fix_trigger_categorias.sql (aplicado 2026-08-27), que hace este
+-- mismo trabajo (dejar handle_new_user() correcto + backfill de es_sistema)
+-- con un diagnóstico más preciso: se confirmó la definición del trigger
+-- REAL en Supabase antes de escribirlo. Este script nunca se aplicó. Se
+-- conserva solo como historial. Ver sql/README.md ("Scripts fuera del
+-- historial numerado").
 --
 -- POR QUÉ EXISTE ESTE SCRIPT:
 --   sql/supabase_categorias_default.sql ya deja handle_new_user() completo y

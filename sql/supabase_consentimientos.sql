@@ -1,7 +1,18 @@
 -- ============================================================================
 -- supabase_consentimientos.sql
 --
--- BORRADOR PARA REVISAR — NO EJECUTAR TODAVÍA.
+-- ✅ APLICADO EN PRODUCCIÓN — pero NO VOLVER A EJECUTAR (ver salvedad).
+--
+-- La tabla "consentimientos" + RLS + grants + el bloque de handle_new_user()
+-- que registra los consentimientos en el momento del registro ESTÁN activos.
+--
+-- ⚠️ SALVEDAD: la versión de handle_new_user() de ESTE script traía el
+-- INSERT de categorías VIEJO (4 columnas, sin "es_sistema", lista antigua), y
+-- ESA fue la versión que quedó viva en Supabase — de ahí salió el bug de
+-- "es_sistema" en "Gastos fijos". El trigger fue corregido después por
+-- supabase_fix_trigger_categorias.sql (2026-08-27), que es el vigente y que
+-- conserva intacto el bloque de consentimientos de aquí. Volver a correr
+-- este script reinstalaría el trigger roto. Ver sql/README.md (paso 20).
 --
 -- CONSTANCIA DE CONSENTIMIENTO (Ley 1581 de 2012, Colombia): guarda prueba
 -- de que un usuario aceptó la Política de Tratamiento de Datos, los

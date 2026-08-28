@@ -1,7 +1,13 @@
 -- ============================================================================
 -- supabase_reforzar_integridad.sql
 --
--- REVISAR ANTES DE EJECUTAR. Nace de la auditoría de seguridad (Grupo A,
+-- ⚠️ VERIFICAR SI YA ESTÁ APLICADO EN PRODUCCIÓN. Committeado el 2026-08-17,
+-- pero no se ha confirmado contra la base de datos real que los CHECK y las
+-- políticas RLS nuevas de "categorias" estén puestos: consultá
+-- information_schema.table_constraints y pg_policies antes de darlo por hecho.
+-- Ver sql/README.md ("Scripts fuera del historial numerado").
+--
+-- Nace de la auditoría de seguridad (Grupo A,
 -- puntos 3 y 4): mueve a la BASE DE DATOS varias reglas que hoy solo vive
 -- del lado del cliente (JS), para que ni siquiera alguien llamando a la API
 -- de Supabase directamente (saltándose la interfaz) pueda violarlas.

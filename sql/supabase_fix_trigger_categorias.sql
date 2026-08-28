@@ -1,7 +1,11 @@
 -- ============================================================================
 -- supabase_fix_trigger_categorias.sql
 --
--- REVISAR ANTES DE EJECUTAR. NO EJECUTAR TODAVÍA.
+-- ✅ APLICADO EN PRODUCCIÓN el 2026-08-27. Esta es la versión VIGENTE y
+-- correcta del trigger handle_new_user(): reemplazó la versión rota que
+-- había quedado de sql/supabase_consentimientos.sql (INSERT de categorías
+-- con 4 columnas, sin "es_sistema" ni "descripcion", lista de categorías
+-- antigua). No hace falta volver a ejecutarlo. Ver sql/README.md (paso 21).
 --
 -- POR QUÉ EXISTE ESTE SCRIPT:
 --   Se confirmó con el trigger REAL de la base de datos (consultado en

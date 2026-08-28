@@ -1,7 +1,11 @@
 -- ============================================================================
 -- supabase_idioma_perfiles.sql
 --
--- BORRADOR PARA REVISAR — NO EJECUTAR TODAVÍA.
+-- ✅ APLICADO EN PRODUCCIÓN. El soporte multi-idioma (es/en) está vivo en la
+-- app, así que la columna "perfiles.idioma" existe en la base.
+-- OJO: la versión de handle_new_user() que dejaba este script ya NO es la
+-- vigente. El trigger vigente y correcto es el de
+-- supabase_fix_trigger_categorias.sql (2026-08-27). Ver sql/README.md (paso 10).
 --
 -- SOPORTE MULTI-IDIOMA (parte SQL): cada usuario elige UN idioma (es o en)
 -- para toda la interfaz de la app. Mismo patrón exacto que
@@ -118,7 +122,7 @@ where idioma is null;
 
 
 -- ============================================================================
--- Fin del script (BORRADOR).
+-- Fin del script (APLICADO — ver encabezado).
 --
 -- SIGUIENTE PASO (aparte, no incluido aquí, y solo después de que confirmes
 -- este SQL): el paso de código —

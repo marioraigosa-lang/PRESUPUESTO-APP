@@ -1,6 +1,11 @@
 -- ============================================================================
 -- supabase_guia_vista.sql
 --
+-- ⚠️ VERIFICAR si está aplicado en producción: la guía de bienvenida existe
+-- en la app, pero confirmá que la columna "perfiles.guia_vista" exista de
+-- verdad (ver supabase_verificar_trigger.sql) antes de darlo por hecho.
+-- Ver sql/README.md (paso 19).
+--
 -- FASE 3 de "Guía de uso" (parte SQL): saber si un usuario YA vio la guía de
 -- bienvenida, para mostrarla solo la PRIMERA VEZ que entra a la app. Mismo
 -- patrón exacto que supabase_moneda_perfiles.sql / supabase_idioma_perfiles.sql:
