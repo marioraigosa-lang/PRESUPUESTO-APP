@@ -37,18 +37,40 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-// Headers CORS estándar: sin esto, el navegador bloquea la respuesta antes
-// de que el código de la app pueda leerla (invocación desde otro origen que
-// el de la función). "Access-Control-Allow-Origin: *" es el mismo patrón que
-// usan las plantillas oficiales de Supabase para Edge Functions invocadas
-// desde un cliente con su propia autenticación (el control de acceso real no
-// depende del origen, sino del JWT que se valida adentro).
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Allowlist de orígenes autorizados a llamar esta función: producción
+// (Vercel) y desarrollo local (puerto real de Vite, más 3000 por si acaso).
+// A diferencia del "*" anterior, el origen SIEMPRE se valida contra esta
+// lista antes de reflejarlo -- ver construirCorsHeaders() más abajo.
+const ORIGENES_PERMITIDOS = [
+  'https://presupuesto-app-ten-sable.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]
+
+// Cabeceras CORS calculadas POR PETICIÓN según el header "Origin" que
+// mandó el navegador (a diferencia del objeto fijo de antes, que era el
+// mismo para cualquiera). Si el origen está en la allowlist, se refleja
+// literal en Access-Control-Allow-Origin (nunca "*"); si no está, ese
+// header simplemente no se incluye y el navegador del origen no permitido
+// bloquea la respuesta él mismo, del lado del cliente -- capa extra sobre
+// la verificación por JWT de más abajo, que sigue siendo el control real.
+// "Vary: Origin" evita que una respuesta cacheada para un origen se sirva
+// por error a otro.
+function construirCorsHeaders(origenPeticion: string | null): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  }
+
+  if (origenPeticion && ORIGENES_PERMITIDOS.includes(origenPeticion)) {
+    headers['Access-Control-Allow-Origin'] = origenPeticion
+  }
+
+  return headers
 }
 
-function respuestaJson(body: unknown, status: number) {
+function respuestaJson(body: unknown, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -56,6 +78,8 @@ function respuestaJson(body: unknown, status: number) {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = construirCorsHeaders(req.headers.get('Origin'))
+
   // El navegador manda un preflight OPTIONS antes del POST real cuando hay
   // headers custom (Authorization) de por medio -- hay que responderlo con
   // los headers CORS y sin cuerpo, o el POST real nunca llega a salir.
@@ -64,7 +88,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'POST') {
-    return respuestaJson({ error: 'Método no permitido, se espera POST.' }, 405)
+    return respuestaJson({ error: 'Método no permitido, se espera POST.' }, 405, corsHeaders)
   }
 
   try {
@@ -77,7 +101,7 @@ Deno.serve(async (req) => {
       // automáticamente), pero si pasara, mejor fallar con un mensaje claro
       // que con un error críptico más abajo.
       console.error('Faltan variables de entorno de Supabase en la Edge Function.')
-      return respuestaJson({ error: 'Configuración del servidor incompleta.' }, 500)
+      return respuestaJson({ error: 'Configuración del servidor incompleta.' }, 500, corsHeaders)
     }
 
     // ------------------------------------------------------------------
@@ -89,7 +113,7 @@ Deno.serve(async (req) => {
     // es una simple decodificación del JWT sin verificar.
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return respuestaJson({ error: 'No autenticado.' }, 401)
+      return respuestaJson({ error: 'No autenticado.' }, 401, corsHeaders)
     }
 
     const clienteVerificador = createClient(supabaseUrl, anonKey, {
@@ -102,7 +126,7 @@ Deno.serve(async (req) => {
     } = await clienteVerificador.auth.getUser()
 
     if (errorUsuario || !user) {
-      return respuestaJson({ error: 'No autenticado.' }, 401)
+      return respuestaJson({ error: 'No autenticado.' }, 401, corsHeaders)
     }
 
     // ------------------------------------------------------------------
@@ -121,12 +145,12 @@ Deno.serve(async (req) => {
 
     if (errorBorrado) {
       console.error('Error borrando usuario:', errorBorrado)
-      return respuestaJson({ error: 'No se pudo eliminar la cuenta. Intenta de nuevo.' }, 500)
+      return respuestaJson({ error: 'No se pudo eliminar la cuenta. Intenta de nuevo.' }, 500, corsHeaders)
     }
 
-    return respuestaJson({ success: true }, 200)
+    return respuestaJson({ success: true }, 200, corsHeaders)
   } catch (error) {
     console.error('Error inesperado en eliminar-cuenta:', error)
-    return respuestaJson({ error: 'Error inesperado del servidor.' }, 500)
+    return respuestaJson({ error: 'Error inesperado del servidor.' }, 500, corsHeaders)
   }
 })
