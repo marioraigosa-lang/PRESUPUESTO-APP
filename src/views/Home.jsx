@@ -8,6 +8,7 @@ import GastosVariables from '../components/GastosVariables'
 import MovimientosRecientes from '../components/MovimientosRecientes'
 import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
 import DetalleCuenta from './DetalleCuenta'
+import DetalleCategoria from './DetalleCategoria'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -17,13 +18,14 @@ import MensajeError from '../components/ui/MensajeError'
 
 const hoy = new Date()
 
-// Fase 1 de "cuentas y categorías navegables": suma navegación interna con
-// un estado "modo" ('resumen' | 'detalleCuenta'), igual que Viajes.jsx --
-// al tocar una cuenta se abre DetalleCuenta.jsx con sus movimientos. Este
-// "modo" es interno de Home: NO toca el `vista` de App.jsx, así que el
-// botón "+" (BotonAgregar) y la barra de navegación inferior -- que
-// dependen de vista === 'inicio' -- siguen mostrándose exactamente igual
-// que hoy mientras se navega dentro de una cuenta.
+// Fases 1 y 2 de "cuentas y categorías navegables": suma navegación interna
+// con un estado "modo" ('resumen' | 'detalleCuenta' | 'detalleCategoria'),
+// igual que Viajes.jsx -- al tocar una cuenta o una categoría de gasto
+// variable se abre su pantalla de detalle con sus movimientos. Este "modo"
+// es interno de Home: NO toca el `vista` de App.jsx, así que el botón "+"
+// (BotonAgregar) y la barra de navegación inferior -- que dependen de
+// vista === 'inicio' -- siguen mostrándose exactamente igual que hoy
+// mientras se navega dentro de una cuenta o categoría.
 function Home({
   cuentas,
   cargandoCuentas,
@@ -51,6 +53,7 @@ function Home({
   })
   const [modo, setModo] = useState('resumen')
   const [cuentaSeleccionadaId, setCuentaSeleccionadaId] = useState(null)
+  const [categoriaSeleccionadaId, setCategoriaSeleccionadaId] = useState(null)
 
   // Ingresos/gastos/ahorro del mes seleccionado, calculados a partir de los
   // movimientos reales (no del saldo de las cuentas, que es el saldo actual
@@ -113,28 +116,55 @@ function Home({
     setModo('detalleCuenta')
   }
 
+  function abrirDetalleCategoria(categoria) {
+    setCategoriaSeleccionadaId(categoria.id)
+    setModo('detalleCategoria')
+  }
+
   function volverAResumen() {
     setModo('resumen')
     setCuentaSeleccionadaId(null)
+    setCategoriaSeleccionadaId(null)
   }
 
-  // Se busca por id en `cuentas` (en vez de guardar el objeto cuenta
-  // completo en el estado) para que, si el saldo cambia al crear/editar/
-  // eliminar un movimiento desde el propio detalle, la cabecera de
-  // DetalleCuenta se actualice sola en el siguiente render -- sin esto
-  // quedaría mostrando el saldo "congelado" del momento en que se tocó la
-  // cuenta. Si la cuenta ya no existe (se eliminó desde Gestionar cuentas
-  // mientras se veía su detalle), cuentaActual queda undefined y se cae al
-  // resumen normal de abajo en vez de romper la pantalla.
+  // Se busca por id en `cuentas`/`categorias` (en vez de guardar el objeto
+  // completo en el estado) para que, si el saldo o el gasto acumulado
+  // cambian al crear/editar/eliminar un movimiento desde el propio detalle,
+  // la cabecera de la pantalla se actualice sola en el siguiente render --
+  // sin esto quedaría mostrando datos "congelados" del momento en que se
+  // tocó la cuenta/categoría. Si ya no existe (se eliminó desde Gestionar
+  // cuentas/categorías mientras se veía su detalle), la búsqueda queda
+  // undefined y se cae al resumen normal de abajo en vez de romper la
+  // pantalla.
   const cuentaActual =
     modo === 'detalleCuenta' && cuentaSeleccionadaId
       ? cuentas.find((c) => c.id === cuentaSeleccionadaId)
+      : null
+
+  const categoriaActual =
+    modo === 'detalleCategoria' && categoriaSeleccionadaId
+      ? categorias.find((c) => c.id === categoriaSeleccionadaId)
       : null
 
   if (cuentaActual) {
     return (
       <DetalleCuenta
         cuenta={cuentaActual}
+        cuentas={cuentas}
+        categorias={categorias}
+        movimientosVersion={movimientosVersion}
+        onVolver={volverAResumen}
+        onAgregarMovimiento={onAgregarMovimiento}
+        onActualizarMovimiento={onActualizarMovimiento}
+        onEliminarMovimiento={onEliminarMovimiento}
+      />
+    )
+  }
+
+  if (categoriaActual) {
+    return (
+      <DetalleCategoria
+        categoria={categoriaActual}
         cuentas={cuentas}
         categorias={categorias}
         movimientosVersion={movimientosVersion}
@@ -212,6 +242,7 @@ function Home({
           version={movimientosVersion}
           periodo={periodo}
           onGestionarCategorias={onGestionarCategorias}
+          onAbrirCategoria={abrirDetalleCategoria}
         />
 
         <MovimientosRecientes

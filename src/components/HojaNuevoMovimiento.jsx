@@ -16,6 +16,7 @@ function HojaNuevoMovimiento({
   onActualizar,
   movimientoEditando,
   cuentaPreseleccionadaId,
+  categoriaPreseleccionadaId,
 }) {
   const editando = Boolean(movimientoEditando)
   // Un traslado ya existente solo permite editar monto y descripción: las
@@ -31,7 +32,7 @@ function HojaNuevoMovimiento({
   const [monto, setMonto] = useState('')
   const [cuentaId, setCuentaId] = useState(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
   const [cuentaDestinoId, setCuentaDestinoId] = useState('')
-  const [categoriaId, setCategoriaId] = useState(categorias[0]?.id ?? '')
+  const [categoriaId, setCategoriaId] = useState(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
   const [descripcion, setDescripcion] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -82,13 +83,13 @@ function HojaNuevoMovimiento({
       setMonto('')
       setCuentaId(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
       setCuentaDestinoId('')
-      setCategoriaId(categorias[0]?.id ?? '')
+      setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
       setDescripcion('')
     }
     setError('')
     setErrorGuardado('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierta, movimientoEditando, cuentaPreseleccionadaId])
+  }, [abierta, movimientoEditando, cuentaPreseleccionadaId, categoriaPreseleccionadaId])
 
   if (!abierta) return null
 
@@ -97,7 +98,7 @@ function HojaNuevoMovimiento({
     setMonto('')
     setCuentaId(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
     setCuentaDestinoId('')
-    setCategoriaId(categorias[0]?.id ?? '')
+    setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
     setDescripcion('')
     setError('')
     setErrorGuardado('')

@@ -318,6 +318,23 @@ export default {
       moviendo: 'Moviendo y eliminando...',
       confirmar: 'Mover gastos y eliminar categoría',
     },
+    // Fase 2 de "categorías navegables": pantalla que se abre al tocar una
+    // categoría de gasto variable en Inicio, con sus gastos del mes. Solo
+    // aplica a categorías de gasto variable (la de sistema, "Gastos fijos",
+    // ni siquiera llega a esta lista -- se filtra antes, igual que en
+    // GastosVariables.jsx).
+    detalle: {
+      volverAria: 'Volver a inicio',
+      abrirDetalleAria: 'Ver gastos de {{nombre}}',
+      // Los totales del mes: 3 si tiene presupuesto (Presupuesto/Gastado/
+      // Restante), o solo "Gastado" si no tiene tope definido.
+      presupuestoTitulo: 'Presupuesto',
+      gastadoTitulo: 'Gastado',
+      restanteTitulo: 'Restante',
+      gastosTitulo: 'Gastos',
+      nuevoGasto: '+ Nuevo gasto',
+      sinGastos: 'No hay gastos este mes en esta categoría.',
+    },
   },
 
   gastosFijos: {

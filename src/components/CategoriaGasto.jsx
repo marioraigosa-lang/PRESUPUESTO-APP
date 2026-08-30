@@ -1,18 +1,27 @@
+import { ChevronRight } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
+import { calcularProgresoPresupuesto } from '../utils/progresoPresupuesto'
 
-function CategoriaGasto({ categoria }) {
+// Desde la Fase 2 de "categorías navegables" (ver DetalleCategoria.jsx),
+// tocar una categoría abre sus gastos del mes -- por eso ahora es un
+// <button> real (no un <div>) con feedback de hover/press y un chevron,
+// mismo criterio que ya se usó para <Cuenta> en la Fase 1.
+function CategoriaGasto({ categoria, onClick }) {
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
   const { nombre, emoji, color, presupuesto, gastado } = categoria
 
-  const tieneTope = Boolean(presupuesto)
-  const excedido = tieneTope && gastado > presupuesto
-  const porcentaje = tieneTope ? Math.min(100, Math.round((gastado / presupuesto) * 100)) : 0
+  const { tieneTope, excedido, porcentaje } = calcularProgresoPresupuesto(presupuesto, gastado)
   const colorBarra = excedido ? '#f2795b' : color
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={t('categorias.detalle.abrirDetalleAria', { nombre })}
+      className="flex w-full items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3 text-left transition-colors hover:bg-panel active:scale-[0.99]"
+    >
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
         style={{ backgroundColor: `${color}26` }}
@@ -42,7 +51,9 @@ function CategoriaGasto({ categoria }) {
           </p>
         )}
       </div>
-    </div>
+
+      <ChevronRight className="h-4 w-4 shrink-0 text-text-dim" aria-hidden="true" />
+    </button>
   )
 }
 

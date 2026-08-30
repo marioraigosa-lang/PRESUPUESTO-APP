@@ -298,6 +298,23 @@ export default {
       moviendo: 'Moving and deleting...',
       confirmar: 'Move expenses and delete category',
     },
+    // Phase 2 of "navigable categories": screen opened by tapping a
+    // variable-expense category on Home, showing that category's expenses
+    // for the month. Only applies to variable-expense categories -- the
+    // system category ("Fixed expenses") never even reaches this list, it's
+    // filtered out beforehand, same as in GastosVariables.jsx.
+    detalle: {
+      volverAria: 'Back to home',
+      abrirDetalleAria: 'View {{nombre}} expenses',
+      // Monthly totals: 3 if it has a budget (Budget/Spent/Remaining), or
+      // just "Spent" if there's no cap set.
+      presupuestoTitulo: 'Budget',
+      gastadoTitulo: 'Spent',
+      restanteTitulo: 'Remaining',
+      gastosTitulo: 'Expenses',
+      nuevoGasto: '+ New expense',
+      sinGastos: 'No expenses this month in this category.',
+    },
   },
 
   gastosFijos: {

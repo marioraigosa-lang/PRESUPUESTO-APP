@@ -7,7 +7,7 @@ import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import MensajeError from './ui/MensajeError'
 
-function GastosVariables({ version, periodo, onGestionarCategorias }) {
+function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCategoria }) {
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
   const { t, tp } = useIdioma()
@@ -87,7 +87,11 @@ function GastosVariables({ version, periodo, onGestionarCategorias }) {
       {!cargandoCategorias && !errorCategorias && (
         <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
           {categorias.map((categoria) => (
-            <CategoriaGasto key={categoria.id} categoria={categoria} />
+            <CategoriaGasto
+              key={categoria.id}
+              categoria={categoria}
+              onClick={() => onAbrirCategoria(categoria)}
+            />
           ))}
 
           {categorias.length > 0 && (
