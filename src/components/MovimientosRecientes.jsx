@@ -1,56 +1,22 @@
 import { useState } from 'react'
 import Movimiento from './Movimiento'
-import { useDatosUsuario } from '../lib/datosUsuario'
-import { useConsulta } from '../hooks/useConsulta'
+import { useMovimientosPeriodo } from '../hooks/useMovimientosPeriodo'
 import { useIdioma } from '../context/IdiomaContext'
-import { fechaCortaDesdeISO } from '../utils/formatoFecha'
-import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import MensajeError from './ui/MensajeError'
 
 const MAXIMO_VISIBLE = 8
 
 function MovimientosRecientes({ version, periodo, onEditarMovimiento, onEliminarMovimiento }) {
-  const { seleccionarPropio } = useDatosUsuario()
-  const { idioma, t } = useIdioma()
+  const { t } = useIdioma()
   const [eliminandoId, setEliminandoId] = useState(null)
   const [errorEliminar, setErrorEliminar] = useState(null)
-
-  async function cargarMovimientos() {
-    const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes, periodo.quincena)
-
-    // "cuenta:cuentas!cuenta_id(...)" y "cuenta_destino:cuentas!cuenta_destino_id(...)":
-    // movimientos tiene DOS llaves foráneas hacia cuentas (origen y
-    // destino, esta última para traslados), así que hay que indicarle a
-    // Supabase con cuál de las dos se hace cada unión; sin el "!columna"
-    // la consulta queda ambigua y falla.
-    const { data, error } = await seleccionarPropio(
-      'movimientos',
-      'id, tipo, descripcion, monto, emoji, fecha, cuenta_id, cuenta_destino_id, categoria_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre)',
-    )
-      .gte('fecha', desde)
-      .lte('fecha', hasta)
-      .order('fecha', { ascending: false })
-      .order('creado_en', { ascending: false })
-      .limit(MAXIMO_VISIBLE)
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return data.map((movimiento) => ({
-      ...movimiento,
-      cuenta: movimiento.cuenta?.nombre ?? t('home.sinCuenta'),
-      cuentaDestino: movimiento.cuenta_destino?.nombre ?? null,
-      fecha: fechaCortaDesdeISO(movimiento.fecha, idioma),
-    }))
-  }
 
   const {
     datos: movimientos,
     cargando: cargandoMovimientos,
     error: errorMovimientos,
     establecerDatos: setMovimientos,
-  } = useConsulta(cargarMovimientos, [version, periodo.anio, periodo.mes, periodo.quincena], [])
+  } = useMovimientosPeriodo({ periodo, version, limite: MAXIMO_VISIBLE })
 
   async function manejarEliminar(movimiento) {
     if (movimiento.gasto_fijo_id) return
