@@ -80,11 +80,9 @@ export default {
     categoriaContador: { uno: 'category', otro: 'categories' },
     deMontoPresupuesto: 'of {{monto}}',
 
-    movimientosTitulo: 'Recent transactions',
     cargandoMovimientos: 'Loading transactions...',
     errorCargarMovimientos: "Couldn't load transactions. Please try again.",
     errorEliminarMovimiento: "Couldn't delete the transaction. Please try again.",
-    sinMovimientos: 'No transactions this month.',
     confirmarEliminarTraslado:
       'Delete the transfer "{{descripcion}}"? It will be reversed in both accounts (source and destination). This action cannot be undone.',
     confirmarEliminarMovimiento:

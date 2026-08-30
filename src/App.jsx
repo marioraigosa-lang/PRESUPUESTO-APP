@@ -140,16 +140,6 @@ function App() {
     setHojaAbierta(true)
   }
 
-  function abrirEditarMovimiento(movimiento) {
-    if (movimiento.gasto_fijo_id) {
-      // No debería poder llegar aquí porque el botón de editar ni siquiera se
-      // muestra para estos movimientos, pero por si acaso.
-      return
-    }
-    setMovimientoEditando(movimiento)
-    setHojaAbierta(true)
-  }
-
   function cerrarHojaMovimiento() {
     setHojaAbierta(false)
     setMovimientoEditando(null)
@@ -369,7 +359,6 @@ function App() {
           onGestionarGastosFijos={() => setVista('gastosFijos')}
           onMarcarGastoFijoPagado={marcarGastoFijoPagado}
           onDesmarcarGastoFijoPagado={desmarcarGastoFijoPagado}
-          onEditarMovimiento={abrirEditarMovimiento}
           onEliminarMovimiento={eliminarMovimiento}
           onAgregarMovimiento={agregarMovimiento}
           onActualizarMovimiento={actualizarMovimiento}

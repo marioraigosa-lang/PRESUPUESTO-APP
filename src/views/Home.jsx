@@ -5,7 +5,6 @@ import TarjetaSaldo from '../components/TarjetaSaldo'
 import Cuenta from '../components/Cuenta'
 import GastosFijos from '../components/GastosFijos'
 import GastosVariables from '../components/GastosVariables'
-import MovimientosRecientes from '../components/MovimientosRecientes'
 import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
 import DetalleCuenta from './DetalleCuenta'
 import DetalleCategoria from './DetalleCategoria'
@@ -37,7 +36,6 @@ function Home({
   onGestionarGastosFijos,
   onMarcarGastoFijoPagado,
   onDesmarcarGastoFijoPagado,
-  onEditarMovimiento,
   onEliminarMovimiento,
   onAgregarMovimiento,
   onActualizarMovimiento,
@@ -243,13 +241,6 @@ function Home({
           periodo={periodo}
           onGestionarCategorias={onGestionarCategorias}
           onAbrirCategoria={abrirDetalleCategoria}
-        />
-
-        <MovimientosRecientes
-          version={movimientosVersion}
-          periodo={periodo}
-          onEditarMovimiento={onEditarMovimiento}
-          onEliminarMovimiento={onEliminarMovimiento}
         />
       </div>
     </main>

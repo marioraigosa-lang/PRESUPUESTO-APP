@@ -97,11 +97,9 @@ export default {
     categoriaContador: { uno: 'categoría', otro: 'categorías' },
     deMontoPresupuesto: 'de {{monto}}',
 
-    movimientosTitulo: 'Movimientos recientes',
     cargandoMovimientos: 'Cargando movimientos...',
     errorCargarMovimientos: 'No se pudieron cargar los movimientos. Intenta de nuevo.',
     errorEliminarMovimiento: 'No se pudo eliminar el movimiento. Intenta de nuevo.',
-    sinMovimientos: 'No hay movimientos en este mes.',
     confirmarEliminarTraslado:
       '¿Eliminar el traslado "{{descripcion}}"? Se revertirá en ambas cuentas (origen y destino). Esta acción no se puede deshacer.',
     confirmarEliminarMovimiento:
