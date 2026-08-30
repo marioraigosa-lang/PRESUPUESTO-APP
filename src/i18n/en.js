@@ -217,6 +217,26 @@ export default {
       guardarCambios: 'Save changes',
       guardarCuenta: 'Save account',
     },
+    // Phase 1 of "navigable accounts": screen opened by tapping an account
+    // on Home, showing that account's transactions for the month. Reuses
+    // several "home.*" keys on purpose (loading/error/empty states,
+    // transaction confirmations) since they're generic and already say
+    // exactly the same thing.
+    detalle: {
+      volverAria: 'Back to home',
+      abrirDetalleAria: 'View {{nombre}} transactions',
+      nuevoMovimiento: '+ New transaction',
+      trasladoA: 'Transfer to {{cuenta}}',
+      trasladoDesde: 'Transfer from {{cuenta}}',
+      // The 3 monthly totals (see DetalleCuenta.jsx).
+      ingresosTitulo: 'Income',
+      egresosTitulo: 'Expenses',
+      netoTitulo: 'Net',
+      // List below: income + transfers (incoming and outgoing), excluding
+      // regular expenses -- see DetalleCuenta.jsx.
+      listaTitulo: 'Income and transfers',
+      sinMovimientosLista: 'No income or transfers this month.',
+    },
   },
 
   categorias: {

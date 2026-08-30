@@ -238,6 +238,25 @@ export default {
       guardarCambios: 'Guardar cambios',
       guardarCuenta: 'Guardar cuenta',
     },
+    // Fase 1 de "cuentas navegables": pantalla que se abre al tocar una
+    // cuenta en Inicio, con sus movimientos del mes. Reutiliza a propósito
+    // varias claves de "home.*" (cargando/error/vacío/confirmaciones de
+    // movimientos) porque son genéricas y ya dicen exactamente lo mismo.
+    detalle: {
+      volverAria: 'Volver a inicio',
+      abrirDetalleAria: 'Ver movimientos de {{nombre}}',
+      nuevoMovimiento: '+ Nuevo movimiento',
+      trasladoA: 'Traslado a {{cuenta}}',
+      trasladoDesde: 'Traslado desde {{cuenta}}',
+      // Los 3 totales del mes (ver DetalleCuenta.jsx).
+      ingresosTitulo: 'Ingresos',
+      egresosTitulo: 'Egresos',
+      netoTitulo: 'Neto',
+      // Lista de abajo: ingresos + traslados (de entrada y de salida), sin
+      // los gastos normales -- ver DetalleCuenta.jsx.
+      listaTitulo: 'Ingresos y traslados',
+      sinMovimientosLista: 'No hay ingresos ni traslados este mes.',
+    },
   },
 
   categorias: {

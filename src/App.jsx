@@ -362,6 +362,7 @@ function App() {
           cuentas={cuentas}
           cargandoCuentas={cargandoCuentas}
           errorCuentas={errorCuentas}
+          categorias={categorias.filter((categoria) => !categoria.es_sistema)}
           movimientosVersion={movimientosVersion}
           onGestionarCuentas={() => setVista('cuentas')}
           onGestionarCategorias={() => setVista('categorias')}
@@ -370,6 +371,8 @@ function App() {
           onDesmarcarGastoFijoPagado={desmarcarGastoFijoPagado}
           onEditarMovimiento={abrirEditarMovimiento}
           onEliminarMovimiento={eliminarMovimiento}
+          onAgregarMovimiento={agregarMovimiento}
+          onActualizarMovimiento={actualizarMovimiento}
           onIrASeguridad={irASeguridadDesdeHome}
         />
       )}
