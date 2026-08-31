@@ -2,7 +2,7 @@
 
 Este documento lista todos los flujos y pantallas de la aplicación Seed, con pasos concretos para probar cada uno y el resultado esperado. Está pensado para validar manualmente que todo funciona después de un cambio, un despliegue, o una reparación de datos.
 
-Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `src/components/`, `src/services/`, `src/context/`, `src/utils/`) al 2026-08-27, no supuestos. Cuando un paso depende de una regla de negocio no obvia (por ejemplo, que el idioma no se puede cambiar después de registrarse), se indica explícitamente.
+Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `src/components/`, `src/services/`, `src/context/`, `src/hooks/`, `src/utils/`) al 2026-08-31, no supuestos. Cuando un paso depende de una regla de negocio no obvia (por ejemplo, que el idioma no se puede cambiar después de registrarse), se indica explícitamente.
 
 ## Cómo usar este documento
 
@@ -16,7 +16,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 [A1](#a1-registro) Registro · [A2](#a2-login-sin-2fa) Login sin 2FA · [A3](#a3-login-con-2fa) Login con 2FA · [A4](#a4-recuperar-contraseña-sin-2fa) Recuperar contraseña sin 2FA · [A5](#a5-recuperar-contraseña-con-2fa) Recuperar contraseña con 2FA · [A6](#a6-activar-2fa-primer-factor) Activar 2FA · [A7](#a7-agregar-factor-de-respaldo-2fa) Agregar factor de respaldo · [A8](#a8-eliminar-un-factor-2fa) Eliminar un factor 2FA · [A9](#a9-gate-de-consentimiento-ley-1581) Gate de consentimiento · [A10](#a10-eliminar-cuenta) Eliminar cuenta · [A11](#a11-cambiar-moneda-desde-perfil) Cambiar moneda · [A12](#a12-cerrar-sesión) Cerrar sesión
 
 **B. Movimientos y finanzas**
-[B1](#b1-crear-cuenta-bancaria) Crear cuenta · [B2](#b2-editar-cuenta) Editar cuenta · [B3](#b3-eliminar-cuenta-bancaria) Eliminar cuenta · [B4](#b4-marcar-una-cuenta-como-fondo-de-ahorro) Marcar cuenta como ahorro · [B5](#b5-fondo-de-emergencia) Fondo de emergencia · [B6](#b6-ajustar-la-meta-en-meses-del-fondo) Ajustar meta del fondo · [B7](#b7-metas-de-ahorro-crear) Meta de ahorro: crear · [B8](#b8-metas-de-ahorro-editar) Meta de ahorro: editar · [B9](#b9-metas-de-ahorro-eliminar) Meta de ahorro: eliminar · [B10](#b10-categorías-crear) Categorías: crear · [B11](#b11-categorías-editar) Categorías: editar · [B12](#b12-categorías-eliminar-sin-movimientos) Categorías: eliminar sin movimientos · [B13](#b13-categorías-eliminar-con-reasignación) Categorías: eliminar con reasignación · [B14](#b14-categoría-de-sistema-gastos-fijos--️-bug-conocido) Categoría de sistema ⚠️ · [B15](#b15-crear-movimiento-gasto) Crear movimiento (gasto) · [B16](#b16-crear-movimiento-ingreso) Crear movimiento (ingreso) · [B17](#b17-crear-movimiento-traslado) Crear movimiento (traslado) · [B18](#b18-editar-movimiento) Editar movimiento · [B19](#b19-eliminar-movimiento) Eliminar movimiento · [B20](#b20-gastos-fijos-crear) Gastos fijos: crear · [B21](#b21-gastos-fijos-editar) Gastos fijos: editar · [B22](#b22-gastos-fijos-marcar-como-pagado--️-bug-conocido) Gastos fijos: marcar pagado ⚠️ · [B23](#b23-gastos-fijos-desmarcar-como-pagado) Gastos fijos: desmarcar pagado · [B24](#b24-gastos-fijos-eliminar) Gastos fijos: eliminar · [B25](#b25-gastos-variables-con-presupuesto) Gastos variables · [B26](#b26-filtrado-por-mes-y-quincena) Filtrado por mes y quincena · [B27](#b27-resumen-filtro-añomes) Resumen: filtro año/mes · [B28](#b28-resumen-gráfico-mensual) Resumen: gráfico mensual · [B29](#b29-resumen-desglose-por-categoría) Resumen: desglose por categoría · [B30](#b30-calculadora-de-cuota-de-crédito) Calculadora cuota de crédito · [B31](#b31-calculadora-cdt-vs-cuenta-de-alto-rendimiento) Calculadora CDT · [B32](#b32-calculadora-de-ahorro-con-interés-compuesto) Calculadora de ahorro
+[B1](#b1-crear-cuenta-bancaria) Crear cuenta · [B2](#b2-editar-cuenta) Editar cuenta · [B3](#b3-eliminar-cuenta-bancaria) Eliminar cuenta · [B4](#b4-marcar-una-cuenta-como-fondo-de-ahorro) Marcar cuenta como ahorro · [B5](#b5-fondo-de-emergencia) Fondo de emergencia · [B6](#b6-ajustar-la-meta-en-meses-del-fondo) Ajustar meta del fondo · [B7](#b7-metas-de-ahorro-crear) Meta de ahorro: crear · [B8](#b8-metas-de-ahorro-editar) Meta de ahorro: editar · [B9](#b9-metas-de-ahorro-eliminar) Meta de ahorro: eliminar · [B10](#b10-categorías-crear) Categorías: crear · [B11](#b11-categorías-editar) Categorías: editar · [B12](#b12-categorías-eliminar-sin-movimientos) Categorías: eliminar sin movimientos · [B13](#b13-categorías-eliminar-con-reasignación) Categorías: eliminar con reasignación · [B14](#b14-categoría-de-sistema-gastos-fijos--️-bug-conocido) Categoría de sistema ⚠️ · [B15](#b15-crear-movimiento-gasto) Crear movimiento (gasto) · [B16](#b16-crear-movimiento-ingreso) Crear movimiento (ingreso) · [B17](#b17-crear-movimiento-traslado) Crear movimiento (traslado) · [B18](#b18-editar-movimiento) Editar movimiento · [B19](#b19-eliminar-movimiento) Eliminar movimiento · [B20](#b20-gastos-fijos-crear) Gastos fijos: crear · [B21](#b21-gastos-fijos-editar) Gastos fijos: editar · [B22](#b22-gastos-fijos-marcar-como-pagado--️-bug-conocido) Gastos fijos: marcar pagado ⚠️ · [B23](#b23-gastos-fijos-desmarcar-como-pagado) Gastos fijos: desmarcar pagado · [B24](#b24-gastos-fijos-eliminar) Gastos fijos: eliminar · [B25](#b25-gastos-variables-con-presupuesto) Gastos variables · [B26](#b26-filtrado-por-mes-y-quincena) Filtrado por mes y quincena · [B27](#b27-resumen-filtro-añomes) Resumen: filtro año/mes · [B28](#b28-resumen-gráfico-mensual) Resumen: gráfico mensual · [B29](#b29-resumen-desglose-por-categoría) Resumen: desglose por categoría · [B30](#b30-calculadora-de-cuota-de-crédito) Calculadora cuota de crédito · [B31](#b31-calculadora-cdt-vs-cuenta-de-alto-rendimiento) Calculadora CDT · [B32](#b32-calculadora-de-ahorro-con-interés-compuesto) Calculadora de ahorro · [B33](#b33-detalle-de-cuenta-detallecuentajsx) Detalle de cuenta · [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx) Detalle de categoría
 
 **C. Viajes**
 [C1](#c1-crear-viaje) Crear viaje · [C2](#c2-editar-viaje) Editar viaje · [C3](#c3-eliminar-viaje) Eliminar viaje · [C4](#c4-categorías-de-viaje-con-presupuesto) Categorías de viaje · [C5](#c5-gastos-de-viaje-multi-moneda) Gastos de viaje · [C6](#c6-dashboard-de-viaje-detalleviajejsx) Dashboard de viaje · [C7](#c7-resumen-de-viaje) Resumen de viaje
@@ -270,7 +270,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 **Pasos:** "Gestionar cuentas" → ícono de basurero → confirmar diálogo.
 
-**Resultado esperado:** La cuenta desaparece de la lista. Los movimientos que apuntaban a esa cuenta quedan con la referencia rota (verificar cómo se comporta `MovimientosRecientes`: debe mostrar "cuenta eliminada"/"sin cuenta" en vez de romperse).
+**Resultado esperado:** La cuenta desaparece de la lista. Los movimientos que apuntaban a esa cuenta quedan con la referencia rota (verificar cómo se comporta el detalle de la OTRA cuenta involucrada en un traslado, `DetalleCuenta.jsx` vía `<Movimiento>`: debe mostrar "cuenta eliminada" en el texto direccional en vez de romperse — ver [B33](#b33-detalle-de-cuenta-detallecuentajsx)).
 
 **Casos borde / variantes:**
 - Eliminar una cuenta marcada como "fondo de ahorro" → el fondo de emergencia debe recalcularse sin ella.
@@ -395,7 +395,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 **Pasos:** Botón flotante "+" en Inicio → tipo "Gasto" → monto, cuenta, categoría (grid de categorías, excluye la de sistema), descripción opcional → Guardar.
 
-**Resultado esperado:** El saldo de la cuenta baja en el monto exacto. Aparece en "Movimientos recientes" y cuenta para el total de "Gastos variables" de su categoría (si no tiene descripción, usa el nombre de la categoría).
+**Resultado esperado:** El saldo de la cuenta baja en el monto exacto. Cuenta para el total de "Gastos variables" de su categoría (si no tiene descripción, usa el nombre de la categoría) y aparece en la lista de gastos del detalle de esa categoría (`DetalleCategoria.jsx`, ver [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx)) — NO aparece en el detalle de la cuenta usada, que solo lista ingresos y traslados (ver [B33](#b33-detalle-de-cuenta-detallecuentajsx)).
 
 **Casos borde / variantes:** Monto vacío o ≤0 → error. Sin categorías disponibles (todas borradas) → revisar que no rompe el formulario.
 
@@ -403,13 +403,13 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 **Pasos:** Botón "+" → tipo "Ingreso" → monto, cuenta, descripción → Guardar.
 
-**Resultado esperado:** El saldo de la cuenta sube. Cuenta para "Ingresos" del período en la tarjeta de saldo de Inicio y en Resumen. No pide categoría (los ingresos no se categorizan).
+**Resultado esperado:** El saldo de la cuenta sube. Cuenta para "Ingresos" del período en la tarjeta de saldo de Inicio y en Resumen. No pide categoría (los ingresos no se categorizan). Aparece en la lista "Ingresos y traslados" del detalle de esa cuenta (ver [B33](#b33-detalle-de-cuenta-detallecuentajsx)).
 
 ## B17. Crear movimiento (traslado)
 
 **Pasos:** Botón "+" → tipo "Traslado" → cuenta origen, cuenta destino (deben ser distintas), monto, descripción opcional (por defecto "Origen → Destino") → Guardar.
 
-**Resultado esperado:** El saldo de origen baja y el de destino sube, ambos en el mismo monto. NO debe contar como ingreso ni gasto en ningún cálculo (fondo de emergencia, resumen, gastos variables) — es movimiento de dinero propio.
+**Resultado esperado:** El saldo de origen baja y el de destino sube, ambos en el mismo monto. NO debe contar como ingreso ni gasto en ningún cálculo (fondo de emergencia, resumen, gastos variables) — es movimiento de dinero propio. Debe aparecer en el detalle de AMBAS cuentas (ver [B33](#b33-detalle-de-cuenta-detallecuentajsx)): como "Traslado a X" (coral, egreso) en la cuenta origen, y como "Traslado desde Y" (mint, ingreso) en la cuenta destino.
 
 **Casos borde / variantes:**
 - Con menos de 2 cuentas → debe avisar que hace falta una segunda cuenta y no dejar guardar.
@@ -418,21 +418,22 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 ## B18. Editar movimiento
 
-**Precondiciones:** Un movimiento que NO sea de gasto fijo (`gasto_fijo_id` nulo) — esos no son editables desde aquí (ver [E3](#e3-editar-un-traslado-ya-existente-restricción)).
+**Precondiciones:** Un movimiento que NO sea de gasto fijo (`gasto_fijo_id` nulo) — esos no son editables desde aquí (ver [E3](#e3-editar-un-traslado-ya-existente-restricción)). **Nota:** ya no existe una lista de "Movimientos recientes" en Inicio — editar/eliminar se hace siempre desde la pantalla de detalle correspondiente: [B33](#b33-detalle-de-cuenta-detallecuentajsx) para ingresos/traslados, [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx) para gastos.
 
-**Pasos:** En "Movimientos recientes", tocar un movimiento → cambiar monto/cuenta/categoría/descripción → Guardar.
+**Pasos:** Abrir el detalle de la cuenta (si es ingreso/traslado) o de la categoría (si es gasto) donde vive el movimiento → tocar el ícono de lápiz sobre él → cambiar monto/cuenta/categoría/descripción → Guardar.
 
-**Resultado esperado:** El saldo de la(s) cuenta(s) se recalcula correctamente (revierte el efecto del monto viejo y aplica el nuevo).
+**Resultado esperado:** El saldo de la(s) cuenta(s) se recalcula correctamente (revierte el efecto del monto viejo y aplica el nuevo). La lista y los totales de la pantalla de detalle desde la que se editó se refrescan solos.
 
 **Casos borde / variantes:**
 - Editar un traslado: solo deben ser editables el monto y la descripción; las cuentas de origen/destino deben aparecer bloqueadas (ver [E3](#e3-editar-un-traslado-ya-existente-restricción)).
 - Un movimiento vinculado a un gasto fijo (`gasto_fijo_id` no nulo) NO debe mostrar botón de editar en la lista.
+- Editar un gasto para cambiarle la categoría, viéndolo desde `DetalleCategoria.jsx` de la categoría ORIGINAL → después de guardar, ese gasto ya no debe aparecer en esa lista (ahora pertenece a otra categoría).
 
 ## B19. Eliminar movimiento
 
-**Pasos:** En "Movimientos recientes", ícono de basurero → confirmar diálogo (el texto cambia si es traslado) → confirmar.
+**Pasos:** Desde el detalle de la cuenta o de la categoría del movimiento (ver nota de [B18](#b18-editar-movimiento)) → ícono de basurero → confirmar diálogo (el texto cambia si es traslado) → confirmar.
 
-**Resultado esperado:** El saldo de la(s) cuenta(s) revierte el efecto del movimiento borrado.
+**Resultado esperado:** El saldo de la(s) cuenta(s) revierte el efecto del movimiento borrado, y el movimiento desaparece de la lista y de los totales de la pantalla de detalle sin recargar.
 
 **Casos borde / variantes:** Un movimiento con `gasto_fijo_id` no debe tener botón de eliminar aquí (se desmarca desde [B23](#b23-gastos-fijos-desmarcar-como-pagado), no se borra suelto).
 
@@ -508,12 +509,13 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 1. En "Inicio", usar las flechas ‹ › para cambiar de mes.
 2. Tocar "1ra quincena" / "2da quincena" / "Completo".
 
-**Resultado esperado:** La tarjeta de saldo (ingresos/gastos/ahorro del período), "Gastos fijos" (siempre por mes completo, sin importar la quincena — un gasto fijo no se puede "pagar a medias"), "Gastos variables" y "Movimientos recientes" deben recalcularse todos según el filtro activo.
+**Resultado esperado:** La tarjeta de saldo (ingresos/gastos/ahorro del período), "Gastos fijos" (siempre por mes completo, sin importar la quincena — un gasto fijo no se puede "pagar a medias") y "Gastos variables" deben recalcularse todos según el filtro activo.
 
 **Casos borde / variantes:**
 - Cambiar de diciembre a enero (o viceversa) → debe ajustar también el año.
 - Un mes sin ningún movimiento → secciones deben mostrar sus estados vacíos, no romperse.
 - Verificar que "Gastos fijos" NO cambia al alternar quincena (por diseño), pero sí cambia al cambiar de mes.
+- El selector de mes/quincena de Inicio es independiente del selector de mes de `DetalleCuenta.jsx`/`DetalleCategoria.jsx` (ver [B33](#b33-detalle-de-cuenta-detallecuentajsx)/[B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx)): cada pantalla de detalle tiene su propio mes seleccionado, sin quincena, que arranca siempre en el mes actual al entrar (no hereda el mes que estaba elegido en Inicio).
 
 ## B27. Resumen: filtro año/mes
 
@@ -562,6 +564,59 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Resultado esperado:** Total acumulado, total aportado, intereses ganados.
 
 **Casos borde / variantes:** Aporte y monto inicial ambos en 0 → error. Plazo vacío/≤0 → error. Tasa vacía, negativa o >100% → error. Tasa 0% → cálculo simple sin interés (aporte × n + inicial), sin dividir por cero.
+
+## B33. Detalle de cuenta (`DetalleCuenta.jsx`)
+
+**Precondiciones:** Al menos una cuenta creada.
+
+**Pasos:**
+1. En "Inicio", tocar una fila de la lista de "Mis cuentas" (ahora es un botón completo, con chevron `›`).
+2. Revisar el header: avatar/inicial y color de la cuenta, nombre, tipo, saldo actual, y debajo la tarjeta con los 3 totales del mes: "Ingresos", "Egresos", "Neto".
+3. Con las flechas ‹ › del selector de mes (sin opción de quincena), cambiar de mes y confirmar que los 3 totales y la lista de abajo se recalculan.
+4. Revisar la lista "Ingresos y traslados".
+5. Tocar "+ Nuevo movimiento" → se abre el formulario con esta cuenta ya elegida.
+6. Sobre un movimiento editable de la lista, tocar el lápiz → editar → Guardar.
+7. Sobre un movimiento editable, tocar la basurera → confirmar → se elimina.
+8. Tocar el botón "Volver" del header.
+
+**Resultado esperado:**
+- Los 3 totales consideran TODOS los movimientos del mes donde participa esta cuenta, incluidos los traslados en ambas direcciones: "Ingresos" = ingresos + traslados donde esta cuenta es el destino; "Egresos" = gastos + traslados donde esta cuenta es el origen; "Neto" = Ingresos − Egresos (en coral si es negativo).
+- La lista de abajo excluye los gastos normales — esos solo se ven desde el detalle de su categoría (ver [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx)). Solo lista ingresos y traslados (de entrada y de salida) de esta cuenta.
+- Un traslado se muestra con perspectiva direccional: si esta cuenta es el origen, aparece como "Traslado a X" en coral con signo `−`; si es el destino, como "Traslado desde Y" en mint con signo `+` (distinto de cómo se ve un traslado "desde afuera", con flecha `origen → destino` en azul).
+- "+ Nuevo movimiento" abre `HojaNuevoMovimiento` con la cuenta ya preseleccionada (se puede cambiar antes de guardar).
+- Editar/eliminar actualiza el saldo de la(s) cuenta(s) igual que en [B18](#b18-editar-movimiento)/[B19](#b19-eliminar-movimiento); la lista y los 3 totales de esta pantalla se refrescan solos, sin recargar.
+- "Volver" regresa a "Inicio" sin pasar por `App.jsx`: es un estado interno de `Home.jsx` (el mismo patrón de "modo" que usa `Viajes.jsx` para `DetalleViaje.jsx`), así que el botón "+" flotante y la barra de navegación inferior siguen mostrándose igual mientras se navega dentro de una cuenta.
+
+**Casos borde / variantes:**
+- Mes sin ingresos ni traslados → mensaje "No hay ingresos ni traslados este mes." en vez de una lista vacía rota.
+- Un movimiento vinculado a un gasto fijo (`gasto_fijo_id`) no debe tener botones de editar/eliminar aquí, igual que en cualquier otra lista de movimientos.
+- Si la cuenta se elimina (desde "Gestionar cuentas") mientras se está viendo su detalle, `Home.jsx` debe caer de nuevo a la vista de resumen en vez de romperse.
+- Un traslado cuya cuenta contraparte (origen o destino) ya fue eliminada → debe mostrar "cuenta eliminada" en el texto direccional en vez de romperse.
+
+## B34. Detalle de categoría de gasto variable (`DetalleCategoria.jsx`)
+
+**Precondiciones:** Al menos una categoría de gasto variable (no de sistema) creada.
+
+**Pasos:**
+1. En "Inicio", sección "Gastos variables", tocar una categoría (también es ahora un botón completo, con chevron `›`).
+2. Revisar el header: emoji y color de la categoría, nombre, barra de progreso (solo si tiene presupuesto), y los totales del mes.
+3. Con el selector de mes (sin quincena), cambiar de mes.
+4. Tocar "+ Nuevo gasto" → se abre el formulario con esta categoría ya elegida.
+5. Editar/eliminar un gasto de la lista (mismo mecanismo que en [B33](#b33-detalle-de-cuenta-detallecuentajsx)).
+6. Tocar "Volver".
+
+**Resultado esperado:**
+- Si la categoría tiene presupuesto (>0): se muestran 3 totales — "Presupuesto", "Gastado", "Restante" (en coral si quedó negativo) — y la barra de progreso, calculados con la misma función (`calcularProgresoPresupuesto`) que usa la fila de "Gastos variables" en Inicio, así que ambas vistas siempre coinciden en si está "excedido" y en el % de la barra.
+- Si NO tiene presupuesto (0 o vacío): solo se muestra "Gastado" como un único bloque de ancho completo, sin barra de progreso ni grilla de 3 columnas.
+- La lista de abajo ("Gastos") son exclusivamente gastos de esta categoría en el mes seleccionado — nunca ingresos ni traslados, porque esos nunca tienen `categoria_id`.
+- "+ Nuevo gasto" abre `HojaNuevoMovimiento` con tipo "Gasto" y esta categoría ya preseleccionada.
+- "Volver" regresa a "Inicio" con el mismo mecanismo de "modo" interno de [B33](#b33-detalle-de-cuenta-detallecuentajsx).
+
+**Casos borde / variantes:**
+- Mes sin gastos en esta categoría → mensaje "No hay gastos este mes en esta categoría."
+- Un gasto que supera el presupuesto → la barra se pinta en coral y "Restante" se muestra en coral (negativo), igual que en la fila de Inicio.
+- Si la categoría se elimina, o se reasignan sus gastos a otra (ver [B13](#b13-categorías-eliminar-con-reasignación)), mientras se ve su detalle → `Home.jsx` debe caer a la vista de resumen en vez de romperse.
+- Un gasto vinculado a un gasto fijo (`gasto_fijo_id`) no debe tener botones de editar/eliminar aquí.
 
 ---
 

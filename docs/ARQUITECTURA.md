@@ -2,7 +2,7 @@
 
 Este documento explica cómo está construida la app por dentro: stack, arquitectura, estructura de carpetas, base de datos, seguridad, i18n/moneda, PWA, despliegue, decisiones técnicas y testing. Está pensado para que un desarrollador (o cualquier persona que revise el código) entienda el proyecto sin tener que leerlo entero de cero.
 
-Se construyó leyendo el código real (`package.json`, `vite.config.js`, `src/`, `sql/`, `supabase/functions/`) al 2026-08-27, no supuestos. No contiene secretos, llaves ni valores reales de variables de entorno — solo sus nombres.
+Se construyó leyendo el código real (`package.json`, `vite.config.js`, `src/`, `sql/`, `supabase/functions/`) al 2026-08-31, no supuestos. No contiene secretos, llaves ni valores reales de variables de entorno — solo sus nombres.
 
 ---
 
@@ -88,7 +88,8 @@ Los tres últimos dependen de `AuthContext` (`useAuth()` por dentro) y de `useDa
 ### 3.4 Hooks y utils de cálculo
 
 - **`useConsulta`** (`src/hooks/useConsulta.js`): centraliza el patrón "cargando / error / datos / recargar" que se repetía a mano en cada pantalla. Usa un `ref` para no reejecutar la consulta en cada render, y descarta resultados de consultas obsoletas si las dependencias cambian antes de que respondan (evita condiciones de carrera al cambiar de filtro rápido).
-- **`src/utils/`** concentra la lógica de cálculo **pura** (sin llamadas a Supabase ni JSX), lo que la hace testeable sin mocks: `resumenCalculos.js`, `resumenViaje.js`, `proyeccionMeta.js`, `gastoMensualPromedio.js`, `mensajeFondo.js`, `formatoFecha.js`, `formatoPeriodo.js`, `formatoMoneda.js`, `fortalezaContrasena.js`, `factoresMfa.js`, `consentimientos.js`. Cada una de estas tiene su `*.test.js` hermano (sección 11).
+- **`useMovimientosPeriodo`** (`src/hooks/useMovimientosPeriodo.js`): motor de datos compartido para "movimientos de un periodo", construido sobre `useConsulta`. Recibe `{ periodo, version, cuentaId, categoriaId, limite }` — `cuentaId`/`categoriaId` son filtros opcionales que arma la propia consulta (`.or('cuenta_id.eq...,cuenta_destino_id.eq...')` para que un traslado aparezca en el detalle de ambas cuentas involucradas; `.eq('categoria_id', ...)` para categorías, que de paso excluye traslados e ingresos porque esos nunca tienen `categoria_id`). Lo usan tanto `Home.jsx` (resumen del período, sin filtro) como `DetalleCuenta.jsx` (con `cuentaId`) y `DetalleCategoria.jsx` (con `categoriaId`), evitando duplicar el `select` y la conversión de fecha/nombre para mostrar en cada pantalla.
+- **`src/utils/`** concentra la lógica de cálculo **pura** (sin llamadas a Supabase ni JSX), lo que la hace testeable sin mocks: `resumenCalculos.js`, `resumenViaje.js`, `proyeccionMeta.js`, `gastoMensualPromedio.js`, `mensajeFondo.js`, `formatoFecha.js`, `formatoPeriodo.js`, `formatoMoneda.js`, `fortalezaContrasena.js`, `factoresMfa.js`, `consentimientos.js`, `progresoPresupuesto.js` (calcula "excedido" y % de la barra de una categoría contra su presupuesto; compartida entre `CategoriaGasto.jsx`, la fila de Inicio, y `DetalleCategoria.jsx`, para que ambas midan el progreso exactamente igual). La mayoría de estas tiene su `*.test.js` hermano (sección 11); `progresoPresupuesto.js` todavía no lo tiene.
 
 ### 3.5 Flujo de datos: usuario → servicios → Supabase → RLS
 
@@ -147,6 +148,16 @@ Dentro del paso 6, `App.jsx` además:
 - Resetea `vista` a `'inicio'` cuando cambia el `user_id` de la sesión (login de otro usuario), pero no cuando Supabase solo refresca el token en segundo plano.
 - Mantiene `movimientosVersion` como un contador que se incrementa tras cualquier operación que afecte movimientos, usado como dependencia por las vistas que necesitan recargar (patrón "cache-busting" simple en vez de un sistema de invalidación más complejo).
 
+### 3.7 Navegación interna de una vista: el patrón "modo"
+
+Algunas vistas necesitan una segunda capa de navegación (una pantalla de detalle dentro de una pestaña) sin crear una `vista` nueva en `App.jsx` ni depender de un router. El patrón, usado primero por `Viajes.jsx` (lista de viajes → `DetalleViaje.jsx`) y ahora también por `Home.jsx` (cuentas y categorías navegables), es siempre el mismo:
+
+- Un `useState` local (`modo` en `Home.jsx`) con un valor por defecto (`'resumen'`) y uno por cada pantalla de detalle (`'detalleCuenta'`, `'detalleCategoria'`).
+- El id del elemento tocado se guarda aparte (`cuentaSeleccionadaId`/`categoriaSeleccionadaId`), no el objeto completo — así, si el saldo o el gasto acumulado cambian al crear/editar/eliminar un movimiento desde el propio detalle, la búsqueda por id en la lista de `cuentas`/`categorias` (props que vienen de `App.jsx`) trae los datos frescos en el siguiente render en vez de quedar con datos "congelados". Si el elemento ya no existe (se borró desde "Gestionar cuentas/categorías" mientras se veía su detalle), la búsqueda da `undefined` y la vista cae sola al resumen normal.
+- Antes del `return` del contenido normal de la vista, un par de `if` tempranos devuelven el componente de detalle (`DetalleCuenta`/`DetalleCategoria`) en vez del resto del JSX, pasándole un `onVolver` que resetea el `modo` a `'resumen'`.
+- Como el `vista` de `App.jsx` nunca cambia durante esta navegación, el botón "+" flotante (`BotonAgregar`) y la barra de navegación inferior (que dependen de `vista === 'inicio'`) siguen mostrándose exactamente igual mientras se está dentro de una cuenta o categoría — a diferencia de si esto se hubiera modelado como una `vista` más de `App.jsx`.
+- Cada pantalla de detalle (`DetalleCuenta.jsx`, `DetalleCategoria.jsx`, `DetalleViaje.jsx`) recibe las funciones de mutación (`onAgregarMovimiento`, `onActualizarMovimiento`, `onEliminarMovimiento`, etc.) como props desde arriba — el estado de cuentas/categorías y la lógica de ajuste de saldos siguen viviendo en `App.jsx`, igual que en el resto de la app (sección 3.2).
+
 ---
 
 ## 4. Estructura de carpetas
@@ -167,7 +178,7 @@ saldo-app/
 └── src/
     ├── main.jsx                 Punto de entrada: monta <App/> envuelta en los providers
     ├── App.jsx                  Orquestador: cascada de pantallas + estado de cuentas/categorías
-    ├── views/                   Una pantalla completa por archivo (30 archivos)
+    ├── views/                   Una pantalla completa por archivo (28 archivos)
     │   ├── Login.jsx, Registro.jsx, PantallaAuth.jsx       Autenticación
     │   ├── RecuperarContrasena.jsx, EstablecerNuevaContrasena.jsx
     │   ├── VerificarMfa.jsx, SeguridadPerfil.jsx           2FA
@@ -176,30 +187,41 @@ saldo-app/
     │   ├── EliminarCuenta.jsx                              Borrado de cuenta
     │   ├── Home.jsx, GestionCuentas.jsx, GestionCategorias.jsx,
     │   │   GestionGastosFijos.jsx, Emergencia.jsx, Resumen.jsx
+    │   ├── DetalleCuenta.jsx, DetalleCategoria.jsx         Detalle navegable de una
+    │   │                                                   cuenta/categoría (abiertos
+    │   │                                                   desde Home, sección 3.7)
     │   ├── Perfil.jsx                                      Ajustes de cuenta
     │   ├── Viajes.jsx, DetalleViaje.jsx, ResumenViaje.jsx  Módulo de viajes
     │   ├── CalculadoraAhorro.jsx, CalculadoraCdt.jsx,
     │   │   CalculadoraCuotaCredito.jsx                     Las 3 calculadoras
     │   ├── GuiaUso.jsx                                     Guía de referencia
     │   └── Proximamente.jsx                                Placeholder genérico
-    ├── components/               Piezas reutilizables entre vistas (~35 archivos)
+    ├── components/               Piezas reutilizables entre vistas (~39 archivos)
     │   ├── ui/                   Primitivas de UI genéricas (Boton*, CampoTexto,
     │   │                         MedidorFortaleza, Icono, MensajeError, Tarjeta)
     │   ├── Hoja*.jsx              Formularios modales tipo "bottom sheet"
     │   │                         (HojaNuevoMovimiento, HojaCuenta, HojaCategoria, ...)
     │   ├── Tarjeta*.jsx           Tarjetas de resumen (TarjetaSaldo, TarjetaMeta, ...)
+    │   ├── FilaTotales.jsx       Fila de "chips" de totales (etiqueta + punto de
+    │   │                         color + monto), usada por DetalleCuenta.jsx y
+    │   │                         DetalleCategoria.jsx con sus propias etiquetas
+    │   ├── Cuenta.jsx, CategoriaGasto.jsx  Filas tocables (con ChevronRight) que
+    │   │                         abren el detalle de su cuenta/categoría (3.7)
     │   └── ...                   NavegacionInferior, BotonAgregar, GuiaBienvenida,
     │                             AyudaContextual, DocumentoLegal, PasoCodigoMfa, etc.
     ├── context/                   AuthContext, MonedaContext, IdiomaContext, GuiaContext
     ├── services/                  Lógica de negocio pura por dominio (sección 3.2)
     │                             + un *.test.js por cada servicio
     ├── hooks/
-    │   └── useConsulta.js         Hook genérico de carga de datos (sección 3.4)
+    │   ├── useConsulta.js          Hook genérico de carga de datos (sección 3.4)
+    │   └── useMovimientosPeriodo.js  Motor de datos de "movimientos de un periodo",
+    │                                 con filtro opcional por cuenta o categoría (3.4)
     ├── lib/
     │   ├── supabase.js            Cliente único de supabase-js (lee las env vars)
     │   └── datosUsuario.js        Helper de filtrado/escritura por user_id
     ├── utils/                     Cálculo puro + formateo + validación (sección 3.4),
-    │                             cada uno con su *.test.js
+    │                             la mayoría con su *.test.js (progresoPresupuesto.js
+    │                             es la excepción actual, sin test todavía)
     ├── i18n/                      es.js, en.js (diccionarios) + index.js (traducir/traducirPlural)
     ├── data/                      ⚠️ Código muerto — ver sección 10
     └── constants/
