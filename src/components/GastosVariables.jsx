@@ -6,6 +6,7 @@ import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import MensajeError from './ui/MensajeError'
+import Acordeon from './ui/Acordeon'
 
 function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCategoria }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -60,15 +61,28 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
   const categoriasConTope = categorias.filter((categoria) => Boolean(categoria.presupuesto))
   const totalTope = categoriasConTope.reduce((suma, categoria) => suma + categoria.presupuesto, 0)
 
+  // El mini-resumen del header colapsado se oculta mientras carga, si falla,
+  // o si no hay ninguna categoría -- mismo criterio que en GastosFijos.jsx.
+  // Si hay categorías pero ninguna tiene presupuesto asignado, no tiene
+  // sentido un "$Y / $0" -- se muestra solo lo gastado, sin el "/ $Z". El
+  // valor se pinta en coral solo si se excedió el presupuesto TOTAL (suma de
+  // todas las categorías con tope) -- no hay "excedido" que mostrar cuando no
+  // hay ningún presupuesto definido.
+  const excedidoTotal = totalTope > 0 && totalGastado > totalTope
+  const resumenColapsado =
+    !cargandoCategorias && !errorCategorias && categorias.length > 0 ? (
+      <p className="flex items-baseline gap-1.5">
+        <span className="text-xs text-text-dim">{t('home.gastadoEtiqueta')}</span>
+        <span className={`truncate text-sm font-semibold ${excedidoTotal ? 'text-coral' : 'text-mint'}`}>
+          {totalTope > 0 ? `${formatear(totalGastado)} / ${formatear(totalTope)}` : formatear(totalGastado)}
+        </span>
+      </p>
+    ) : null
+
   return (
-    <section className="flex flex-col gap-3">
+    <Acordeon titulo={t('home.gastosVariablesTitulo')} resumenColapsado={resumenColapsado}>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-            {t('home.gastosVariablesTitulo')}
-          </h2>
-          <AyudaContextual clave="guia.ayuda.gastosVariables" etiqueta={t('guia.ayuda.gastosVariablesAria')} />
-        </div>
+        <AyudaContextual clave="guia.ayuda.gastosVariables" etiqueta={t('guia.ayuda.gastosVariablesAria')} />
         <button
           type="button"
           onClick={onGestionarCategorias}
@@ -114,7 +128,7 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
           )}
         </div>
       )}
-    </section>
+    </Acordeon>
   )
 }
 

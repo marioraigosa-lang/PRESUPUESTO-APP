@@ -6,6 +6,7 @@ import Cuenta from '../components/Cuenta'
 import GastosFijos from '../components/GastosFijos'
 import GastosVariables from '../components/GastosVariables'
 import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
+import Acordeon from '../components/ui/Acordeon'
 import DetalleCuenta from './DetalleCuenta'
 import DetalleCategoria from './DetalleCategoria'
 import { useDatosUsuario } from '../lib/datosUsuario'
@@ -194,11 +195,18 @@ function Home({
 
         <TarjetaPromoMfa onActivar={onIrASeguridad} />
 
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-              {t('home.misCuentas')}
-            </h2>
+        <Acordeon
+          titulo={t('home.misCuentas')}
+          resumenColapsado={
+            !cargandoCuentas && !errorCuentas && cuentas.length > 0 ? (
+              <p className="flex items-baseline gap-1.5">
+                <span className="text-xs text-text-dim">{t('home.disponibleEtiqueta')}</span>
+                <span className="truncate text-sm font-semibold text-mint">{formatear(total)}</span>
+              </p>
+            ) : null
+          }
+        >
+          <div className="flex items-center justify-end">
             <button
               type="button"
               onClick={onGestionarCuentas}
@@ -226,7 +234,7 @@ function Home({
               </div>
             </div>
           )}
-        </section>
+        </Acordeon>
 
         <GastosFijos
           cuentas={cuentas}

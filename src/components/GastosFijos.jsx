@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import GastoFijo from './GastoFijo'
 import HojaElegirCuentaPago from './HojaElegirCuentaPago'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -8,6 +9,7 @@ import { useConsulta } from '../hooks/useConsulta'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import AyudaContextual from './AyudaContextual'
 import MensajeError from './ui/MensajeError'
+import Acordeon from './ui/Acordeon'
 
 function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -163,72 +165,93 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
   const totalPendiente = total - totalPagado
   const porcentaje = total === 0 ? 0 : Math.round((totalPagado / total) * 100)
 
+  const cargando = cargandoGastos || cargandoMovimientos
+  const conError = errorGastos || errorMovimientos
+  const pagadosCantidad = gastosConEstado.filter((gasto) => gasto.pagado).length
+
+  // El mini-resumen del header colapsado se oculta mientras carga, si falla,
+  // o si no hay ningún gasto fijo -- para no mostrar "0 de 0 pagados" ni un
+  // parpadeo entre el estado de carga y el resultado real. Se arma como dos
+  // chips separados (pagados / pendiente) en vez de una sola frase, para que
+  // se lea con aire en vez de amontonado.
+  const resumenColapsado =
+    !cargando && !conError && gastosConEstado.length > 0 ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-xs">
+          <Check className="h-3 w-3 text-mint" aria-hidden="true" />
+          <span className="font-semibold text-text">
+            {pagadosCantidad}/{gastosConEstado.length}
+          </span>
+          <span className="text-text-dim">{t('home.gastosFijosPagadosEtiqueta')}</span>
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-xs">
+          <span className="text-text-dim">{t('home.pendienteEtiqueta')}</span>
+          <span className={`font-semibold ${totalPendiente > 0 ? 'text-gold' : 'text-mint'}`}>
+            {formatear(totalPendiente)}
+          </span>
+        </span>
+      </div>
+    ) : null
+
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
-            {t('home.gastosFijosTitulo')}
-          </h2>
+    <>
+      <Acordeon titulo={t('home.gastosFijosTitulo')} resumenColapsado={resumenColapsado}>
+        <div className="flex items-center justify-between">
           <AyudaContextual
             clave="guia.ayuda.gastoFijoPagado"
             etiqueta={t('guia.ayuda.gastoFijoPagadoAria')}
           />
+          <button
+            type="button"
+            onClick={onGestionar}
+            className="text-xs font-semibold text-mint"
+          >
+            {t('home.gestionarGastosFijos')}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onGestionar}
-          className="text-xs font-semibold text-mint"
-        >
-          {t('home.gestionarGastosFijos')}
-        </button>
-      </div>
 
-      {(cargandoGastos || cargandoMovimientos) && (
-        <p className="px-2 text-sm text-text-dim">{t('home.cargandoGastosFijos')}</p>
-      )}
+        {cargando && <p className="px-2 text-sm text-text-dim">{t('home.cargandoGastosFijos')}</p>}
 
-      {(errorGastos || errorMovimientos) && (
-        <MensajeError>{t('home.errorCargarGastosFijos')}</MensajeError>
-      )}
+        {conError && <MensajeError>{t('home.errorCargarGastosFijos')}</MensajeError>}
 
-      <MensajeError>{errorGuardado}</MensajeError>
+        <MensajeError>{errorGuardado}</MensajeError>
 
-      {!cargandoGastos && !errorGastos && !cargandoMovimientos && !errorMovimientos && (
-        <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
-          {gastosConEstado.map((gasto) => (
-            <GastoFijo
-              key={gasto.id}
-              gasto={gasto}
-              onToggle={manejarToggle}
-              guardando={guardandoIds.has(gasto.id)}
-            />
-          ))}
-
-          <div className="mt-1 flex flex-col gap-3 rounded-2xl bg-panel-2 px-4 py-3">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-line">
-              <div
-                className="h-full rounded-full bg-mint transition-all"
-                style={{ width: `${porcentaje}%` }}
+        {!cargando && !conError && (
+          <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
+            {gastosConEstado.map((gasto) => (
+              <GastoFijo
+                key={gasto.id}
+                gasto={gasto}
+                onToggle={manejarToggle}
+                guardando={guardandoIds.has(gasto.id)}
               />
-            </div>
+            ))}
 
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-text">
-                {t('home.pagadoPorcentaje', { porcentaje })}
-              </p>
-              <p className="text-xs text-text-dim">
-                {t('home.pagadoDeTotal', { pagado: formatear(totalPagado), total: formatear(total) })}
-              </p>
-            </div>
+            <div className="mt-1 flex flex-col gap-3 rounded-2xl bg-panel-2 px-4 py-3">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-line">
+                <div
+                  className="h-full rounded-full bg-mint transition-all"
+                  style={{ width: `${porcentaje}%` }}
+                />
+              </div>
 
-            <div className="flex items-center justify-between rounded-xl bg-mint/10 px-3 py-2">
-              <p className="text-sm font-semibold text-mint">{t('home.faltaPorPagar')}</p>
-              <p className="text-sm font-bold text-mint">{formatear(totalPendiente)}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-text">
+                  {t('home.pagadoPorcentaje', { porcentaje })}
+                </p>
+                <p className="text-xs text-text-dim">
+                  {t('home.pagadoDeTotal', { pagado: formatear(totalPagado), total: formatear(total) })}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-mint/10 px-3 py-2">
+                <p className="text-sm font-semibold text-mint">{t('home.faltaPorPagar')}</p>
+                <p className="text-sm font-bold text-mint">{formatear(totalPendiente)}</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Acordeon>
 
       <HojaElegirCuentaPago
         abierta={hojaAbierta}
@@ -237,7 +260,7 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
         gasto={gastoSeleccionado}
         onConfirmar={confirmarPago}
       />
-    </section>
+    </>
   )
 }
 
