@@ -10,6 +10,7 @@ import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import AyudaContextual from './AyudaContextual'
 import MensajeError from './ui/MensajeError'
 import Acordeon from './ui/Acordeon'
+import { calcularResumenGastosFijos } from '../utils/resumenGastosFijos'
 
 function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -158,16 +159,11 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
     }
   }
 
-  const total = gastosConEstado.reduce((suma, gasto) => suma + gasto.monto, 0)
-  const totalPagado = gastosConEstado
-    .filter((gasto) => gasto.pagado)
-    .reduce((suma, gasto) => suma + gasto.monto, 0)
-  const totalPendiente = total - totalPagado
-  const porcentaje = total === 0 ? 0 : Math.round((totalPagado / total) * 100)
+  const { total, totalPagado, totalPendiente, porcentaje, pagadosCantidad, cantidadTotal } =
+    calcularResumenGastosFijos(gastosConEstado)
 
   const cargando = cargandoGastos || cargandoMovimientos
   const conError = errorGastos || errorMovimientos
-  const pagadosCantidad = gastosConEstado.filter((gasto) => gasto.pagado).length
 
   // El mini-resumen del header colapsado se oculta mientras carga, si falla,
   // o si no hay ningún gasto fijo -- para no mostrar "0 de 0 pagados" ni un
@@ -180,7 +176,7 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
         <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-xs">
           <Check className="h-3 w-3 text-mint" aria-hidden="true" />
           <span className="font-semibold text-text">
-            {pagadosCantidad}/{gastosConEstado.length}
+            {pagadosCantidad}/{cantidadTotal}
           </span>
           <span className="text-text-dim">{t('home.gastosFijosPagadosEtiqueta')}</span>
         </span>
