@@ -1,23 +1,7 @@
 import { Pencil, Trash2, Pin } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
-
-// Texto del movimiento tal como debe verse desde la perspectiva de
-// `cuentaContextoId` (pantallas de detalle de una cuenta puntual, ver
-// DetalleCuenta.jsx). Solo los traslados cambian: el resto de tipos
-// siempre se ven igual, se esté mirando "desde afuera" (Home) o "desde
-// adentro" de una cuenta. Se exporta aparte de <Movimiento> para que la
-// pantalla que lo usa pueda armar el mismo texto en su diálogo de
-// confirmación de borrado, sin duplicar la lógica de "¿es origen o
-// destino?".
-export function descripcionEnContexto(movimiento, cuentaContextoId, t) {
-  if (movimiento.tipo !== 'traslado' || !cuentaContextoId) return movimiento.descripcion
-
-  const esOrigen = movimiento.cuenta_id === cuentaContextoId
-  return esOrigen
-    ? t('cuentas.detalle.trasladoA', { cuenta: movimiento.cuentaDestino ?? t('home.cuentaEliminada') })
-    : t('cuentas.detalle.trasladoDesde', { cuenta: movimiento.cuenta ?? t('home.cuentaEliminada') })
-}
+import { descripcionEnContexto } from '../utils/movimientosCuenta'
 
 function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onEliminar }) {
   const formatear = useFormatoMoneda()

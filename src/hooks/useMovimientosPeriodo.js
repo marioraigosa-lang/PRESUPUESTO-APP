@@ -1,8 +1,9 @@
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from './useConsulta'
 import { useIdioma } from '../context/IdiomaContext'
-import { fechaCortaDesdeISO } from '../utils/formatoFecha'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import { mapearMovimiento } from '../utils/mapearMovimiento'
+import { construirConsultaMovimientosPeriodo } from '../utils/consultaMovimientosPeriodo'
 
 // "cuenta:cuentas!cuenta_id(...)" y "cuenta_destino:cuentas!cuenta_destino_id(...)":
 // movimientos tiene DOS llaves foráneas hacia cuentas (origen y destino,
@@ -41,20 +42,13 @@ export function useMovimientosPeriodo({ periodo, version, cuentaId, categoriaId,
   async function cargarMovimientos() {
     const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes, periodo.quincena)
 
-    let consulta = seleccionarPropio('movimientos', COLUMNAS).gte('fecha', desde).lte('fecha', hasta)
-
-    if (cuentaId) {
-      consulta = consulta.or(`cuenta_id.eq.${cuentaId},cuenta_destino_id.eq.${cuentaId}`)
-    }
-    if (categoriaId) {
-      consulta = consulta.eq('categoria_id', categoriaId)
-    }
-
-    consulta = consulta.order('fecha', { ascending: false }).order('creado_en', { ascending: false })
-
-    if (limite) {
-      consulta = consulta.limit(limite)
-    }
+    const consulta = construirConsultaMovimientosPeriodo(seleccionarPropio('movimientos', COLUMNAS), {
+      desde,
+      hasta,
+      cuentaId,
+      categoriaId,
+      limite,
+    })
 
     const { data, error } = await consulta
 
@@ -62,12 +56,7 @@ export function useMovimientosPeriodo({ periodo, version, cuentaId, categoriaId,
       throw new Error(error.message)
     }
 
-    return data.map((movimiento) => ({
-      ...movimiento,
-      cuenta: movimiento.cuenta?.nombre ?? t('home.sinCuenta'),
-      cuentaDestino: movimiento.cuenta_destino?.nombre ?? null,
-      fecha: fechaCortaDesdeISO(movimiento.fecha, idioma),
-    }))
+    return data.map((movimiento) => mapearMovimiento(movimiento, t, idioma))
   }
 
   return useConsulta(

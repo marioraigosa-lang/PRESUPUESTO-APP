@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Movimiento, { descripcionEnContexto } from '../components/Movimiento'
+import Movimiento from '../components/Movimiento'
 import SelectorPeriodo from '../components/SelectorPeriodo'
 import HojaNuevoMovimiento from '../components/HojaNuevoMovimiento'
 import FilaTotales from '../components/FilaTotales'
@@ -8,7 +8,7 @@ import { useFormatoMoneda } from '../context/MonedaContext'
 import { useMovimientosPeriodo } from '../hooks/useMovimientosPeriodo'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
-import { calcularResumenCuenta } from '../utils/movimientosCuenta'
+import { calcularResumenCuenta, descripcionEnContexto } from '../utils/movimientosCuenta'
 
 const hoy = new Date()
 

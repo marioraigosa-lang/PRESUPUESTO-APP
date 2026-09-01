@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { esEntradaEnCuenta, calcularResumenCuenta } from './movimientosCuenta'
+import { esEntradaEnCuenta, calcularResumenCuenta, descripcionEnContexto } from './movimientosCuenta'
 
 const CUENTA_A = 'cuenta-a'
 const CUENTA_B = 'cuenta-b'
@@ -97,5 +97,97 @@ describe('calcularResumenCuenta', () => {
     const resultado = calcularResumenCuenta([], CUENTA_A)
 
     expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 0, neto: 0, listaMovimientos: [] })
+  })
+})
+
+// Movida desde components/Movimiento.test.js: descripcionEnContexto vivía en
+// Movimiento.jsx, cuyo import arrastraba en cadena MonedaContext ->
+// AuthContext -> lib/supabase.js (que construye un cliente real y lanza si
+// faltan las variables de entorno de Supabase). Al vivir ahora en este util
+// sin dependencias de React/Supabase, este test ya no depende del .env.
+describe('descripcionEnContexto', () => {
+  const cuentaContextoId = CUENTA_A
+
+  // `t` falso: en vez de devolver un string traducido, devuelve un objeto
+  // {clave, valores} para poder verificar exactamente qué clave y qué
+  // parámetros habría usado la traducción real, sin depender de i18n.
+  function tFalso(clave, valores) {
+    return valores ? { clave, valores } : clave
+  }
+
+  it('traslado donde la cuenta de contexto es el ORIGEN: "Traslado a {destino}"', () => {
+    const movimiento = {
+      tipo: 'traslado',
+      cuenta_id: CUENTA_A,
+      cuentaDestino: 'Ahorros',
+    }
+
+    expect(descripcionEnContexto(movimiento, cuentaContextoId, tFalso)).toEqual({
+      clave: 'cuentas.detalle.trasladoA',
+      valores: { cuenta: 'Ahorros' },
+    })
+  })
+
+  it('traslado donde la cuenta de contexto es el DESTINO: "Traslado desde {origen}"', () => {
+    const movimiento = {
+      tipo: 'traslado',
+      cuenta_id: CUENTA_B, // el origen es OTRA cuenta, no la de contexto
+      cuenta: 'Nómina',
+    }
+
+    expect(descripcionEnContexto(movimiento, cuentaContextoId, tFalso)).toEqual({
+      clave: 'cuentas.detalle.trasladoDesde',
+      valores: { cuenta: 'Nómina' },
+    })
+  })
+
+  it('un ingreso (no es traslado) devuelve su descripción tal cual, sin tocar t()', () => {
+    const movimiento = { tipo: 'ingreso', descripcion: 'Salario de agosto' }
+
+    expect(descripcionEnContexto(movimiento, cuentaContextoId, tFalso)).toBe('Salario de agosto')
+  })
+
+  it('un gasto (no es traslado) devuelve su descripción tal cual', () => {
+    const movimiento = { tipo: 'gasto', descripcion: 'Mercado' }
+
+    expect(descripcionEnContexto(movimiento, cuentaContextoId, tFalso)).toBe('Mercado')
+  })
+
+  it('un traslado SIN cuentaContextoId (uso "desde afuera", ej. Home) devuelve la descripción tal cual', () => {
+    const movimiento = {
+      tipo: 'traslado',
+      cuenta_id: CUENTA_A,
+      cuentaDestino: 'Ahorros',
+      descripcion: 'Cuenta A → Ahorros',
+    }
+
+    expect(descripcionEnContexto(movimiento, null, tFalso)).toBe('Cuenta A → Ahorros')
+    expect(descripcionEnContexto(movimiento, undefined, tFalso)).toBe('Cuenta A → Ahorros')
+  })
+
+  it('origen visto desde sí mismo, pero la cuenta destino ya fue eliminada: usa el texto de respaldo', () => {
+    const movimiento = {
+      tipo: 'traslado',
+      cuenta_id: CUENTA_A,
+      cuentaDestino: null, // la cuenta destino fue borrada -- ver useMovimientosPeriodo
+    }
+
+    expect(descripcionEnContexto(movimiento, cuentaContextoId, tFalso)).toEqual({
+      clave: 'cuentas.detalle.trasladoA',
+      valores: { cuenta: 'home.cuentaEliminada' },
+    })
+  })
+
+  it('destino visto desde sí mismo, pero la cuenta de origen ya fue eliminada: usa el texto de respaldo', () => {
+    const movimiento = {
+      tipo: 'traslado',
+      cuenta_id: CUENTA_B,
+      cuenta: null, // la cuenta de origen fue borrada
+    }
+
+    expect(descripcionEnContexto(movimiento, cuentaContextoId, tFalso)).toEqual({
+      clave: 'cuentas.detalle.trasladoDesde',
+      valores: { cuenta: 'home.cuentaEliminada' },
+    })
   })
 })
