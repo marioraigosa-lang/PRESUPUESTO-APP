@@ -25,9 +25,9 @@ import VERSIONES_LEGALES from '../constants/versionesLegales'
 // existentes no requiere cambios ahí.
 
 export const POLITICA_DATOS = {
-  titulo: 'Política de Tratamiento de Datos Personales — Seed',
+  titulo: 'Política de Tratamiento de Datos Personales — Seed-App',
   version: VERSIONES_LEGALES.POLITICA_DATOS,
-  ultimaActualizacion: '[POR DEFINIR: fecha de publicación]',
+  ultimaActualizacion: '1 de septiembre de 2026',
   secciones: [
     {
       titulo: '1. Identificación del Responsable del Tratamiento',
@@ -44,15 +44,13 @@ export const POLITICA_DATOS = {
         {
           tipo: 'lista',
           items: [
-            'Responsable: [POR DEFINIR: nombre completo o razón social]',
-            'Identificación: [POR DEFINIR: cédula o NIT]',
-            'Domicilio: [POR DEFINIR: ciudad, país]',
-            'Dirección: [POR DEFINIR: dirección física o de notificación]',
-            'Correo electrónico: [POR DEFINIR: correo de contacto para datos]',
-            'Teléfono: [POR DEFINIR: teléfono de contacto]',
+            'Responsable: Mario Alonso Raigosa Restrepo',
+            'Domicilio: Armenia, Quindío, Colombia',
+            'Dirección de notificación electrónica: seed.fin.app@gmail.com',
+            'Correo electrónico: seed.fin.app@gmail.com',
           ],
         },
-        { tipo: 'parrafo', texto: 'En adelante, "Seed", "nosotros" o "la aplicación".' },
+        { tipo: 'parrafo', texto: 'En adelante, "Seed-App", "nosotros" o "la aplicación".' },
       ],
     },
     {
@@ -62,11 +60,11 @@ export const POLITICA_DATOS = {
         {
           tipo: 'lista',
           items: [
-            'Titular: persona natural cuyos datos personales son objeto de tratamiento (usted, como usuario de Seed).',
+            'Titular: persona natural cuyos datos personales son objeto de tratamiento (usted, como usuario de Seed-App).',
             'Dato personal: cualquier información vinculada o que pueda asociarse a una persona natural determinada o determinable.',
             'Tratamiento: cualquier operación sobre datos personales, como recolección, almacenamiento, uso, circulación o supresión.',
             'Autorización: consentimiento previo, expreso e informado del titular para tratar sus datos.',
-            'Responsable del Tratamiento: quien decide sobre el tratamiento de los datos (Seed).',
+            'Responsable del Tratamiento: quien decide sobre el tratamiento de los datos (Seed-App).',
             'Encargado del Tratamiento: quien trata los datos por cuenta del Responsable (por ejemplo, nuestros proveedores tecnológicos).',
           ],
         },
@@ -75,7 +73,7 @@ export const POLITICA_DATOS = {
     {
       titulo: '3. Datos que recolectamos',
       bloques: [
-        { tipo: 'parrafo', texto: 'Seed recolecta y trata los siguientes datos personales:' },
+        { tipo: 'parrafo', texto: 'Seed-App recolecta y trata los siguientes datos personales:' },
         { tipo: 'subtitulo', texto: 'Datos de registro y cuenta:' },
         {
           tipo: 'lista',
@@ -96,7 +94,7 @@ export const POLITICA_DATOS = {
         {
           tipo: 'parrafo',
           texto:
-            'Importante: estos datos financieros son registrados por usted, para su propio uso y control personal. Seed no accede a sus cuentas bancarias reales ni recolecta información de tarjetas o credenciales bancarias.',
+            'Importante: estos datos financieros son registrados por usted, para su propio uso y control personal. Seed-App no accede a sus cuentas bancarias reales ni recolecta información de tarjetas o credenciales bancarias.',
         },
         { tipo: 'subtitulo', texto: 'Datos técnicos:' },
         {
@@ -160,7 +158,7 @@ export const POLITICA_DATOS = {
       bloques: [
         {
           tipo: 'parrafo',
-          texto: 'Puede ejercer sus derechos enviando una solicitud al correo electrónico: [POR DEFINIR: correo de contacto para datos]',
+          texto: 'Puede ejercer sus derechos enviando una solicitud al correo electrónico: seed.fin.app@gmail.com',
         },
         {
           tipo: 'parrafo',
@@ -187,7 +185,7 @@ export const POLITICA_DATOS = {
         {
           tipo: 'parrafo',
           texto:
-            'Al registrarse y marcar la casilla de aceptación, usted otorga su autorización previa, expresa e informada para que Seed trate sus datos personales conforme a esta Política. Esta autorización es requisito para poder usar la aplicación, dado que el tratamiento de los datos es necesario para prestar el servicio.',
+            'Al registrarse y marcar la casilla de aceptación, usted otorga su autorización previa, expresa e informada para que Seed-App trate sus datos personales conforme a esta Política. Esta autorización es requisito para poder usar la aplicación, dado que el tratamiento de los datos es necesario para prestar el servicio.',
         },
       ],
     },
@@ -207,8 +205,17 @@ export const POLITICA_DATOS = {
         {
           tipo: 'parrafo',
           texto:
-            'Para prestar el servicio, utilizamos proveedores tecnológicos que actúan como Encargados del Tratamiento, incluyendo servicios de infraestructura y base de datos (por ejemplo, Supabase) y de alojamiento. Estos proveedores tratan los datos siguiendo nuestras instrucciones y estándares de seguridad. [POR DEFINIR: revisar con abogado la mención de proveedores y transferencias internacionales, ya que algunos servidores pueden estar fuera de Colombia.]',
+            'Para prestar el servicio, utilizamos proveedores tecnológicos que actúan como Encargados del Tratamiento, incluyendo servicios de infraestructura y base de datos (por ejemplo, Supabase) y de alojamiento en la nube. Estos proveedores tratan los datos siguiendo nuestras instrucciones y estándares de seguridad, y pueden almacenar y procesar la información en servidores ubicados fuera de Colombia. Al aceptar esta Política, el titular autoriza esta transferencia y transmisión internacional de datos con las finalidades aquí descritas.',
         },
+        // NOTA INTERNA (no visible para el usuario): la redacción de arriba
+        // sobre transferencia/transmisión internacional de datos es
+        // provisional -- fue escrita para no dejar un "[POR DEFINIR]"
+        // visible mientras se resuelve, pero debe ser REVISADA Y CONFIRMADA
+        // por un abogado antes de publicar oficialmente esta Política
+        // (Ley 1581 de 2012 exige requisitos específicos para transferencias
+        // internacionales de datos personales, ej. verificar si el país de
+        // destino tiene nivel adecuado de protección según la SIC, o si
+        // aplica alguna excepción del artículo 26).
       ],
     },
     {
@@ -227,7 +234,7 @@ export const POLITICA_DATOS = {
         {
           tipo: 'parrafo',
           texto:
-            'Seed está dirigida exclusivamente a personas mayores de 18 años. No recolectamos intencionalmente datos de menores de edad. Al registrarse, usted declara ser mayor de 18 años.',
+            'Seed-App está dirigida exclusivamente a personas mayores de 18 años. No recolectamos intencionalmente datos de menores de edad. Al registrarse, usted declara ser mayor de 18 años.',
         },
       ],
     },
@@ -237,7 +244,7 @@ export const POLITICA_DATOS = {
         {
           tipo: 'parrafo',
           texto:
-            'Podremos actualizar esta Política. Los cambios sustanciales serán comunicados a través de la aplicación. La versión vigente siempre estará disponible dentro de Seed.',
+            'Podremos actualizar esta Política. Los cambios sustanciales serán comunicados a través de la aplicación. La versión vigente siempre estará disponible dentro de Seed-App.',
         },
       ],
     },
@@ -246,7 +253,7 @@ export const POLITICA_DATOS = {
       bloques: [
         {
           tipo: 'parrafo',
-          texto: 'Esta Política rige a partir de [POR DEFINIR: fecha] y se mantendrá vigente mientras Seed preste sus servicios.',
+          texto: 'Esta Política rige a partir del 1 de septiembre de 2026 y se mantendrá vigente mientras Seed-App preste sus servicios.',
         },
       ],
     },
@@ -254,9 +261,9 @@ export const POLITICA_DATOS = {
 }
 
 export const TERMINOS_CONDICIONES = {
-  titulo: 'Términos y Condiciones de Uso — Seed',
+  titulo: 'Términos y Condiciones de Uso — Seed-App',
   version: VERSIONES_LEGALES.TERMINOS,
-  ultimaActualizacion: '[POR DEFINIR: fecha de publicación]',
+  ultimaActualizacion: '1 de septiembre de 2026',
   secciones: [
     {
       titulo: '1. Aceptación de los Términos',
@@ -264,7 +271,7 @@ export const TERMINOS_CONDICIONES = {
         {
           tipo: 'parrafo',
           texto:
-            'Al crear una cuenta y usar Seed (en adelante, "la aplicación" o "el servicio"), usted acepta estos Términos y Condiciones. Si no está de acuerdo, por favor no use la aplicación.',
+            'Al crear una cuenta y usar Seed-App (en adelante, "la aplicación" o "el servicio"), usted acepta estos Términos y Condiciones. Si no está de acuerdo, por favor no use la aplicación.',
         },
       ],
     },
@@ -274,12 +281,12 @@ export const TERMINOS_CONDICIONES = {
         {
           tipo: 'parrafo',
           texto:
-            'Seed es una aplicación de finanzas personales que le permite registrar y organizar su información financiera (ingresos, gastos, cuentas, metas de ahorro, fondo de emergencia, planificación de viajes, entre otros) con fines de control y educación financiera personal.',
+            'Seed-App es una aplicación de finanzas personales que le permite registrar y organizar su información financiera (ingresos, gastos, cuentas, metas de ahorro, fondo de emergencia, planificación de viajes, entre otros) con fines de control y educación financiera personal.',
         },
         {
           tipo: 'parrafo',
           texto:
-            'Seed es una herramienta de registro y organización personal. No es una entidad financiera, no maneja dinero real, no accede a sus cuentas bancarias, y no presta servicios de inversión, intermediación ni asesoría financiera profesional. La información y las calculadoras ofrecidas son de carácter informativo y educativo, y no constituyen asesoría financiera, contable, tributaria ni legal.',
+            'Seed-App es una herramienta de registro y organización personal. No es una entidad financiera, no maneja dinero real, no accede a sus cuentas bancarias, y no presta servicios de inversión, intermediación ni asesoría financiera profesional. La información y las calculadoras ofrecidas son de carácter informativo y educativo, y no constituyen asesoría financiera, contable, tributaria ni legal.',
         },
       ],
     },
@@ -321,7 +328,7 @@ export const TERMINOS_CONDICIONES = {
         {
           tipo: 'parrafo',
           texto:
-            'Usted es responsable de la actividad que ocurra en su cuenta. Si detecta un uso no autorizado, debe notificarnos de inmediato a [POR DEFINIR: correo de contacto]. Adoptamos medidas de seguridad, pero usted también debe proteger sus credenciales.',
+            'Usted es responsable de la actividad que ocurra en su cuenta. Si detecta un uso no autorizado, debe notificarnos de inmediato a seed.fin.app@gmail.com. Adoptamos medidas de seguridad, pero usted también debe proteger sus credenciales.',
         },
       ],
     },
@@ -341,7 +348,7 @@ export const TERMINOS_CONDICIONES = {
         {
           tipo: 'parrafo',
           texto:
-            '[POR DEFINIR según el modelo de negocio: si Seed es gratuita, freemium o de suscripción. Si hay pagos, aquí deben describirse los planes, precios, renovaciones, cancelaciones y reembolsos. Los pagos, de existir, se procesarán a través de pasarelas de pago externas; Seed no almacena datos de tarjetas.]',
+            'Seed-App es actualmente de uso gratuito, con la posibilidad de introducir funciones o planes de pago en el futuro, que serán comunicados oportunamente a los usuarios. Los pagos, de existir, se procesarán a través de pasarelas de pago externas; Seed-App no almacena datos de tarjetas.',
         },
       ],
     },
@@ -351,14 +358,14 @@ export const TERMINOS_CONDICIONES = {
         {
           tipo: 'parrafo',
           texto:
-            'La aplicación Seed, su nombre, logo, diseño y código son propiedad de [POR DEFINIR: el Responsable] y están protegidos por las leyes de propiedad intelectual. Usted no adquiere derechos sobre la aplicación por usarla, salvo el derecho de uso conforme a estos Términos.',
+            'La aplicación Seed-App, su nombre, logo, diseño y código son propiedad de Mario Alonso Raigosa Restrepo y están protegidos por las leyes de propiedad intelectual. Usted no adquiere derechos sobre la aplicación por usarla, salvo el derecho de uso conforme a estos Términos.',
         },
       ],
     },
     {
       titulo: '9. Limitación de responsabilidad',
       bloques: [
-        { tipo: 'parrafo', texto: 'Seed se ofrece "tal cual". En la máxima medida permitida por la ley:' },
+        { tipo: 'parrafo', texto: 'Seed-App se ofrece "tal cual". En la máxima medida permitida por la ley:' },
         {
           tipo: 'lista',
           items: [
@@ -395,7 +402,7 @@ export const TERMINOS_CONDICIONES = {
         {
           tipo: 'parrafo',
           texto:
-            'Estos Términos se rigen por las leyes de la República de Colombia. Cualquier controversia se someterá a los jueces y tribunales competentes de [POR DEFINIR: ciudad], Colombia.',
+            'Estos Términos se rigen por las leyes de la República de Colombia. Cualquier controversia se someterá a los jueces y tribunales competentes de Armenia, Colombia.',
         },
       ],
     },
@@ -405,7 +412,7 @@ export const TERMINOS_CONDICIONES = {
       bloques: [
         {
           tipo: 'parrafo',
-          texto: 'Para cualquier duda sobre estos Términos, escríbanos a: [POR DEFINIR: correo de contacto].',
+          texto: 'Para cualquier duda sobre estos Términos, escríbanos a: seed.fin.app@gmail.com.',
         },
       ],
     },
