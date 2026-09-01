@@ -2,7 +2,7 @@
 
 Este documento lista todos los flujos y pantallas de la aplicación Seed, con pasos concretos para probar cada uno y el resultado esperado. Está pensado para validar manualmente que todo funciona después de un cambio, un despliegue, o una reparación de datos.
 
-Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `src/components/`, `src/services/`, `src/context/`, `src/hooks/`, `src/utils/`) al 2026-08-31, no supuestos. Cuando un paso depende de una regla de negocio no obvia (por ejemplo, que el idioma no se puede cambiar después de registrarse), se indica explícitamente.
+Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `src/components/`, `src/services/`, `src/context/`, `src/hooks/`, `src/utils/`) al 2026-09-01, no supuestos. Cuando un paso depende de una regla de negocio no obvia (por ejemplo, que el idioma no se puede cambiar después de registrarse), se indica explícitamente.
 
 ## Cómo usar este documento
 
@@ -16,7 +16,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 [A1](#a1-registro) Registro · [A2](#a2-login-sin-2fa) Login sin 2FA · [A3](#a3-login-con-2fa) Login con 2FA · [A4](#a4-recuperar-contraseña-sin-2fa) Recuperar contraseña sin 2FA · [A5](#a5-recuperar-contraseña-con-2fa) Recuperar contraseña con 2FA · [A6](#a6-activar-2fa-primer-factor) Activar 2FA · [A7](#a7-agregar-factor-de-respaldo-2fa) Agregar factor de respaldo · [A8](#a8-eliminar-un-factor-2fa) Eliminar un factor 2FA · [A9](#a9-gate-de-consentimiento-ley-1581) Gate de consentimiento · [A10](#a10-eliminar-cuenta) Eliminar cuenta · [A11](#a11-cambiar-moneda-desde-perfil) Cambiar moneda · [A12](#a12-cerrar-sesión) Cerrar sesión
 
 **B. Movimientos y finanzas**
-[B1](#b1-crear-cuenta-bancaria) Crear cuenta · [B2](#b2-editar-cuenta) Editar cuenta · [B3](#b3-eliminar-cuenta-bancaria) Eliminar cuenta · [B4](#b4-marcar-una-cuenta-como-fondo-de-ahorro) Marcar cuenta como ahorro · [B5](#b5-fondo-de-emergencia) Fondo de emergencia · [B6](#b6-ajustar-la-meta-en-meses-del-fondo) Ajustar meta del fondo · [B7](#b7-metas-de-ahorro-crear) Meta de ahorro: crear · [B8](#b8-metas-de-ahorro-editar) Meta de ahorro: editar · [B9](#b9-metas-de-ahorro-eliminar) Meta de ahorro: eliminar · [B10](#b10-categorías-crear) Categorías: crear · [B11](#b11-categorías-editar) Categorías: editar · [B12](#b12-categorías-eliminar-sin-movimientos) Categorías: eliminar sin movimientos · [B13](#b13-categorías-eliminar-con-reasignación) Categorías: eliminar con reasignación · [B14](#b14-categoría-de-sistema-gastos-fijos--️-bug-conocido) Categoría de sistema ⚠️ · [B15](#b15-crear-movimiento-gasto) Crear movimiento (gasto) · [B16](#b16-crear-movimiento-ingreso) Crear movimiento (ingreso) · [B17](#b17-crear-movimiento-traslado) Crear movimiento (traslado) · [B18](#b18-editar-movimiento) Editar movimiento · [B19](#b19-eliminar-movimiento) Eliminar movimiento · [B20](#b20-gastos-fijos-crear) Gastos fijos: crear · [B21](#b21-gastos-fijos-editar) Gastos fijos: editar · [B22](#b22-gastos-fijos-marcar-como-pagado--️-bug-conocido) Gastos fijos: marcar pagado ⚠️ · [B23](#b23-gastos-fijos-desmarcar-como-pagado) Gastos fijos: desmarcar pagado · [B24](#b24-gastos-fijos-eliminar) Gastos fijos: eliminar · [B25](#b25-gastos-variables-con-presupuesto) Gastos variables · [B26](#b26-filtrado-por-mes-y-quincena) Filtrado por mes y quincena · [B27](#b27-resumen-filtro-añomes) Resumen: filtro año/mes · [B28](#b28-resumen-gráfico-mensual) Resumen: gráfico mensual · [B29](#b29-resumen-desglose-por-categoría) Resumen: desglose por categoría · [B30](#b30-calculadora-de-cuota-de-crédito) Calculadora cuota de crédito · [B31](#b31-calculadora-cdt-vs-cuenta-de-alto-rendimiento) Calculadora CDT · [B32](#b32-calculadora-de-ahorro-con-interés-compuesto) Calculadora de ahorro · [B33](#b33-detalle-de-cuenta-detallecuentajsx) Detalle de cuenta · [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx) Detalle de categoría
+[B1](#b1-crear-cuenta-bancaria) Crear cuenta · [B2](#b2-editar-cuenta) Editar cuenta · [B3](#b3-eliminar-cuenta-bancaria) Eliminar cuenta · [B4](#b4-marcar-una-cuenta-como-fondo-de-ahorro) Marcar cuenta como ahorro · [B5](#b5-fondo-de-emergencia) Fondo de emergencia · [B6](#b6-ajustar-la-meta-en-meses-del-fondo) Ajustar meta del fondo · [B7](#b7-metas-de-ahorro-crear) Meta de ahorro: crear · [B8](#b8-metas-de-ahorro-editar) Meta de ahorro: editar · [B9](#b9-metas-de-ahorro-eliminar) Meta de ahorro: eliminar · [B10](#b10-categorías-crear) Categorías: crear · [B11](#b11-categorías-editar) Categorías: editar · [B12](#b12-categorías-eliminar-sin-movimientos) Categorías: eliminar sin movimientos · [B13](#b13-categorías-eliminar-con-reasignación) Categorías: eliminar con reasignación · [B14](#b14-categoría-de-sistema-gastos-fijos--️-bug-conocido) Categoría de sistema ⚠️ · [B15](#b15-crear-movimiento-gasto) Crear movimiento (gasto) · [B16](#b16-crear-movimiento-ingreso) Crear movimiento (ingreso) · [B17](#b17-crear-movimiento-traslado) Crear movimiento (traslado) · [B18](#b18-editar-movimiento) Editar movimiento · [B19](#b19-eliminar-movimiento) Eliminar movimiento · [B20](#b20-gastos-fijos-crear) Gastos fijos: crear · [B21](#b21-gastos-fijos-editar) Gastos fijos: editar · [B22](#b22-gastos-fijos-marcar-como-pagado--️-bug-conocido) Gastos fijos: marcar pagado ⚠️ · [B23](#b23-gastos-fijos-desmarcar-como-pagado) Gastos fijos: desmarcar pagado · [B24](#b24-gastos-fijos-eliminar) Gastos fijos: eliminar · [B25](#b25-gastos-variables-con-presupuesto) Gastos variables · [B26](#b26-filtrado-por-mes-y-quincena) Filtrado por mes y quincena · [B27](#b27-resumen-filtro-añomes) Resumen: filtro año/mes · [B28](#b28-resumen-gráfico-mensual) Resumen: gráfico mensual · [B29](#b29-resumen-desglose-por-categoría) Resumen: desglose por categoría · [B30](#b30-calculadora-de-cuota-de-crédito) Calculadora cuota de crédito · [B31](#b31-calculadora-cdt-vs-cuenta-de-alto-rendimiento) Calculadora CDT · [B32](#b32-calculadora-de-ahorro-con-interés-compuesto) Calculadora de ahorro · [B33](#b33-detalle-de-cuenta-detallecuentajsx) Detalle de cuenta · [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx) Detalle de categoría · [B35](#b35-acordeones-colapsables-en-inicio) Acordeones colapsables en Inicio
 
 **C. Viajes**
 [C1](#c1-crear-viaje) Crear viaje · [C2](#c2-editar-viaje) Editar viaje · [C3](#c3-eliminar-viaje) Eliminar viaje · [C4](#c4-categorías-de-viaje-con-presupuesto) Categorías de viaje · [C5](#c5-gastos-de-viaje-multi-moneda) Gastos de viaje · [C6](#c6-dashboard-de-viaje-detalleviajejsx) Dashboard de viaje · [C7](#c7-resumen-de-viaje) Resumen de viaje
@@ -249,7 +249,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Precondiciones:** Sesión iniciada.
 
 **Pasos:**
-1. "Inicio" → "Gestionar cuentas" → "Agregar cuenta".
+1. "Inicio" → tocar el acordeón "Mis cuentas" para expandirlo (arranca colapsado) → "Gestionar cuentas" → "Agregar cuenta".
 2. Nombre, tipo (texto libre, ej. "Ahorros"), color, saldo inicial. Guardar.
 
 **Resultado esperado:** Aparece en la lista de cuentas de Inicio, ordenada por saldo descendente, y disponible como origen/destino en el formulario de movimientos.
@@ -337,7 +337,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 ## B10. Categorías: crear
 
-**Pasos:** "Inicio" → "Gestionar categorías" → "Agregar categoría" → nombre, emoji, color, presupuesto opcional, descripción opcional → Guardar.
+**Pasos:** "Inicio" → expandir el acordeón "Gastos variables" (arranca colapsado) → "Gestionar categorías" → "Agregar categoría" → nombre, emoji, color, presupuesto opcional, descripción opcional → Guardar.
 
 **Resultado esperado:** Aparece en la lista de categorías gestionables y disponible en el selector de categoría al crear un gasto.
 
@@ -378,7 +378,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Contexto:** Se confirmó que el trigger `handle_new_user` en producción tenía una versión desactualizada del `INSERT` de categorías (4 columnas, sin `es_sistema`, con la lista vieja de categorías). Esto hace que cuentas creadas mientras el trigger estuvo roto tengan la categoría "Gastos fijos"/"Fixed expenses" con `es_sistema = false`, lo que rompe [B22](#b22-gastos-fijos-marcar-como-pagado--️-bug-conocido) (`gastosFijos.js` busca la categoría de sistema con `categorias.find(c => c.es_sistema)` — si no la encuentra, lanza `"Falta la categoría de gastos fijos..."`). Ver `sql/supabase_fix_trigger_categorias.sql` para la corrección (trigger + backfill).
 
 **Pasos para verificar en una cuenta ya existente:**
-1. "Inicio" → "Gestionar categorías".
+1. "Inicio" → expandir el acordeón "Gastos variables" → "Gestionar categorías".
 2. Al fondo de la lista debe aparecer una tarjeta gris distinta (fondo `panel-2`), con la etiqueta "Sistema", para la categoría "Gastos fijos" (o "Fixed expenses" en inglés).
 3. Si esa tarjeta NO aparece, es la señal directa del bug: la cuenta no tiene ninguna categoría con `es_sistema = true`.
 
@@ -439,7 +439,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 ## B20. Gastos fijos: crear
 
-**Pasos:** "Inicio" → "Gestionar gastos fijos" → "Agregar gasto fijo" → nombre, monto, día de pago opcional (1-31) → Guardar.
+**Pasos:** "Inicio" → expandir el acordeón "Gastos fijos" (arranca colapsado) → "Gestionar gastos fijos" → "Agregar gasto fijo" → nombre, monto, día de pago opcional (1-31) → Guardar.
 
 **Resultado esperado:** Aparece en la lista, ordenado por día de pago, con estado "Pendiente".
 
@@ -458,7 +458,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Precondiciones:** Al menos una cuenta bancaria creada. **La cuenta debe tener la categoría de sistema correctamente marcada (`es_sistema = true`) — ver [B14](#b14-categoría-de-sistema-gastos-fijos--️-bug-conocido).**
 
 **Pasos:**
-1. En "Inicio", sección "Gastos fijos", tocar el checkbox de un gasto pendiente.
+1. En "Inicio", expandir el acordeón "Gastos fijos" (arranca colapsado) y tocar el checkbox de un gasto pendiente.
 2. Elegir la cuenta desde la que se paga (`HojaElegirCuentaPago`). Confirmar.
 
 **Resultado esperado:**
@@ -494,7 +494,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 
 **Precondiciones:** Al menos una categoría no-sistema con presupuesto asignado, y algún gasto en ella dentro del período seleccionado.
 
-**Pasos:** En "Inicio", revisar la sección "Gastos variables" — barra de progreso por categoría (gastado vs. presupuesto), y el resumen del total gastado / total con tope.
+**Pasos:** En "Inicio", expandir el acordeón "Gastos variables" (arranca colapsado) y revisar la sección — barra de progreso por categoría (gastado vs. presupuesto), y el resumen del total gastado / total con tope.
 
 **Resultado esperado:** Los montos deben coincidir con la suma de movimientos tipo "gasto" de esa categoría, filtrados por el período (mes/quincena) seleccionado — NO con el histórico completo.
 
@@ -509,12 +509,13 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 1. En "Inicio", usar las flechas ‹ › para cambiar de mes.
 2. Tocar "1ra quincena" / "2da quincena" / "Completo".
 
-**Resultado esperado:** La tarjeta de saldo (ingresos/gastos/ahorro del período), "Gastos fijos" (siempre por mes completo, sin importar la quincena — un gasto fijo no se puede "pagar a medias") y "Gastos variables" deben recalcularse todos según el filtro activo.
+**Resultado esperado:** La tarjeta de saldo (ingresos/gastos/ahorro del período, siempre visible, no colapsable), "Gastos fijos" (siempre por mes completo, sin importar la quincena — un gasto fijo no se puede "pagar a medias") y "Gastos variables" deben recalcularse todos según el filtro activo. Esto incluye el mini-resumen que se ve con la sección COLAPSADA (chips de "Gastos fijos", línea de "Gastado / tope" de "Gastos variables") — no hace falta expandir la sección para ver el número actualizado al cambiar de mes/quincena.
 
 **Casos borde / variantes:**
 - Cambiar de diciembre a enero (o viceversa) → debe ajustar también el año.
 - Un mes sin ningún movimiento → secciones deben mostrar sus estados vacíos, no romperse.
 - Verificar que "Gastos fijos" NO cambia al alternar quincena (por diseño), pero sí cambia al cambiar de mes.
+- El estado colapsado/expandido de cada acordeón NO debe reiniciarse al cambiar de mes/quincena (solo se reinicia si se desmonta la pantalla, ver [B35](#b35-acordeones-colapsables-en-inicio)).
 - El selector de mes/quincena de Inicio es independiente del selector de mes de `DetalleCuenta.jsx`/`DetalleCategoria.jsx` (ver [B33](#b33-detalle-de-cuenta-detallecuentajsx)/[B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx)): cada pantalla de detalle tiene su propio mes seleccionado, sin quincena, que arranca siempre en el mes actual al entrar (no hereda el mes que estaba elegido en Inicio).
 
 ## B27. Resumen: filtro año/mes
@@ -570,7 +571,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Precondiciones:** Al menos una cuenta creada.
 
 **Pasos:**
-1. En "Inicio", tocar una fila de la lista de "Mis cuentas" (ahora es un botón completo, con chevron `›`).
+1. En "Inicio", expandir el acordeón "Mis cuentas" (arranca colapsado) y tocar una fila de la lista (ahora es un botón completo, con chevron `›`).
 2. Revisar el header: avatar/inicial y color de la cuenta, nombre, tipo, saldo actual, y debajo la tarjeta con los 3 totales del mes: "Ingresos", "Egresos", "Neto".
 3. Con las flechas ‹ › del selector de mes (sin opción de quincena), cambiar de mes y confirmar que los 3 totales y la lista de abajo se recalculan.
 4. Revisar la lista "Ingresos y traslados".
@@ -598,7 +599,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Precondiciones:** Al menos una categoría de gasto variable (no de sistema) creada.
 
 **Pasos:**
-1. En "Inicio", sección "Gastos variables", tocar una categoría (también es ahora un botón completo, con chevron `›`).
+1. En "Inicio", expandir el acordeón "Gastos variables" y tocar una categoría (también es ahora un botón completo, con chevron `›`).
 2. Revisar el header: emoji y color de la categoría, nombre, barra de progreso (solo si tiene presupuesto), y los totales del mes.
 3. Con el selector de mes (sin quincena), cambiar de mes.
 4. Tocar "+ Nuevo gasto" → se abre el formulario con esta categoría ya elegida.
@@ -617,6 +618,32 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 - Un gasto que supera el presupuesto → la barra se pinta en coral y "Restante" se muestra en coral (negativo), igual que en la fila de Inicio.
 - Si la categoría se elimina, o se reasignan sus gastos a otra (ver [B13](#b13-categorías-eliminar-con-reasignación)), mientras se ve su detalle → `Home.jsx` debe caer a la vista de resumen en vez de romperse.
 - Un gasto vinculado a un gasto fijo (`gasto_fijo_id`) no debe tener botones de editar/eliminar aquí.
+
+## B35. Acordeones colapsables en Inicio
+
+**Contexto:** Las 3 secciones principales de "Inicio" (Mis cuentas, Gastos fijos, Gastos variables) son acordeones colapsables (`Acordeon.jsx`), cada uno con su propio estado independiente — no es "una sola sección abierta a la vez" como el acordeón de la Guía de uso (ver [D1](#d1-guía-de-uso-referencia)): se pueden tener las 3 abiertas, las 3 cerradas, o cualquier combinación.
+
+**Pasos:**
+1. Entrar a "Inicio" (recién logueado, o volviendo desde otra pestaña de la barra inferior). Confirmar que las 3 secciones aparecen COLAPSADAS.
+2. Revisar el mini-resumen de cada una colapsada:
+   - "Mis cuentas": el saldo total disponible, en mint.
+   - "Gastos fijos": dos chips — "`N`/`M` pagados" y "Pendiente: `$monto`" (en gold si queda pendiente, mint si el total ya está pagado).
+   - "Gastos variables": "Gastado: `$monto`" (con "`/ $tope`" si alguna categoría tiene presupuesto asignado), en coral si se excedió el tope TOTAL (suma de las categorías con tope) o en mint si no.
+3. Tocar el header de una sección (título + resumen + flecha) para expandirla. Confirmar que la flecha gira y aparece el contenido completo (lista/checklist) junto con el botón "Gestionar...".
+4. Tocar el mismo header para colapsarla de nuevo.
+5. Cambiar a otra pestaña de la barra inferior (ej. "Emergencia") y volver a "Inicio".
+
+**Resultado esperado:**
+- El botón "Gestionar cuentas" / "Gestionar gastos fijos" / "Gestionar categorías" de cada sección SOLO es visible cuando esa sección está expandida — no aparece en el header colapsado.
+- La tarjeta de saldo general (`TarjetaSaldo`, con ingresos/gastos/ahorro del período) y el selector de mes/quincena quedan siempre visibles arriba, fuera de cualquier acordeón — no se colapsan nunca.
+- Al volver a "Inicio" desde otra pestaña (paso 5), las 3 secciones deben aparecer COLAPSADAS de nuevo, sin importar cómo quedaron antes de salir — el estado abierto/cerrado vive en un `useState` local de `Acordeon.jsx` sin persistencia, y `Home.jsx` se desmonta por completo al cambiar de pestaña (`{vista === 'inicio' && <Home ... />}` en `App.jsx`), así que no hay memoria entre visitas.
+- Mientras una sección permanece montada (sin cambiar de pestaña), su estado abierto/cerrado NO se reinicia por cambiar de mes/quincena, ni por crear/editar/eliminar un movimiento (ver [B26](#b26-filtrado-por-mes-y-quincena)).
+- No hay animación de apertura/cierre (aparece/desaparece de inmediato) — no es un bug, es el diseño actual.
+
+**Casos borde / variantes:**
+- Sin ninguna cuenta/gasto fijo/categoría todavía → el mini-resumen de esa sección no debe mostrarse mientras está colapsada (ni "0/0 pagados" ni un "$0" fantasma) — solo aparece cuando hay datos reales y terminó de cargar.
+- Mientras la sección está cargando (`cargandoCuentas`, etc.) o su consulta falló → tampoco debe mostrarse el mini-resumen colapsado, para no mostrar un número desactualizado o a medio cargar.
+- Expandir las 3 secciones a la vez → deben convivir sin problema, cada una con su propio contenido y su propio botón "Gestionar...".
 
 ---
 

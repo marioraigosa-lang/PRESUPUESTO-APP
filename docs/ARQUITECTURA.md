@@ -2,7 +2,7 @@
 
 Este documento explica cómo está construida la app por dentro: stack, arquitectura, estructura de carpetas, base de datos, seguridad, i18n/moneda, PWA, despliegue, decisiones técnicas y testing. Está pensado para que un desarrollador (o cualquier persona que revise el código) entienda el proyecto sin tener que leerlo entero de cero.
 
-Se construyó leyendo el código real (`package.json`, `vite.config.js`, `src/`, `sql/`, `supabase/functions/`) al 2026-08-31, no supuestos. No contiene secretos, llaves ni valores reales de variables de entorno — solo sus nombres.
+Se construyó leyendo el código real (`package.json`, `vite.config.js`, `src/`, `sql/`, `supabase/functions/`) al 2026-09-01, no supuestos. No contiene secretos, llaves ni valores reales de variables de entorno — solo sus nombres.
 
 ---
 
@@ -88,8 +88,8 @@ Los tres últimos dependen de `AuthContext` (`useAuth()` por dentro) y de `useDa
 ### 3.4 Hooks y utils de cálculo
 
 - **`useConsulta`** (`src/hooks/useConsulta.js`): centraliza el patrón "cargando / error / datos / recargar" que se repetía a mano en cada pantalla. Usa un `ref` para no reejecutar la consulta en cada render, y descarta resultados de consultas obsoletas si las dependencias cambian antes de que respondan (evita condiciones de carrera al cambiar de filtro rápido).
-- **`useMovimientosPeriodo`** (`src/hooks/useMovimientosPeriodo.js`): motor de datos compartido para "movimientos de un periodo", construido sobre `useConsulta`. Recibe `{ periodo, version, cuentaId, categoriaId, limite }` — `cuentaId`/`categoriaId` son filtros opcionales que arma la propia consulta (`.or('cuenta_id.eq...,cuenta_destino_id.eq...')` para que un traslado aparezca en el detalle de ambas cuentas involucradas; `.eq('categoria_id', ...)` para categorías, que de paso excluye traslados e ingresos porque esos nunca tienen `categoria_id`). Lo usan tanto `Home.jsx` (resumen del período, sin filtro) como `DetalleCuenta.jsx` (con `cuentaId`) y `DetalleCategoria.jsx` (con `categoriaId`), evitando duplicar el `select` y la conversión de fecha/nombre para mostrar en cada pantalla.
-- **`src/utils/`** concentra la lógica de cálculo **pura** (sin llamadas a Supabase ni JSX), lo que la hace testeable sin mocks: `resumenCalculos.js`, `resumenViaje.js`, `proyeccionMeta.js`, `gastoMensualPromedio.js`, `mensajeFondo.js`, `formatoFecha.js`, `formatoPeriodo.js`, `formatoMoneda.js`, `fortalezaContrasena.js`, `factoresMfa.js`, `consentimientos.js`, `progresoPresupuesto.js` (calcula "excedido" y % de la barra de una categoría contra su presupuesto; compartida entre `CategoriaGasto.jsx`, la fila de Inicio, y `DetalleCategoria.jsx`, para que ambas midan el progreso exactamente igual). La mayoría de estas tiene su `*.test.js` hermano (sección 11); `progresoPresupuesto.js` todavía no lo tiene.
+- **`useMovimientosPeriodo`** (`src/hooks/useMovimientosPeriodo.js`): motor de datos compartido para "movimientos de un periodo", construido sobre `useConsulta`. Recibe `{ periodo, version, cuentaId, categoriaId, limite }`. La construcción condicional del filtro (`.or('cuenta_id.eq...,cuenta_destino_id.eq...')` para que un traslado aparezca en el detalle de ambas cuentas involucradas; `.eq('categoria_id', ...)` para categorías, que de paso excluye traslados e ingresos porque esos nunca tienen `categoria_id`) vive en `utils/consultaMovimientosPeriodo.js` (`construirConsultaMovimientosPeriodo`), y el mapeo de cada fila cruda (nombre de cuenta/cuenta destino resuelto, con respaldo si la cuenta fue borrada; fecha ya formateada) vive en `utils/mapearMovimiento.js` — ambos extraídos del hook para poder testearlos como funciones puras (el primero con un builder falso, sección 11) sin mockear Supabase ni React. Lo usan tanto `Home.jsx` (resumen del período, sin filtro) como `DetalleCuenta.jsx` (con `cuentaId`) y `DetalleCategoria.jsx` (con `categoriaId`), evitando duplicar el `select` y la conversión de fecha/nombre para mostrar en cada pantalla.
+- **`src/utils/`** concentra la lógica de cálculo **pura** (sin llamadas a Supabase ni JSX), lo que la hace testeable sin mocks: `resumenCalculos.js`, `resumenViaje.js`, `proyeccionMeta.js`, `gastoMensualPromedio.js`, `mensajeFondo.js`, `formatoFecha.js`, `formatoPeriodo.js`, `formatoMoneda.js`, `fortalezaContrasena.js`, `factoresMfa.js`, `consentimientos.js`, `progresoPresupuesto.js` (calcula "excedido" y % de la barra de una categoría contra su presupuesto; compartida entre `CategoriaGasto.jsx`, la fila de Inicio, y `DetalleCategoria.jsx`, para que ambas midan el progreso exactamente igual), `movimientosCuenta.js` (`esEntradaEnCuenta`, `calcularResumenCuenta` y `descripcionEnContexto`, extraídas de `DetalleCuenta.jsx`/`Movimiento.jsx`: deciden si un movimiento entra o sale de una cuenta puntual — un traslado depende de si esa cuenta es origen o destino — y arman sus 3 totales y el texto direccional del traslado), y `resumenGastosFijos.js`/`resumenGastosVariables.js` (extraídas de `GastosFijos.jsx`/`GastosVariables.jsx`: totales, porcentaje pagado, y los datos que alimentan el mini-resumen de cada acordeón cuando está colapsado — sección 3.8). Todas estas tienen su `*.test.js` hermano (sección 11).
 
 ### 3.5 Flujo de datos: usuario → servicios → Supabase → RLS
 
@@ -158,6 +158,17 @@ Algunas vistas necesitan una segunda capa de navegación (una pantalla de detall
 - Como el `vista` de `App.jsx` nunca cambia durante esta navegación, el botón "+" flotante (`BotonAgregar`) y la barra de navegación inferior (que dependen de `vista === 'inicio'`) siguen mostrándose exactamente igual mientras se está dentro de una cuenta o categoría — a diferencia de si esto se hubiera modelado como una `vista` más de `App.jsx`.
 - Cada pantalla de detalle (`DetalleCuenta.jsx`, `DetalleCategoria.jsx`, `DetalleViaje.jsx`) recibe las funciones de mutación (`onAgregarMovimiento`, `onActualizarMovimiento`, `onEliminarMovimiento`, etc.) como props desde arriba — el estado de cuentas/categorías y la lógica de ajuste de saldos siguen viviendo en `App.jsx`, igual que en el resto de la app (sección 3.2).
 
+### 3.8 Patrón de acordeón colapsable en Home
+
+Las 3 secciones principales de `Home.jsx` (Mis cuentas, Gastos fijos, Gastos variables) están cada una envueltas en el componente reutilizable `Acordeon` (`src/components/ui/Acordeon.jsx`): un header completo tocable (título + resumen opcional + flecha `ChevronDown`) que alterna un `useState` local `abierta`, sin animación de apertura/cierre y sin ningún tipo de persistencia. Cada instancia de `<Acordeon>` es independiente — a diferencia del acordeón inline de `GuiaUso.jsx` (un solo `useState` compartido entre sus 12 secciones, "una sola abierta a la vez"), las 3 secciones de `Home.jsx` se pueden expandir o colapsar sin afectarse entre sí, y arrancan siempre colapsadas porque `Home.jsx` se desmonta y se vuelve a montar por completo cada vez que se navega a otra pestaña y se vuelve (`{vista === 'inicio' && <Home ... />}` en `App.jsx`, sección 3.6) — no hay memoria de qué estaba abierto entre visitas ni entre sesiones.
+
+Mientras una sección está colapsada, `Acordeon` muestra el `resumenColapsado` que le pasa cada caller — un nodo de React, no un string, porque cada sección conoce sus propios datos y decide cuándo mostrarlo (típicamente ocultándolo mientras carga, si falla, o si no hay nada que resumir):
+- **Mis cuentas**: el saldo total disponible, en mint (mismo total que ya usa `TarjetaSaldo`).
+- **Gastos fijos**: dos chips — "`N`/`M` pagados" y "Pendiente: `$monto`" (gold si queda pendiente, mint si no) — calculados por `resumenGastosFijos.js`.
+- **Gastos variables**: "Gastado: `$monto`" (con "`/ $tope`" si alguna categoría tiene presupuesto), en coral si se excedió el tope TOTAL o mint si no — calculado por `resumenGastosVariables.js`.
+
+El resto del contenido de cada sección (lista de cuentas navegables, checklist de gastos fijos, categorías navegables) y su botón "Gestionar..." solo se renderizan cuando la sección está expandida (`{abierta && children}` dentro de `Acordeon.jsx`) — no quedan en el DOM ocultos con CSS. La tarjeta de saldo general (`TarjetaSaldo`), el selector de mes/quincena y la promoción de 2FA (`TarjetaPromoMfa`) quedan fuera de cualquier acordeón, siempre visibles arriba.
+
 ---
 
 ## 4. Estructura de carpetas
@@ -197,7 +208,7 @@ saldo-app/
     │   ├── GuiaUso.jsx                                     Guía de referencia
     │   └── Proximamente.jsx                                Placeholder genérico
     ├── components/               Piezas reutilizables entre vistas (~39 archivos)
-    │   ├── ui/                   Primitivas de UI genéricas (Boton*, CampoTexto,
+    │   ├── ui/                   Primitivas de UI genéricas (Boton*, CampoTexto, Acordeon,
     │   │                         MedidorFortaleza, Icono, MensajeError, Tarjeta)
     │   ├── Hoja*.jsx              Formularios modales tipo "bottom sheet"
     │   │                         (HojaNuevoMovimiento, HojaCuenta, HojaCategoria, ...)
@@ -219,11 +230,16 @@ saldo-app/
     ├── lib/
     │   ├── supabase.js            Cliente único de supabase-js (lee las env vars)
     │   └── datosUsuario.js        Helper de filtrado/escritura por user_id
-    ├── utils/                     Cálculo puro + formateo + validación (sección 3.4),
-    │                             la mayoría con su *.test.js (progresoPresupuesto.js
-    │                             es la excepción actual, sin test todavía)
+    ├── utils/                     Cálculo puro + formateo + validación (sección 3.4);
+    │                             todos los archivos de cálculo de negocio tienen su
+    │                             *.test.js hermano (sección 11)
     ├── i18n/                      es.js, en.js (diccionarios) + index.js (traducir/traducirPlural)
-    ├── data/                      ⚠️ Código muerto — ver sección 10
+    ├── data/                      documentosLegales.js: contenido íntegro de la Política
+    │                             de Tratamiento de Datos y los Términos y Condiciones
+    │                             (usado por PoliticaDatos.jsx/TerminosCondiciones.jsx vía
+    │                             DocumentoLegal.jsx); los 4 archivos de datos mock
+    │                             pre-Supabase que antes vivían acá ya se eliminaron
+    │                             (ver sección 10)
     └── constants/
         └── versionesLegales.js    Versión vigente de cada documento legal
 ```
@@ -363,7 +379,7 @@ Configurada con `vite-plugin-pwa` (`vite.config.js`):
 - **Cálculos puros en `utils/`, testeados sin mocks**: separar la aritmética de negocio (resumen, proyección de metas, fortaleza de contraseña, vigencia de consentimiento) de los componentes de React permite testear la lógica real sin necesitar React Testing Library ni mockear Supabase — decisión visible en los comentarios de varios archivos de `utils/` que señalan explícitamente este motivo.
 - **`security definer` + `set search_path = public`** en el trigger: patrón estándar recomendado por la documentación oficial de Supabase para triggers de `auth.users`, necesario porque el usuario nuevo no tiene sesión `authenticated` todavía en el instante del registro.
 - **Falla abierta, no cerrada, en los gates no críticos**: si la consulta de MFA o de consentimiento falla por un problema de red, `AuthContext` trata eso como "no hace falta el gate" en vez de atrapar al usuario indefinidamente detrás de una pantalla que tampoco podría completar (documentado explícitamente en el código).
-- **⚠️ Deuda técnica encontrada — `src/data/` es código muerto**: los cuatro archivos `src/data/categoriasGasto.js`, `cuentas.js`, `fondoEmergencia.js` y `gastosFijos.js` (datos mock que coinciden con los datos de ejemplo de `sql/supabase_setup.sql`, de antes de la migración a Supabase) **no están importados por ningún componente ni servicio** — se confirmó con una búsqueda completa en `src/`. Quedaron del prototipo inicial mono-usuario y son candidatos directos a borrar.
+- **Deuda técnica ya resuelta — código muerto de `src/data/` eliminado**: los cuatro archivos `src/data/categoriasGasto.js`, `cuentas.js`, `fondoEmergencia.js` y `gastosFijos.js` (datos mock que coincidían con los datos de ejemplo de `sql/supabase_setup.sql`, de antes de la migración a Supabase) no estaban importados por ningún componente ni servicio — se confirmó con una búsqueda completa en `src/` y se borraron. `src/data/` hoy solo contiene `documentosLegales.js` (sección 4), que sí está en uso activo.
 - **⚠️ Discrepancia confirmada entre SQL "aplicado" y SQL real en producción**: `sql/README.md` daba por ejecutados varios scripts marcados como "borrador" (incluido `supabase_categorias_default.sql`, que definía el `INSERT` correcto de categorías con `es_sistema`). Al confirmar directamente contra el trigger real en producción, se encontró que la versión efectivamente activa era una anterior y desactualizada (la de `supabase_consentimientos.sql`, con el `INSERT` de 4 columnas sin `es_sistema` y la lista vieja de categorías) — es decir, el historial documentado en `sql/README.md` no coincidía con el estado real de la base de datos. Corregido en `sql/supabase_fix_trigger_categorias.sql` (trigger + backfill). Vale la pena, como práctica hacia adelante, verificar contra la base real antes de dar por aplicado un script marcado como borrador.
 - **Índice único parcial por mes para gastos fijos**: en vez de validar "ya está pagado este mes" solo en el código, `movimientos_gasto_fijo_id_mes_unico` lo garantiza a nivel de base de datos (protección real contra doble clic o dos pestañas simultáneas, con manejo explícito del código de error `23505` en `services/gastosFijos.js`).
 
@@ -372,10 +388,10 @@ Configurada con `vite-plugin-pwa` (`vite.config.js`):
 ## 11. Testing
 
 - **Framework**: Vitest (`environment: 'node'` en `vite.config.js` — no hay entorno de DOM simulado ni React Testing Library; las pruebas son de lógica pura, no de componentes montados).
-- **Alcance real, confirmado corriendo la suite** (`npm test`): **18 archivos de prueba, 261 pruebas, todas en verde**.
+- **Alcance real, confirmado corriendo la suite** (`npm test`): **27 archivos de prueba, 365 pruebas, todas en verde**.
 - **Qué cubren**: exclusivamente funciones puras, sin mocks de Supabase ni de React:
-  - Todos los servicios de `src/services/*.test.js` (categorias, categoriasViaje, cuentas, gastosFijos, gastosViaje, movimientos, viajes) — prueban la lógica de negocio (validaciones, reglas de reasignación, cálculo de saldos) pasándoles objetos `datosUsuario`/`cuentas` de prueba en vez de un cliente Supabase real.
-  - Todos los utils de cálculo (`resumenCalculos`, `resumenViaje`, `proyeccionMeta`, `gastoMensualPromedio`, `mensajeFondo`, `formatoFecha`, `formatoPeriodo`, `formatoMoneda`, `fortalezaContrasena`, `factoresMfa`) y `utils/consentimientos.test.js`.
+  - Todos los servicios de `src/services/*.test.js` (categorias, categoriasViaje, cuentas, gastosFijos, gastosViaje, movimientos, viajes) — prueban la lógica de negocio (validaciones, reglas de reasignación, cálculo de saldos) pasándoles objetos `datosUsuario`/`cuentas` de prueba en vez de un cliente Supabase real. Varios de estos (`movimientos.test.js`) y el nuevo `consultaMovimientosPeriodo.test.js` (`utils/`) usan el mismo patrón de "builder falso": un objeto que imita el query builder encadenable de Supabase (`.eq()`, `.or()`, `.order()`, etc., cada uno devolviendo el mismo builder) para poder probar la lógica condicional sin un cliente real.
+  - Todos los utils de cálculo (`resumenCalculos`, `resumenViaje`, `proyeccionMeta`, `gastoMensualPromedio`, `mensajeFondo`, `formatoFecha`, `formatoPeriodo`, `formatoMoneda`, `fortalezaContrasena`, `factoresMfa`, `progresoPresupuesto`, `inputMoneda`, `erroresAuth`, `erroresMfa`, `consentimientos`), más los cinco extraídos junto con el rediseño de acordeones de Home (sección 3.8): `movimientosCuenta` (`esEntradaEnCuenta`, `calcularResumenCuenta`, `descripcionEnContexto`), `resumenGastosFijos`, `resumenGastosVariables`, `mapearMovimiento` y `consultaMovimientosPeriodo`.
 - **Qué NO cubren**: no hay pruebas de componentes React (render, interacción de UI), ni pruebas end-to-end, ni pruebas de integración contra una base de datos Supabase real (ni local ni de staging). La validación de flujos de UI es manual — ver `docs/FLUJOS.md`.
 - **Cómo correrlas**: `npm test` (una pasada) o `npm run test:watch` (modo watch).
 
