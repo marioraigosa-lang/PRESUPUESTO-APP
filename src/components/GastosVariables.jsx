@@ -7,6 +7,7 @@ import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import MensajeError from './ui/MensajeError'
 import Acordeon from './ui/Acordeon'
+import { calcularResumenGastosVariables } from '../utils/resumenGastosVariables'
 
 function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCategoria }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -57,9 +58,8 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
     error: errorCategorias,
   } = useConsulta(cargarCategorias, [version, periodo.anio, periodo.mes, periodo.quincena], [])
 
-  const totalGastado = categorias.reduce((suma, categoria) => suma + categoria.gastado, 0)
-  const categoriasConTope = categorias.filter((categoria) => Boolean(categoria.presupuesto))
-  const totalTope = categoriasConTope.reduce((suma, categoria) => suma + categoria.presupuesto, 0)
+  const { totalGastado, totalTope, excedidoTotal, cantidadConTope } =
+    calcularResumenGastosVariables(categorias)
 
   // El mini-resumen del header colapsado se oculta mientras carga, si falla,
   // o si no hay ninguna categoría -- mismo criterio que en GastosFijos.jsx.
@@ -68,7 +68,6 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
   // valor se pinta en coral solo si se excedió el presupuesto TOTAL (suma de
   // todas las categorías con tope) -- no hay "excedido" que mostrar cuando no
   // hay ningún presupuesto definido.
-  const excedidoTotal = totalTope > 0 && totalGastado > totalTope
   const resumenColapsado =
     !cargandoCategorias && !errorCategorias && categorias.length > 0 ? (
       <p className="flex items-baseline gap-1.5">
@@ -118,7 +117,7 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
                 <p className="text-xs text-text-dim">
                   {t('home.topesResumen', {
                     monto: formatear(totalTope),
-                    conTope: categoriasConTope.length,
+                    conTope: cantidadConTope,
                     total: categorias.length,
                     palabra: tp('home.categoriaContador', categorias.length),
                   })}
