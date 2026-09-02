@@ -191,6 +191,8 @@ export default {
       errorEliminar: "Couldn't delete the account. Please try again.",
       errorActualizar: "Couldn't update the account. Please try again.",
       confirmarEliminar: 'Delete the account "{{nombre}}"? This action cannot be undone.',
+      confirmarEliminarUltima:
+        'This is your only account. If you delete it, you\'ll need to create a new one to keep logging transactions. Delete "{{nombre}}"?',
       sinCuentas: 'You don\'t have any accounts yet. Create your first one with "+ Add account".',
       badgeAhorro: 'Savings',
       editarAria: 'Edit account {{nombre}}',
@@ -695,6 +697,16 @@ export default {
     aceptarYContinuar: 'Accept and continue',
     guardando: 'Saving...',
     errorGuardar: "Couldn't save your acceptance. Please try again.",
+  },
+
+  onboarding: {
+    cuenta: {
+      titulo: 'Welcome to Seed 🌱!',
+      subtitulo: 'To get started, add your first account',
+      explicacion:
+        "In Seed, your money is organized into accounts: your bank, your cash, your digital wallet, and more. Create your first one so you can start logging your transactions.",
+      boton: '+ Add my first account',
+    },
   },
 
   perfil: {

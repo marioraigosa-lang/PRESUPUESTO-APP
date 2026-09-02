@@ -41,7 +41,13 @@ function GestionCuentas({
   }
 
   async function manejarEliminar(cuenta) {
-    const confirmado = window.confirm(t('cuentas.gestion.confirmarEliminar', { nombre: cuenta.nombre }))
+    // Si es la única cuenta que le queda, el mensaje avisa explícitamente
+    // que se quedará sin cuentas (y volverá a ver el onboarding de
+    // OnboardingCuenta.jsx la próxima vez que App.jsx re-evalúe el gate),
+    // en vez del mensaje genérico de borrado.
+    const claveMensaje =
+      cuentas.length === 1 ? 'cuentas.gestion.confirmarEliminarUltima' : 'cuentas.gestion.confirmarEliminar'
+    const confirmado = window.confirm(t(claveMensaje, { nombre: cuenta.nombre }))
     if (!confirmado) return
 
     setErrorAccion(null)

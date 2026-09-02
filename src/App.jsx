@@ -9,6 +9,7 @@ import PantallaAuth from './views/PantallaAuth'
 import EstablecerNuevaContrasena from './views/EstablecerNuevaContrasena'
 import VerificarMfa from './views/VerificarMfa'
 import PantallaConsentimiento from './views/PantallaConsentimiento'
+import OnboardingCuenta from './views/OnboardingCuenta'
 import NavegacionInferior from './components/NavegacionInferior'
 import BotonAgregar from './components/BotonAgregar'
 import HojaNuevoMovimiento from './components/HojaNuevoMovimiento'
@@ -24,6 +25,16 @@ import * as categoriasService from './services/categorias'
 import * as cuentasService from './services/cuentas'
 import * as movimientosService from './services/movimientos'
 import * as gastosFijosService from './services/gastosFijos'
+
+// Pantalla de carga mínima compartida por los gates de App.jsx (sesión y,
+// más abajo, cuentas): mismo look en ambos casos, sin duplicar el markup.
+function PantallaCargando() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-bg">
+      <p className="text-sm text-text-dim">Cargando...</p>
+    </main>
+  )
+}
 
 function App() {
   const { sesion, cargando, recuperacion, requiereVerificacionMfa, requiereConsentimiento } = useAuth()
@@ -291,11 +302,7 @@ function App() {
   }
 
   if (cargando) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-bg">
-        <p className="text-sm text-text-dim">Cargando...</p>
-      </main>
-    )
+    return <PantallaCargando />
   }
 
   // Se revisa antes que `sesion`: el enlace de recuperación de contraseña
@@ -332,6 +339,29 @@ function App() {
   // Registro.jsx) como una futura subida de versión de cualquier documento.
   if (requiereConsentimiento) {
     return <PantallaConsentimiento />
+  }
+
+  // La premisa de Seed es que el dinero vive en CUENTAS: un usuario recién
+  // registrado (o que borró su última cuenta desde GestionCuentas) no puede
+  // hacer nada útil todavía -- ni HojaNuevoMovimiento tiene de dónde sacar
+  // una cuenta para el movimiento. Antes de dejarlo entrar a la app se le
+  // pide crear su primera cuenta acá. Va DESPUÉS de MFA y consentimiento a
+  // propósito: primero se confirma identidad y aceptación legal, y solo
+  // entonces tiene sentido pedirle datos financieros.
+  //
+  // Se espera a que cargandoCuentas termine (mismo criterio anti-parpadeo
+  // que usa mostrarBienvenida más abajo para moneda/idioma/guía) para no
+  // mostrar el onboarding un instante mientras las cuentas reales todavía
+  // están cargando. Si la carga falló (errorCuentas), se deja pasar a la
+  // app normal en vez de bloquear: no hay certeza de que el usuario esté
+  // realmente sin cuentas, y Home/GestionCuentas ya muestran ese error por
+  // su cuenta.
+  if (cargandoCuentas) {
+    return <PantallaCargando />
+  }
+
+  if (!errorCuentas && cuentas.length === 0) {
+    return <OnboardingCuenta onAgregarCuenta={agregarCuenta} />
   }
 
   // Espera a que moneda/idioma/guia_vista ya hayan cargado (los 3 se leen

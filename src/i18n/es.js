@@ -212,6 +212,8 @@ export default {
       errorEliminar: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
       errorActualizar: 'No se pudo actualizar la cuenta. Intenta de nuevo.',
       confirmarEliminar: '¿Eliminar la cuenta "{{nombre}}"? Esta acción no se puede deshacer.',
+      confirmarEliminarUltima:
+        'Esta es tu única cuenta. Si la eliminas, tendrás que crear una nueva para seguir registrando movimientos. ¿Eliminar "{{nombre}}"?',
       sinCuentas: 'Aún no tienes cuentas. Crea la primera con "+ Agregar cuenta".',
       badgeAhorro: 'Ahorro',
       editarAria: 'Editar cuenta {{nombre}}',
@@ -729,6 +731,20 @@ export default {
     aceptarYContinuar: 'Aceptar y continuar',
     guardando: 'Guardando...',
     errorGuardar: 'No se pudo guardar tu aceptación. Intenta de nuevo.',
+  },
+
+  // OnboardingCuenta.jsx (el gate de "primera cuenta", App.jsx): se muestra
+  // en vez de la app cuando el usuario autenticado no tiene ninguna cuenta
+  // (recién registrado, o borró todas las que tenía). Reutiliza el mismo
+  // formulario de HojaCuenta.jsx que usa GestionCuentas.jsx.
+  onboarding: {
+    cuenta: {
+      titulo: '¡Bienvenido a Seed 🌱!',
+      subtitulo: 'Para empezar, agrega tu primera cuenta',
+      explicacion:
+        'En Seed, tu dinero se organiza en cuentas: tu banco, tu efectivo, tu billetera digital, y más. Crea la primera para poder empezar a registrar tus movimientos.',
+      boton: '+ Agregar mi primera cuenta',
+    },
   },
 
   perfil: {
