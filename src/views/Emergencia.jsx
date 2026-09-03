@@ -41,7 +41,10 @@ function Emergencia() {
   async function cargarFondo() {
     const [fondoResp, cuentasAhorroResp, movimientosResp] = await Promise.all([
       seleccionarPropio('fondo_emergencia', 'id, meses_meta').maybeSingle(),
-      seleccionarPropio('cuentas', 'nombre, saldo').eq('es_ahorro', true),
+      // "cuentas_con_saldo" en vez de "cuentas": mismo "saldo" de
+      // siempre, pero calculado en vivo (Fase 2 del plan de saldo
+      // calculado, ver sql/supabase_saldo_calculado.sql).
+      seleccionarPropio('cuentas_con_saldo', 'nombre, saldo').eq('es_ahorro', true),
       seleccionarPropio('movimientos', 'tipo, monto, fecha'),
     ])
 

@@ -33,14 +33,16 @@ function crearDatosUsuarioMock(overrides = {}) {
   }
 }
 
-const cuenta1 = { id: 1, saldo: 1000 }
-const cuenta2 = { id: 2, saldo: 500 }
+// Ya no se lee `.saldo` de estas cuentas en ningún test (el saldo ya no
+// se calcula acá, ver movimientos.js) -- se conservan solo como objetos
+// "cuenta válida" para las validaciones de existencia.
+const cuenta1 = { id: 1 }
+const cuenta2 = { id: 2 }
 
 describe('agregarMovimiento', () => {
-  it('inserta un gasto y descuenta el saldo de la cuenta', async () => {
+  it('inserta un gasto y devuelve el delta de saldo (negativo) de la cuenta', async () => {
     const insertarPropio = vi.fn(() => crearConstructor({ data: null, error: null }))
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ insertarPropio, actualizarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     const resultado = await agregarMovimiento(datosUsuario, [cuenta1, cuenta2], {
       tipo: 'gasto',
@@ -55,13 +57,14 @@ describe('agregarMovimiento', () => {
       'movimientos',
       expect.objectContaining({ tipo: 'gasto', monto: 100, cuenta_id: 1, categoria_id: 5 }),
     )
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 900 })
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, saldo: 900 }] })
+    // Ya no hay ningún ajuste a la tabla "cuentas" -- el saldo se calcula
+    // solo, en la vista cuentas_con_saldo.
+    expect(datosUsuario.actualizarPropio).not.toHaveBeenCalled()
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: -100 }] })
   })
 
-  it('inserta un ingreso y suma el saldo de la cuenta', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+  it('inserta un ingreso y devuelve el delta de saldo (positivo) de la cuenta', async () => {
+    const datosUsuario = crearDatosUsuarioMock()
 
     const resultado = await agregarMovimiento(datosUsuario, [cuenta1], {
       tipo: 'ingreso',
@@ -72,8 +75,7 @@ describe('agregarMovimiento', () => {
       categoriaId: 2,
     })
 
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 1200 })
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, saldo: 1200 }] })
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 200 }] })
   })
 
   it('rechaza si la cuenta no existe', async () => {
@@ -86,9 +88,8 @@ describe('agregarMovimiento', () => {
   })
 
   it('despacha a agregarTraslado cuando el tipo es traslado', async () => {
-    const insertarPropio = vi.fn(() => crearConstructor({ data: { id: 9 }, error: null }))
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ insertarPropio, actualizarPropio })
+    const insertarPropio = vi.fn(() => crearConstructor({ data: null, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     const resultado = await agregarMovimiento(datosUsuario, [cuenta1, cuenta2], {
       tipo: 'traslado',
@@ -102,8 +103,8 @@ describe('agregarMovimiento', () => {
     expect(insertarPropio).toHaveBeenCalledWith('movimientos', expect.objectContaining({ tipo: 'traslado' }))
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 900 },
-        { id: 2, saldo: 600 },
+        { id: 1, delta: -100 },
+        { id: 2, delta: 100 },
       ],
     })
   })
@@ -116,22 +117,12 @@ describe('agregarMovimiento', () => {
       agregarMovimiento(datosUsuario, [cuenta1], { tipo: 'gasto', monto: 10, cuentaId: 1 }),
     ).rejects.toThrow('boom')
   })
-
-  it('propaga el mensaje de error de Supabase al ajustar el saldo', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom saldo' } }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
-
-    await expect(
-      agregarMovimiento(datosUsuario, [cuenta1], { tipo: 'gasto', monto: 10, cuentaId: 1 }),
-    ).rejects.toThrow('boom saldo')
-  })
 })
 
 describe('agregarTraslado', () => {
-  it('resta de la cuenta origen y suma a la cuenta destino', async () => {
-    const insertarPropio = vi.fn(() => crearConstructor({ data: { id: 9 }, error: null }))
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ insertarPropio, actualizarPropio })
+  it('inserta el movimiento y devuelve el delta de ambas cuentas (origen negativo, destino positivo)', async () => {
+    const insertarPropio = vi.fn(() => crearConstructor({ data: null, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     const resultado = await agregarTraslado(datosUsuario, [cuenta1, cuenta2], {
       descripcion: 'Ahorro',
@@ -141,10 +132,11 @@ describe('agregarTraslado', () => {
       cuentaDestinoId: 2,
     })
 
+    expect(datosUsuario.actualizarPropio).not.toHaveBeenCalled()
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 700 },
-        { id: 2, saldo: 800 },
+        { id: 1, delta: -300 },
+        { id: 2, delta: 300 },
       ],
     })
   })
@@ -163,41 +155,6 @@ describe('agregarTraslado', () => {
     await expect(
       agregarTraslado(datosUsuario, [cuenta1], { monto: 100, cuentaId: 1, cuentaDestinoId: 1 }),
     ).rejects.toThrow('La cuenta de origen y destino deben ser distintas')
-  })
-
-  it('si falla el ajuste del destino, revierte el ajuste del origen y borra el movimiento insertado', async () => {
-    const movimientoInsertado = { id: 42 }
-    const insertarPropio = vi.fn(() => crearConstructor({ data: movimientoInsertado, error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-
-    // Primer actualizarPropio (origen) tiene éxito, segundo (destino) falla,
-    // tercero (reversión del origen) tiene éxito.
-    let llamada = 0
-    const actualizarPropio = vi.fn(() => {
-      llamada += 1
-      if (llamada === 2) {
-        return crearConstructor({ error: { message: 'no se pudo acreditar' } })
-      }
-      return crearConstructor({ error: null })
-    })
-
-    const datosUsuario = crearDatosUsuarioMock({ insertarPropio, actualizarPropio, eliminarPropio })
-
-    await expect(
-      agregarTraslado(datosUsuario, [cuenta1, cuenta2], {
-        descripcion: 'Ahorro',
-        monto: 300,
-        emoji: '🔁',
-        cuentaId: 1,
-        cuentaDestinoId: 2,
-      }),
-    ).rejects.toThrow('no se pudo acreditar')
-
-    // 1: descuenta origen, 2: intenta acreditar destino (falla), 3: revierte origen.
-    expect(actualizarPropio).toHaveBeenCalledTimes(3)
-    expect(actualizarPropio).toHaveBeenNthCalledWith(1, 'cuentas', { saldo: 700 })
-    expect(actualizarPropio).toHaveBeenNthCalledWith(3, 'cuentas', { saldo: cuenta1.saldo })
-    expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
   })
 
   it('propaga el mensaje de error de Supabase al insertar el movimiento', async () => {
@@ -227,7 +184,7 @@ describe('actualizarMovimiento', () => {
     )
   })
 
-  it('caso "misma cuenta": ajusta el saldo con la diferencia entre el efecto viejo y el nuevo', async () => {
+  it('caso "misma cuenta": el delta es la diferencia entre el efecto nuevo y el viejo', async () => {
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
@@ -241,12 +198,15 @@ describe('actualizarMovimiento', () => {
       categoriaId: 5,
     })
 
-    // Saldo: 1000 (revierte +100) - 150 = 950
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 950 })
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, saldo: 950 }] })
+    expect(actualizarPropio).toHaveBeenCalledWith(
+      'movimientos',
+      expect.objectContaining({ monto: 150, cuenta_id: 1 }),
+    )
+    // Efecto viejo -100, efecto nuevo -150 -> delta -50.
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: -50 }] })
   })
 
-  it('caso "cuenta distinta": revierte el efecto en la cuenta original y aplica el nuevo en la cuenta nueva', async () => {
+  it('caso "cuenta distinta": un delta que revierte el efecto viejo en la cuenta original y otro que aplica el nuevo en la cuenta nueva', async () => {
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
@@ -260,14 +220,27 @@ describe('actualizarMovimiento', () => {
       categoriaId: 5,
     })
 
-    // Cuenta original revierte el gasto: 1000 + 100 = 1100
-    // Cuenta nueva aplica el gasto nuevo: 500 - 150 = 350
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 1100 },
-        { id: 2, saldo: 350 },
+        { id: 1, delta: 100 },
+        { id: 2, delta: -150 },
       ],
     })
+  })
+
+  it('caso "cuenta original huérfana" (ya no existe en el estado local): solo aplica el efecto nuevo', async () => {
+    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+
+    const movimientoOriginal = { id: 1, tipo: 'gasto', monto: 100, cuenta_id: 99 }
+    const resultado = await actualizarMovimiento(datosUsuario, [cuenta1], movimientoOriginal, {
+      tipo: 'gasto',
+      monto: 150,
+      cuentaId: 1,
+      categoriaId: 5,
+    })
+
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: -150 }] })
   })
 
   it('despacha a actualizarTraslado cuando el movimiento original es un traslado', async () => {
@@ -282,36 +255,10 @@ describe('actualizarMovimiento', () => {
 
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 950 },
-        { id: 2, saldo: 550 },
+        { id: 1, delta: -50 },
+        { id: 2, delta: 50 },
       ],
     })
-  })
-
-  it('si falla el update del movimiento, revierte los ajustes de saldo ya aplicados', async () => {
-    let llamada = 0
-    const actualizarPropio = vi.fn((tabla) => {
-      if (tabla === 'movimientos') {
-        return crearConstructor({ error: { message: 'no se pudo guardar' } })
-      }
-      llamada += 1
-      return crearConstructor({ error: null })
-    })
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
-
-    const movimientoOriginal = { id: 1, tipo: 'gasto', monto: 100, cuenta_id: 1 }
-
-    await expect(
-      actualizarMovimiento(datosUsuario, [cuenta1, cuenta2], movimientoOriginal, {
-        tipo: 'gasto',
-        monto: 150,
-        cuentaId: 2,
-        categoriaId: 5,
-      }),
-    ).rejects.toThrow('no se pudo guardar')
-
-    // 2 ajustes de saldo (cuenta original y cuenta nueva) + 2 reversiones = 4 llamadas a 'cuentas'.
-    expect(llamada).toBe(4)
   })
 
   it('propaga el mensaje de error de Supabase', async () => {
@@ -332,7 +279,7 @@ describe('actualizarMovimiento', () => {
 })
 
 describe('actualizarTraslado', () => {
-  it('ajusta la diferencia entre el monto viejo y el nuevo en ambas cuentas', async () => {
+  it('el delta es la diferencia entre el monto viejo y el nuevo, con signos opuestos en cada cuenta', async () => {
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
@@ -342,11 +289,11 @@ describe('actualizarTraslado', () => {
       descripcion: 'Ahorro editado',
     })
 
-    // Origen: 1000 + 100 - 300 = 800; Destino: 500 - 100 + 300 = 700
+    // Diferencia = 300 - 100 = 200: origen -200, destino +200.
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 800 },
-        { id: 2, saldo: 700 },
+        { id: 1, delta: -200 },
+        { id: 2, delta: 200 },
       ],
     })
   })
@@ -384,73 +331,55 @@ describe('eliminarMovimiento', () => {
     )
   })
 
-  it('revierte el efecto de un gasto en la cuenta y borra el movimiento', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+  it('borra el movimiento y devuelve el delta contrario de un gasto (positivo: vuelve la plata)', async () => {
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
 
     const movimiento = { id: 1, tipo: 'gasto', monto: 100, cuenta_id: 1 }
     const resultado = await eliminarMovimiento(datosUsuario, [cuenta1], movimiento)
 
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 1100 })
     expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, saldo: 1100 }] })
+    expect(datosUsuario.actualizarPropio).not.toHaveBeenCalled()
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 100 }] })
   })
 
-  it('revierte el efecto de un ingreso en la cuenta', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+  it('borra el movimiento y devuelve el delta contrario de un ingreso (negativo: se va la plata)', async () => {
+    const datosUsuario = crearDatosUsuarioMock()
 
     const movimiento = { id: 1, tipo: 'ingreso', monto: 100, cuenta_id: 1 }
     const resultado = await eliminarMovimiento(datosUsuario, [cuenta1], movimiento)
 
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 900 })
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, saldo: 900 }] })
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: -100 }] })
   })
 
-  it('no toca saldos si la cuenta del movimiento ya no existe', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+  it('no devuelve ningún ajuste si la cuenta del movimiento ya no existe en el estado local', async () => {
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
 
     const movimiento = { id: 1, tipo: 'gasto', monto: 100, cuenta_id: 99 }
     const resultado = await eliminarMovimiento(datosUsuario, [cuenta1], movimiento)
 
-    expect(actualizarPropio).not.toHaveBeenCalled()
+    expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
     expect(resultado).toEqual({ actualizaciones: [] })
   })
 
   it('despacha a eliminarTraslado cuando el tipo es traslado', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+    const datosUsuario = crearDatosUsuarioMock()
 
     const movimiento = { id: 1, tipo: 'traslado', monto: 100, cuenta_id: 1, cuenta_destino_id: 2 }
     const resultado = await eliminarMovimiento(datosUsuario, [cuenta1, cuenta2], movimiento)
 
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 1100 },
-        { id: 2, saldo: 400 },
+        { id: 1, delta: 100 },
+        { id: 2, delta: -100 },
       ],
     })
   })
 
-  it('si falla el borrado, revierte el ajuste de saldo', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'no se pudo borrar' } }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
-
-    const movimiento = { id: 1, tipo: 'gasto', monto: 100, cuenta_id: 1 }
-
-    await expect(eliminarMovimiento(datosUsuario, [cuenta1], movimiento)).rejects.toThrow('no se pudo borrar')
-
-    expect(actualizarPropio).toHaveBeenCalledTimes(2)
-    expect(actualizarPropio).toHaveBeenNthCalledWith(2, 'cuentas', { saldo: cuenta1.saldo })
-  })
-
-  it('propaga el mensaje de error de Supabase', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+  it('propaga el mensaje de error de Supabase al borrar', async () => {
+    const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
+    const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
 
     const movimiento = { id: 1, tipo: 'gasto', monto: 100, cuenta_id: 1 }
 
@@ -459,76 +388,35 @@ describe('eliminarMovimiento', () => {
 })
 
 describe('eliminarTraslado', () => {
-  it('revierte el efecto en ambas cuentas y borra el movimiento', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+  it('borra el movimiento y devuelve el delta contrario en ambas cuentas', async () => {
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
 
     const movimiento = { id: 1, monto: 100, cuenta_id: 1, cuenta_destino_id: 2 }
     const resultado = await eliminarTraslado(datosUsuario, [cuenta1, cuenta2], movimiento)
 
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 1100 })
-    expect(actualizarPropio).toHaveBeenCalledWith('cuentas', { saldo: 400 })
     expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
+    expect(datosUsuario.actualizarPropio).not.toHaveBeenCalled()
     expect(resultado).toEqual({
       actualizaciones: [
-        { id: 1, saldo: 1100 },
-        { id: 2, saldo: 400 },
+        { id: 1, delta: 100 },
+        { id: 2, delta: -100 },
       ],
     })
   })
 
-  it('omite la cuenta que ya no existe', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+  it('omite la cuenta que ya no existe en el estado local', async () => {
+    const datosUsuario = crearDatosUsuarioMock()
 
     const movimiento = { id: 1, monto: 100, cuenta_id: 1, cuenta_destino_id: 99 }
     const resultado = await eliminarTraslado(datosUsuario, [cuenta1], movimiento)
 
-    expect(actualizarPropio).toHaveBeenCalledTimes(1)
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, saldo: 1100 }] })
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 100 }] })
   })
 
-  it('si falla el ajuste del destino, revierte el ajuste del origen', async () => {
-    let llamada = 0
-    const actualizarPropio = vi.fn(() => {
-      llamada += 1
-      if (llamada === 2) {
-        return crearConstructor({ error: { message: 'no se pudo ajustar destino' } })
-      }
-      return crearConstructor({ error: null })
-    })
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
-
-    const movimiento = { id: 1, monto: 100, cuenta_id: 1, cuenta_destino_id: 2 }
-
-    await expect(eliminarTraslado(datosUsuario, [cuenta1, cuenta2], movimiento)).rejects.toThrow(
-      'no se pudo ajustar destino',
-    )
-
-    expect(actualizarPropio).toHaveBeenCalledTimes(3)
-    expect(actualizarPropio).toHaveBeenNthCalledWith(3, 'cuentas', { saldo: cuenta1.saldo })
-  })
-
-  it('si falla el borrado, revierte los ajustes de saldo en ambas cuentas', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'no se pudo borrar' } }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
-
-    const movimiento = { id: 1, monto: 100, cuenta_id: 1, cuenta_destino_id: 2 }
-
-    await expect(eliminarTraslado(datosUsuario, [cuenta1, cuenta2], movimiento)).rejects.toThrow(
-      'no se pudo borrar',
-    )
-
-    // 2 ajustes originales + 2 reversiones = 4 llamadas a 'cuentas'.
-    expect(actualizarPropio).toHaveBeenCalledTimes(4)
-  })
-
-  it('propaga el mensaje de error de Supabase', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+  it('propaga el mensaje de error de Supabase al borrar', async () => {
+    const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
+    const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
 
     const movimiento = { id: 1, monto: 100, cuenta_id: 1, cuenta_destino_id: 2 }
 

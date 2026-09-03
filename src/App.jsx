@@ -96,7 +96,16 @@ function App() {
     setCargandoCuentas(true)
     setErrorCuentas(null)
 
-    const { data, error } = await seleccionarPropio('cuentas').order('saldo', { ascending: false })
+    // Se lee de la vista "cuentas_con_saldo" (Fase 2 del plan de saldo
+    // calculado, ver sql/supabase_saldo_calculado.sql) en vez de la tabla
+    // "cuentas" directo: expone el mismo "saldo" de siempre más
+    // "saldo_inicial" y "cantidad_movimientos", calculados en vivo a
+    // partir de los movimientos -- nunca guardados, así que no pueden
+    // quedar desincronizados entre pestañas/sesiones. Los servicios que
+    // ESCRIBEN (movimientos.js, gastosFijos.js, cuentas.js) siguen
+    // escribiendo en la tabla real "cuentas" -- la vista es de solo
+    // lectura.
+    const { data, error } = await seleccionarPropio('cuentas_con_saldo').order('saldo', { ascending: false })
 
     if (error) {
       console.error(error)
@@ -124,17 +133,26 @@ function App() {
     setCargandoCategorias(false)
   }
 
-  // Aplica al estado de React los saldos finales que devuelve el servicio
-  // de movimientos ({ id, saldo }[]), manteniendo el mismo orden por saldo
-  // que usaban los handlers antes de esta migración.
+  // Ajuste OPTIMISTA de saldo: desde la Fase 3 del plan de saldo calculado,
+  // los servicios de movimientos.js/gastosFijos.js ya no escriben
+  // "cuentas.saldo" ni lo calculan -- el saldo real vive en la vista
+  // "cuentas_con_saldo" (Fase 1/2), calculada en vivo a partir de
+  // "saldo_inicial" + los movimientos. Lo que devuelven ahora es un DELTA
+  // por cuenta (`{ id, delta }[]`, cuánto cambia -- no el valor final), que
+  // acá se suma al saldo que ya está en pantalla solo como feedback visual
+  // instantáneo, para que la UI no tenga que esperar una recarga. Nunca se
+  // escribe a la base: si este hint quedara desactualizado por cualquier
+  // motivo (dos pestañas abiertas, etc.), la próxima carga real de
+  // "cuentas_con_saldo" lo corrige solo -- a diferencia del saldo guardado
+  // de antes, acá no hay nada que pueda quedar "pisado" de forma permanente.
   function aplicarActualizacionesSaldo(actualizaciones) {
     if (!actualizaciones.length) return
 
     setCuentas((actuales) =>
       actuales
         .map((c) => {
-          const actualizacion = actualizaciones.find((a) => a.id === c.id)
-          return actualizacion ? { ...c, saldo: actualizacion.saldo } : c
+          const ajuste = actualizaciones.find((a) => a.id === c.id)
+          return ajuste ? { ...c, saldo: c.saldo + ajuste.delta } : c
         })
         .sort((a, b) => b.saldo - a.saldo),
     )

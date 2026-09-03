@@ -1,7 +1,7 @@
 // Servicio de movimientos y traslados: lógica de negocio (llamadas a
-// Supabase, ajustes de saldo de cuentas, reversiones) sin estado de React.
-// App.jsx sigue siendo dueño del estado (setCuentas, setMovimientosVersion)
-// y aplica los resultados que estas funciones devuelven.
+// Supabase) sin estado de React. App.jsx sigue siendo dueño del estado
+// (setCuentas, setMovimientosVersion) y aplica los resultados que estas
+// funciones devuelven.
 //
 // `datosUsuario` es el objeto { seleccionarPropio, insertarPropio,
 // actualizarPropio, eliminarPropio } que App.jsx obtiene de
@@ -9,13 +9,37 @@
 // normales, no componentes ni hooks.
 //
 // `cuentas` es la lista de cuentas tal como está hoy en el estado del
-// componente: se usa para buscar los saldos actuales antes de ajustarlos.
+// componente: se usa para VALIDAR que las cuentas elegidas existan (y, en
+// las funciones de edición/borrado, para saber si la cuenta original del
+// movimiento sigue estando en el estado local) -- ya NO se usa para leer
+// ni calcular ningún saldo.
 //
-// Todas las funciones devuelven `{ actualizaciones }`, una lista de
-// `{ id, saldo }` con el saldo FINAL de cada cuenta que cambió, para que
-// App.jsx la aplique a su estado (o `[]` si ninguna cuenta cambió).
+// Desde la Fase 3 del plan de saldo calculado (ver
+// sql/supabase_saldo_calculado.sql), el saldo de cada cuenta se calcula
+// en vivo en la vista "cuentas_con_saldo" a partir de "saldo_inicial" +
+// sus movimientos. Estas funciones YA NO escriben "cuentas.saldo" (esa
+// columna queda vestigial, Fase 2 ya migró la lectura a la vista) ni
+// necesitan revertir nada si un paso falla: ahora cada operación es UN
+// solo paso sobre "movimientos", así que no hay nada que deshacer a
+// medio camino.
+//
+// Todas las funciones que tocan el saldo de alguna cuenta devuelven
+// `{ actualizaciones }`, una lista de `{ id, delta }` -- CUÁNTO CAMBIA el
+// saldo de cada cuenta afectada (no el valor final, que ya no se calcula
+// acá) -- para que App.jsx pueda mostrar el cambio al instante en
+// pantalla sin esperar la próxima carga de "cuentas_con_saldo". Es solo
+// un hint visual optimista: nunca se guarda, y si quedara desactualizado
+// por cualquier motivo, la próxima carga real lo corrige sola.
 
 import { fechaLocalISO } from '../utils/formatoFecha'
+
+// Efecto de un movimiento normal (ingreso/gasto) sobre SU PROPIA cuenta:
+// un ingreso suma, cualquier otro tipo resta. Los traslados calculan su
+// efecto aparte (dos cuentas, signos opuestos) en cada función de
+// traslado de abajo.
+function efectoMovimiento(tipo, monto) {
+  return tipo === 'ingreso' ? monto : -monto
+}
 
 export async function agregarMovimiento(datosUsuario, cuentas, datos) {
   if (datos.tipo === 'traslado') {
@@ -27,37 +51,26 @@ export async function agregarMovimiento(datosUsuario, cuentas, datos) {
     throw new Error('Selecciona una cuenta válida')
   }
 
-  try {
-    const { error } = await datosUsuario.insertarPropio('movimientos', {
-      tipo: datos.tipo,
-      descripcion: datos.descripcion,
-      monto: datos.monto,
-      emoji: datos.emoji,
-      cuenta_id: cuenta.id,
-      categoria_id: datos.categoriaId,
-      fecha: fechaLocalISO(),
-    })
+  const { error } = await datosUsuario.insertarPropio('movimientos', {
+    tipo: datos.tipo,
+    descripcion: datos.descripcion,
+    monto: datos.monto,
+    emoji: datos.emoji,
+    cuenta_id: cuenta.id,
+    categoria_id: datos.categoriaId,
+    fecha: fechaLocalISO(),
+  })
 
-    if (error) throw error
+  if (error) throw new Error(error.message || 'No se pudo guardar el movimiento')
 
-    const nuevoSaldo = cuenta.saldo + (datos.tipo === 'ingreso' ? datos.monto : -datos.monto)
-
-    const { error: errorActualizarSaldo } = await datosUsuario
-      .actualizarPropio('cuentas', { saldo: nuevoSaldo })
-      .eq('id', cuenta.id)
-
-    if (errorActualizarSaldo) throw errorActualizarSaldo
-
-    return { actualizaciones: [{ id: cuenta.id, saldo: nuevoSaldo }] }
-  } catch (error) {
-    throw new Error(error.message || 'No se pudo guardar el movimiento')
-  }
+  return { actualizaciones: [{ id: cuenta.id, delta: efectoMovimiento(datos.tipo, datos.monto) }] }
 }
 
-// Un traslado toca DOS cuentas en vez de una: inserta el movimiento, resta
-// de la cuenta origen y suma a la cuenta destino, deshaciendo en orden
-// inverso si algún paso falla (mismo patrón de banderas que el resto de
-// operaciones de esta pantalla, aplicado a dos cuentas).
+// Un traslado toca dos cuentas en vez de una: resta del origen y suma al
+// destino. Como el saldo ya no se guarda, insertar el movimiento es el
+// ÚNICO paso contra la base de datos -- no hay un segundo `UPDATE` que
+// pueda fallar a medio camino, así que tampoco hace falta ninguna
+// reversión.
 export async function agregarTraslado(datosUsuario, cuentas, datos) {
   const origen = cuentas.find((c) => c.id === datos.cuentaId)
   const destino = cuentas.find((c) => c.id === datos.cuentaDestinoId)
@@ -69,70 +82,32 @@ export async function agregarTraslado(datosUsuario, cuentas, datos) {
     throw new Error('La cuenta de origen y destino deben ser distintas')
   }
 
-  const nuevoSaldoOrigen = origen.saldo - datos.monto
-  const nuevoSaldoDestino = destino.saldo + datos.monto
+  const { error } = await datosUsuario.insertarPropio('movimientos', {
+    tipo: 'traslado',
+    descripcion: datos.descripcion,
+    monto: datos.monto,
+    emoji: datos.emoji,
+    cuenta_id: origen.id,
+    cuenta_destino_id: destino.id,
+    categoria_id: null,
+    fecha: fechaLocalISO(),
+  })
 
-  let movimientoCreado = null
-  let origenActualizado = false
+  if (error) throw new Error(error.message || 'No se pudo registrar el traslado')
 
-  try {
-    const { data: insertado, error: errorInsertar } = await datosUsuario
-      .insertarPropio('movimientos', {
-        tipo: 'traslado',
-        descripcion: datos.descripcion,
-        monto: datos.monto,
-        emoji: datos.emoji,
-        cuenta_id: origen.id,
-        cuenta_destino_id: destino.id,
-        categoria_id: null,
-        fecha: fechaLocalISO(),
-      })
-      .select()
-      .single()
-
-    if (errorInsertar) throw errorInsertar
-    movimientoCreado = insertado
-
-    const { error: errorOrigen } = await datosUsuario
-      .actualizarPropio('cuentas', { saldo: nuevoSaldoOrigen })
-      .eq('id', origen.id)
-
-    if (errorOrigen) throw errorOrigen
-    origenActualizado = true
-
-    const { error: errorDestino } = await datosUsuario
-      .actualizarPropio('cuentas', { saldo: nuevoSaldoDestino })
-      .eq('id', destino.id)
-
-    if (errorDestino) {
-      // No se pudo acreditar al destino: revertimos el descuento del
-      // origen y borramos el movimiento para no dejar plata "perdida".
-      if (origenActualizado) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: origen.saldo }).eq('id', origen.id)
-      }
-      await datosUsuario.eliminarPropio('movimientos').eq('id', movimientoCreado.id)
-      throw errorDestino
-    }
-
-    return {
-      actualizaciones: [
-        { id: origen.id, saldo: nuevoSaldoOrigen },
-        { id: destino.id, saldo: nuevoSaldoDestino },
-      ],
-    }
-  } catch (error) {
-    throw new Error(error.message || 'No se pudo registrar el traslado')
+  return {
+    actualizaciones: [
+      { id: origen.id, delta: -datos.monto },
+      { id: destino.id, delta: datos.monto },
+    ],
   }
 }
 
-// Edita un movimiento normal (gasto_fijo_id null) ajustando los saldos de
-// forma consistente: primero revierte el efecto original sobre su cuenta
-// original (como si se borrara) y luego aplica el efecto nuevo sobre la
-// cuenta elegida (como si se creara de nuevo). Si cambia de cuenta, ambas
-// cuentas quedan bien; si no cambia, el resultado es el mismo que aplicar
-// solo la diferencia. Cada paso que se alcanza a hacer queda registrado en
-// una bandera para poder deshacerlo si un paso posterior falla, y así
-// nunca dejar los saldos descuadrados.
+// Edita un movimiento normal (gasto_fijo_id null): un solo `UPDATE` sobre
+// la fila de "movimientos". El saldo ya no se ajusta acá -- la vista
+// "cuentas_con_saldo" recalcula sola el efecto del movimiento editado en
+// la próxima carga; lo único que se calcula acá es el DELTA para el hint
+// visual optimista (revertir el efecto viejo + aplicar el nuevo).
 export async function actualizarMovimiento(datosUsuario, cuentas, movimientoOriginal, datos) {
   if (!movimientoOriginal) {
     throw new Error('No hay movimiento para editar')
@@ -153,96 +128,53 @@ export async function actualizarMovimiento(datosUsuario, cuentas, movimientoOrig
     throw new Error('Selecciona una cuenta válida')
   }
 
+  const { error } = await datosUsuario
+    .actualizarPropio('movimientos', {
+      tipo: datos.tipo,
+      descripcion: datos.descripcion,
+      monto: datos.monto,
+      emoji: datos.emoji,
+      cuenta_id: cuentaNueva.id,
+      categoria_id: datos.categoriaId,
+    })
+    .eq('id', movimientoOriginal.id)
+
+  if (error) throw new Error(error.message || 'No se pudo actualizar el movimiento')
+
   const cuentaOriginal = movimientoOriginal.cuenta_id
     ? cuentas.find((c) => c.id === movimientoOriginal.cuenta_id)
     : null
-  const mismaCuenta = Boolean(cuentaOriginal) && cuentaOriginal.id === cuentaNueva.id
+  const efectoNuevo = efectoMovimiento(datos.tipo, datos.monto)
 
-  const efectoOriginal = cuentaOriginal
-    ? movimientoOriginal.tipo === 'ingreso'
-      ? movimientoOriginal.monto
-      : -movimientoOriginal.monto
-    : 0
-  const efectoNuevo = datos.tipo === 'ingreso' ? datos.monto : -datos.monto
+  // El movimiento original quedó huérfano (su cuenta fue borrada, o ya no
+  // está en el estado local): no hay nada que revertir, solo se aplica
+  // el efecto nuevo.
+  if (!cuentaOriginal) {
+    return { actualizaciones: [{ id: cuentaNueva.id, delta: efectoNuevo }] }
+  }
 
-  // Saldo objetivo de la cuenta original, después de revertir el efecto
-  // del movimiento viejo (solo aplica cuando la cuenta nueva es distinta).
-  const saldoOriginalRevertido = cuentaOriginal ? cuentaOriginal.saldo - efectoOriginal : null
-  // Saldo objetivo de la cuenta nueva: si es la misma cuenta, es "revertir
-  // y volver a aplicar" combinado en un solo número; si es otra cuenta, es
-  // simplemente sumar el efecto nuevo a su saldo actual.
-  const saldoCuentaNuevaFinal = mismaCuenta
-    ? saldoOriginalRevertido + efectoNuevo
-    : cuentaNueva.saldo + efectoNuevo
+  const mismaCuenta = cuentaOriginal.id === cuentaNueva.id
+  const efectoOriginal = efectoMovimiento(movimientoOriginal.tipo, movimientoOriginal.monto)
 
-  let cuentaOriginalRevertida = false
-  let cuentaNuevaActualizada = false
+  if (mismaCuenta) {
+    // Un solo delta: la diferencia entre el efecto nuevo y el viejo.
+    return { actualizaciones: [{ id: cuentaNueva.id, delta: efectoNuevo - efectoOriginal }] }
+  }
 
-  try {
-    if (cuentaOriginal && !mismaCuenta) {
-      const { error } = await datosUsuario
-        .actualizarPropio('cuentas', { saldo: saldoOriginalRevertido })
-        .eq('id', cuentaOriginal.id)
-
-      if (error) throw error
-      cuentaOriginalRevertida = true
-    }
-
-    const { error: errorCuentaNueva } = await datosUsuario
-      .actualizarPropio('cuentas', { saldo: saldoCuentaNuevaFinal })
-      .eq('id', cuentaNueva.id)
-
-    if (errorCuentaNueva) {
-      // No se pudo aplicar el efecto nuevo: si ya habíamos revertido la
-      // cuenta original, la dejamos como estaba para no perder ese dinero.
-      if (cuentaOriginalRevertida) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: cuentaOriginal.saldo }).eq('id', cuentaOriginal.id)
-      }
-      throw errorCuentaNueva
-    }
-    cuentaNuevaActualizada = true
-
-    const { error: errorMovimiento } = await datosUsuario
-      .actualizarPropio('movimientos', {
-        tipo: datos.tipo,
-        descripcion: datos.descripcion,
-        monto: datos.monto,
-        emoji: datos.emoji,
-        cuenta_id: cuentaNueva.id,
-        categoria_id: datos.categoriaId,
-      })
-      .eq('id', movimientoOriginal.id)
-
-    if (errorMovimiento) {
-      // No se pudo guardar el movimiento editado: deshacemos los cambios
-      // de saldo, en orden inverso, para dejar todo como estaba antes.
-      if (cuentaNuevaActualizada) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: cuentaNueva.saldo }).eq('id', cuentaNueva.id)
-      }
-      if (cuentaOriginalRevertida) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: cuentaOriginal.saldo }).eq('id', cuentaOriginal.id)
-      }
-      throw errorMovimiento
-    }
-
-    const actualizaciones = []
-    if (cuentaOriginal && !mismaCuenta) {
-      actualizaciones.push({ id: cuentaOriginal.id, saldo: saldoOriginalRevertido })
-    }
-    actualizaciones.push({ id: cuentaNueva.id, saldo: saldoCuentaNuevaFinal })
-
-    return { actualizaciones }
-  } catch (error) {
-    throw new Error(error.message || 'No se pudo actualizar el movimiento')
+  return {
+    actualizaciones: [
+      { id: cuentaOriginal.id, delta: -efectoOriginal },
+      { id: cuentaNueva.id, delta: efectoNuevo },
+    ],
   }
 }
 
 // Editar un traslado solo permite cambiar monto y descripción: las
 // cuentas quedan fijas (así se evita el caso mucho más delicado de tener
 // que mover el efecto entre hasta 4 cuentas distintas -- origen/destino
-// viejos y nuevos -- de una sola vez). Ajusta la DIFERENCIA entre el
-// monto viejo y el nuevo en ambas cuentas, con el mismo patrón de
-// reversión-si-falla que el resto de operaciones de esta pantalla.
+// viejos y nuevos -- de una sola vez). Un solo `UPDATE` sobre la fila de
+// "movimientos"; el delta es la diferencia entre el monto viejo y el
+// nuevo, en cada cuenta.
 export async function actualizarTraslado(datosUsuario, cuentas, movimientoOriginal, datos) {
   const origen = movimientoOriginal.cuenta_id ? cuentas.find((c) => c.id === movimientoOriginal.cuenta_id) : null
   const destino = movimientoOriginal.cuenta_destino_id
@@ -255,67 +187,28 @@ export async function actualizarTraslado(datosUsuario, cuentas, movimientoOrigin
     )
   }
 
-  const montoAnterior = movimientoOriginal.monto
-  const nuevoSaldoOrigen = origen.saldo + montoAnterior - datos.monto
-  const nuevoSaldoDestino = destino.saldo - montoAnterior + datos.monto
+  const { error } = await datosUsuario
+    .actualizarPropio('movimientos', {
+      monto: datos.monto,
+      descripcion: datos.descripcion,
+    })
+    .eq('id', movimientoOriginal.id)
 
-  let origenActualizado = false
-  let destinoActualizado = false
+  if (error) throw new Error(error.message || 'No se pudo actualizar el traslado')
 
-  try {
-    const { error: errorOrigen } = await datosUsuario
-      .actualizarPropio('cuentas', { saldo: nuevoSaldoOrigen })
-      .eq('id', origen.id)
+  const diferencia = datos.monto - movimientoOriginal.monto
 
-    if (errorOrigen) throw errorOrigen
-    origenActualizado = true
-
-    const { error: errorDestino } = await datosUsuario
-      .actualizarPropio('cuentas', { saldo: nuevoSaldoDestino })
-      .eq('id', destino.id)
-
-    if (errorDestino) {
-      if (origenActualizado) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: origen.saldo }).eq('id', origen.id)
-      }
-      throw errorDestino
-    }
-    destinoActualizado = true
-
-    const { error: errorMovimiento } = await datosUsuario
-      .actualizarPropio('movimientos', {
-        monto: datos.monto,
-        descripcion: datos.descripcion,
-      })
-      .eq('id', movimientoOriginal.id)
-
-    if (errorMovimiento) {
-      // Deshacemos los dos ajustes de saldo, en orden inverso, para
-      // dejar todo como estaba antes de este intento.
-      if (destinoActualizado) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: destino.saldo }).eq('id', destino.id)
-      }
-      if (origenActualizado) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: origen.saldo }).eq('id', origen.id)
-      }
-      throw errorMovimiento
-    }
-
-    return {
-      actualizaciones: [
-        { id: origen.id, saldo: nuevoSaldoOrigen },
-        { id: destino.id, saldo: nuevoSaldoDestino },
-      ],
-    }
-  } catch (error) {
-    throw new Error(error.message || 'No se pudo actualizar el traslado')
+  return {
+    actualizaciones: [
+      { id: origen.id, delta: -diferencia },
+      { id: destino.id, delta: diferencia },
+    ],
   }
 }
 
-// Borra un movimiento normal (gasto_fijo_id null) devolviendo su efecto a
-// la cuenta ANTES de eliminar la fila: si el borrado falla, el movimiento
-// sigue existiendo y explica por qué el saldo ya cambió, y además se
-// revierte el ajuste de saldo para no dejar nada descuadrado.
+// Borra un movimiento normal (gasto_fijo_id null). Un solo `DELETE`; el
+// delta para el hint visual es el efecto contrario al que tuvo el
+// movimiento (si fue un gasto, vuelve; si fue un ingreso, se va).
 export async function eliminarMovimiento(datosUsuario, cuentas, movimiento) {
   if (movimiento.gasto_fijo_id) {
     throw new Error(
@@ -327,92 +220,33 @@ export async function eliminarMovimiento(datosUsuario, cuentas, movimiento) {
     return eliminarTraslado(datosUsuario, cuentas, movimiento)
   }
 
+  const { error } = await datosUsuario.eliminarPropio('movimientos').eq('id', movimiento.id)
+
+  if (error) throw new Error(error.message || 'No se pudo eliminar el movimiento')
+
   const cuenta = movimiento.cuenta_id ? cuentas.find((c) => c.id === movimiento.cuenta_id) : null
-
-  let saldoRevertido = false
-  let nuevoSaldo = cuenta ? cuenta.saldo : null
-
-  try {
-    if (cuenta) {
-      nuevoSaldo = cuenta.saldo + (movimiento.tipo === 'ingreso' ? -movimiento.monto : movimiento.monto)
-
-      const { error } = await datosUsuario.actualizarPropio('cuentas', { saldo: nuevoSaldo }).eq('id', cuenta.id)
-
-      if (error) throw error
-      saldoRevertido = true
-    }
-
-    const { error: errorEliminar } = await datosUsuario.eliminarPropio('movimientos').eq('id', movimiento.id)
-
-    if (errorEliminar) {
-      // No se pudo borrar: revertimos el ajuste de saldo para dejar la
-      // cuenta igual que antes de este intento.
-      if (saldoRevertido) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: cuenta.saldo }).eq('id', cuenta.id)
-      }
-      throw errorEliminar
-    }
-
-    return { actualizaciones: saldoRevertido ? [{ id: cuenta.id, saldo: nuevoSaldo }] : [] }
-  } catch (error) {
-    throw new Error(error.message || 'No se pudo eliminar el movimiento')
+  if (!cuenta) {
+    return { actualizaciones: [] }
   }
+
+  return { actualizaciones: [{ id: cuenta.id, delta: -efectoMovimiento(movimiento.tipo, movimiento.monto) }] }
 }
 
-// Borra un traslado revirtiendo su efecto en AMBAS cuentas antes de
-// borrar la fila (devuelve el monto al origen, lo quita del destino). Si
-// alguna de las dos cuentas ya no existe (fue eliminada después), esa
-// parte simplemente se omite -- no hay saldo al que devolverle o
-// quitarle nada.
+// Borra un traslado. Un solo `DELETE`; el delta devuelve el monto al
+// origen y lo quita del destino. Si alguna de las dos cuentas ya no está
+// en el estado local (fue eliminada después), esa parte simplemente se
+// omite del hint -- no hay nada que ajustar ahí.
 export async function eliminarTraslado(datosUsuario, cuentas, movimiento) {
+  const { error } = await datosUsuario.eliminarPropio('movimientos').eq('id', movimiento.id)
+
+  if (error) throw new Error(error.message || 'No se pudo eliminar el traslado')
+
   const origen = movimiento.cuenta_id ? cuentas.find((c) => c.id === movimiento.cuenta_id) : null
   const destino = movimiento.cuenta_destino_id ? cuentas.find((c) => c.id === movimiento.cuenta_destino_id) : null
 
-  let origenRevertido = false
-  let destinoRevertido = false
-  const nuevoSaldoOrigen = origen ? origen.saldo + movimiento.monto : null
-  const nuevoSaldoDestino = destino ? destino.saldo - movimiento.monto : null
+  const actualizaciones = []
+  if (origen) actualizaciones.push({ id: origen.id, delta: movimiento.monto })
+  if (destino) actualizaciones.push({ id: destino.id, delta: -movimiento.monto })
 
-  try {
-    if (origen) {
-      const { error } = await datosUsuario.actualizarPropio('cuentas', { saldo: nuevoSaldoOrigen }).eq('id', origen.id)
-      if (error) throw error
-      origenRevertido = true
-    }
-
-    if (destino) {
-      const { error } = await datosUsuario
-        .actualizarPropio('cuentas', { saldo: nuevoSaldoDestino })
-        .eq('id', destino.id)
-      if (error) {
-        if (origenRevertido) {
-          await datosUsuario.actualizarPropio('cuentas', { saldo: origen.saldo }).eq('id', origen.id)
-        }
-        throw error
-      }
-      destinoRevertido = true
-    }
-
-    const { error: errorEliminar } = await datosUsuario.eliminarPropio('movimientos').eq('id', movimiento.id)
-
-    if (errorEliminar) {
-      // No se pudo borrar: revertimos los ajustes de saldo para dejar
-      // ambas cuentas igual que antes de este intento.
-      if (destinoRevertido) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: destino.saldo }).eq('id', destino.id)
-      }
-      if (origenRevertido) {
-        await datosUsuario.actualizarPropio('cuentas', { saldo: origen.saldo }).eq('id', origen.id)
-      }
-      throw errorEliminar
-    }
-
-    const actualizaciones = []
-    if (origen) actualizaciones.push({ id: origen.id, saldo: nuevoSaldoOrigen })
-    if (destino) actualizaciones.push({ id: destino.id, saldo: nuevoSaldoDestino })
-
-    return { actualizaciones }
-  } catch (error) {
-    throw new Error(error.message || 'No se pudo eliminar el traslado')
-  }
+  return { actualizaciones }
 }
