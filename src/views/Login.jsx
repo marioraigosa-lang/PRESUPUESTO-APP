@@ -2,12 +2,17 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
 import { useIdioma } from '../context/IdiomaContext'
+import { useAuth } from '../context/AuthContext'
 import CampoTexto from '../components/ui/CampoTexto'
 import BotonPrimario from '../components/ui/BotonPrimario'
 import MensajeError from '../components/ui/MensajeError'
 
 function Login({ onCambiarModo, onRecuperar }) {
   const { t } = useIdioma()
+  // true si la ÚLTIMA sesión se cerró sola por 1 hora de inactividad (ver
+  // useCierreInactividad.js) -- se muestra como aviso informativo, no como
+  // error, para que no parezca que algo falló.
+  const { cerradaPorInactividad } = useAuth()
   const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -50,6 +55,12 @@ function Login({ onCambiarModo, onRecuperar }) {
             <p className="text-xs text-text-dim">{t('login.subtitulo')}</p>
           </div>
         </div>
+
+        {cerradaPorInactividad && (
+          <p className="rounded-2xl bg-azul/10 px-4 py-3 text-sm text-azul">
+            {t('login.sesionCerradaPorInactividad')}
+          </p>
+        )}
 
         <form onSubmit={manejarEnviar} className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-5">
           <CampoTexto

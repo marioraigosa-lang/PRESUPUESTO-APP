@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { supabase } from '../lib/supabase'
 import { tieneConsentimientoVigente } from '../utils/consentimientos'
 import VERSIONES_LEGALES from '../constants/versionesLegales'
+import { useCierreInactividad, guardarUltimaActividad } from '../hooks/useCierreInactividad'
 
 const AuthContext = createContext(undefined)
 
@@ -59,6 +60,14 @@ export function AuthProvider({ children }) {
   // del gate de MFA (ver el orden en App.jsx).
   const [requiereConsentimiento, setRequiereConsentimiento] = useState(false)
   const [cargandoConsentimiento, setCargandoConsentimiento] = useState(true)
+  // true cuando la ÚLTIMA sesión se cerró por useCierreInactividad.js (1
+  // hora sin interacción), no por una acción explícita del usuario (botón
+  // "Cerrar sesión"). PantallaAuth.jsx/Login.jsx lo usan para mostrar un
+  // aviso en vez de dejar la pantalla de login "muda" sobre por qué salió.
+  // Se limpia en el próximo SIGNED_IN (ver onAuthStateChange más abajo), no
+  // apenas se cierra la sesión, porque justo entonces es cuando hay que
+  // mostrarlo.
+  const [cerradaPorInactividad, setCerradaPorInactividad] = useState(false)
 
   useEffect(() => {
     // Sin sesión no hay nada que verificar. Con sesión, currentLevel/nextLevel
@@ -76,9 +85,35 @@ export function AuthProvider({ children }) {
     })
 
     const { data: escucha } = supabase.auth.onAuthStateChange((evento, nuevaSesion) => {
+      // Un login interactivo nuevo es, por definición, la prueba más fresca
+      // posible de actividad del usuario -- resetea el reloj de inactividad
+      // ACÁ, antes que nada más en este callback. Es la corrección al bug de
+      // cierre-en-círculo: useCierreInactividad.js, al montar su efecto para
+      // esta sesión (dispara con el setSesion() de abajo, mediante su propio
+      // useEffect -- que solo corre DESPUÉS de que este callback síncrono
+      // termine), revalida contra lo que haya en localStorage. Sin este
+      // guardarUltimaActividad() de acá, esa revalidación encontraba la
+      // marca de la sesión ANTERIOR (posiblemente de hace más de 1 hora) y
+      // cerraba la sesión recién abierta de inmediato -- y como nunca
+      // llegaba a sobreescribirse esa marca vieja, cada intento de login
+      // repetía el mismo cierre instantáneo. IMPORTANTE: solo se resetea en
+      // SIGNED_IN (login real), nunca en INITIAL_SESSION (sesión restaurada
+      // al recargar la página) -- así, recargar tras más de 1 hora de
+      // inactividad real SÍ sigue cerrando la sesión como corresponde.
+      if (evento === 'SIGNED_IN') {
+        guardarUltimaActividad(Date.now())
+      }
+
       setSesion(nuevaSesion)
       if (evento === 'PASSWORD_RECOVERY') {
         setRecuperacion('activo')
+      }
+      // Un login exitoso nuevo (no un simple TOKEN_REFRESHED de la misma
+      // sesión) es el momento correcto para limpiar el aviso de "tu sesión
+      // se cerró por inactividad": ya se mostró en la pantalla de login, y
+      // el usuario ya volvió a entrar.
+      if (evento === 'SIGNED_IN') {
+        setCerradaPorInactividad(false)
       }
       // getAuthenticatorAssuranceLevel() es, en sí, otra llamada al mismo
       // cliente de auth de Supabase -- según su propia documentación,
@@ -190,6 +225,20 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
   }
 
+  // Distinta de cerrarSesion() de arriba solo en que además marca
+  // cerradaPorInactividad -- useCierreInactividad.js llama a ESTA, nunca a
+  // cerrarSesion() directo, para que la pantalla de login sepa por qué se
+  // cerró la sesión. Estable entre renders (useCallback con deps vacías) a
+  // propósito: es dependencia del useEffect de useCierreInactividad.js, y si
+  // cambiara de referencia en cada render reiniciaría ese efecto (y con él,
+  // la marca de actividad) sin ningún motivo real.
+  const cerrarSesionPorInactividad = useCallback(async () => {
+    setCerradaPorInactividad(true)
+    await supabase.auth.signOut()
+  }, [])
+
+  useCierreInactividad(sesion, cerrarSesionPorInactividad)
+
   // Cierra el flujo de "Establecer nueva contraseña" (éxito, o el usuario
   // decide volver al login desde un enlace vencido): termina la sesión
   // temporal de recuperación si la había y limpia "?tipo=..."/el hash de la
@@ -222,6 +271,7 @@ export function AuthProvider({ children }) {
         requiereConsentimiento,
         cargandoConsentimiento,
         refrescarConsentimiento,
+        cerradaPorInactividad,
       }}
     >
       {children}

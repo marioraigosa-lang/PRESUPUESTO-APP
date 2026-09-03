@@ -658,6 +658,10 @@ export default {
     noTienesCuenta: '¿No tienes cuenta?',
     registrate: 'Regístrate',
     olvidasteContrasena: '¿Olvidaste tu contraseña?',
+    // useCierreInactividad.js cierra la sesión sola tras 1 hora sin
+    // interacción (ver AuthContext.jsx / cerradaPorInactividad). Este aviso
+    // se muestra una sola vez, en el siguiente login.
+    sesionCerradaPorInactividad: 'Tu sesión se cerró por inactividad. Inicia sesión de nuevo.',
   },
 
   // Pantalla "Recuperar contraseña" (RecuperarContrasena.jsx): pide el

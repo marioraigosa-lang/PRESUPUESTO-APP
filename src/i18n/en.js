@@ -638,6 +638,7 @@ export default {
     noTienesCuenta: "Don't have an account?",
     registrate: 'Sign up',
     olvidasteContrasena: 'Forgot your password?',
+    sesionCerradaPorInactividad: 'Your session was closed due to inactivity. Please sign in again.',
   },
 
   recuperar: {
