@@ -11,6 +11,12 @@ import MensajeError from './ui/MensajeError'
 
 function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando }) {
   const editando = Boolean(cuentaEditando)
+  // "cuentas_con_saldo" (Fase 1 del plan de saldo calculado) trae
+  // cantidad_movimientos calculado en vivo -- si ya es mayor a 0, editar el
+  // saldo inicial de esta cuenta descuadraría el saldo calculado (le
+  // sumaría el ajuste ENCIMA del efecto que esos movimientos ya
+  // representan), así que el campo se deshabilita en vez de dejar editarlo.
+  const bloqueadoPorMovimientos = editando && (cuentaEditando?.cantidad_movimientos ?? 0) > 0
   const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
@@ -18,7 +24,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
   const [nombre, setNombre] = useState('')
   const [tipo, setTipo] = useState('')
   const [color, setColor] = useState(COLORES_CUENTA[0])
-  const [saldo, setSaldo] = useState('')
+  const [saldoInicial, setSaldoInicial] = useState('')
   const [esAhorro, setEsAhorro] = useState(false)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -31,13 +37,17 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
       setNombre(cuentaEditando.nombre)
       setTipo(cuentaEditando.tipo || '')
       setColor(cuentaEditando.color || COLORES_CUENTA[0])
-      setSaldo(String(cuentaEditando.saldo ?? ''))
+      // Se precarga desde saldo_inicial (el ancla editable), NO desde
+      // "saldo" (el saldo YA CALCULADO -- saldo_inicial + movimientos, que
+      // en una cuenta con movimientos es un número distinto y no debería
+      // volver a escribirse como si fuera el ancla).
+      setSaldoInicial(String(cuentaEditando.saldo_inicial ?? ''))
       setEsAhorro(Boolean(cuentaEditando.es_ahorro))
     } else {
       setNombre('')
       setTipo('')
       setColor(COLORES_CUENTA[0])
-      setSaldo('')
+      setSaldoInicial('')
       setEsAhorro(false)
     }
     setError('')
@@ -58,7 +68,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
   }
 
   function manejarCambioSaldo(evento) {
-    setSaldo(limpiarEntradaMonto(evento.target.value, moneda))
+    setSaldoInicial(limpiarEntradaMonto(evento.target.value, moneda))
     setError('')
   }
 
@@ -69,7 +79,10 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
       setError(t('cuentas.formulario.errorNombreVacio'))
       return
     }
-    if (saldo === '' || Number(saldo) < 0) {
+    // Si el campo está bloqueado (la cuenta ya tiene movimientos), no hay
+    // nada que validar: el saldo inicial no se toca, sea cual sea lo que
+    // quedó en el estado del formulario.
+    if (!bloqueadoPorMovimientos && (saldoInicial === '' || Number(saldoInicial) < 0)) {
       setError(t('cuentas.formulario.errorSaldoInvalido'))
       return
     }
@@ -81,8 +94,12 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
       nombre: nombre.trim(),
       tipo: tipo.trim(),
       color,
-      saldo: Number(saldo),
+      saldoInicial: Number(saldoInicial),
       esAhorro,
+      // Blindaje del lado del servicio (ver services/cuentas.js): viaja
+      // siempre, no solo cuando se edita el saldo, así el servicio puede
+      // decidir por su cuenta si el UPDATE debe tocar saldo_inicial o no.
+      cantidadMovimientos: editando ? (cuentaEditando.cantidad_movimientos ?? 0) : 0,
     }
 
     try {
@@ -101,7 +118,7 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
     }
   }
 
-  const saldoFormateado = formatearEntradaMonto(saldo, moneda)
+  const saldoInicialFormateado = formatearEntradaMonto(saldoInicial, moneda)
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center">
@@ -182,18 +199,28 @@ function HojaCuenta({ abierta, onCerrar, onGuardar, onActualizar, cuentaEditando
           <label htmlFor="saldoCuenta" className="mb-1 block text-xs text-text-dim">
             {t('cuentas.formulario.saldoLabel')}
           </label>
-          <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
+          <div
+            className={`flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3 ${
+              bloqueadoPorMovimientos ? 'opacity-60' : ''
+            }`}
+          >
             <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
             <input
               id="saldoCuenta"
               type="text"
               inputMode={decimales > 0 ? 'decimal' : 'numeric'}
               placeholder="0"
-              value={saldoFormateado}
+              value={saldoInicialFormateado}
               onChange={manejarCambioSaldo}
-              className="w-full bg-transparent text-2xl font-semibold text-text outline-none placeholder:text-text-dim"
+              disabled={bloqueadoPorMovimientos}
+              className="w-full bg-transparent text-2xl font-semibold text-text outline-none placeholder:text-text-dim disabled:cursor-not-allowed"
             />
           </div>
+          {bloqueadoPorMovimientos && (
+            <p className="mt-1 text-xs leading-snug text-text-dim">
+              {t('cuentas.formulario.saldoBloqueadoNota')}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-panel-2 px-4 py-3">

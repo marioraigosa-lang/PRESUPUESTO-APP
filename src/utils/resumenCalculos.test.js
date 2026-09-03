@@ -72,6 +72,19 @@ describe('calcularTotalesResumen', () => {
       balance: 0,
     })
   })
+
+  it('ignora los retiros: no son ni ingreso ni gasto (no cuentan en los reportes de gastos)', () => {
+    const movimientos = [
+      { tipo: 'ingreso', monto: 100000 },
+      { tipo: 'retiro', monto: 999999, categoria: null },
+    ]
+
+    const resultado = calcularTotalesResumen(movimientos)
+
+    expect(resultado.totalIngresos).toBe(100000)
+    expect(resultado.totalGastos).toBe(0)
+    expect(resultado.balance).toBe(100000)
+  })
 })
 
 describe('agruparGastosPorCategoria', () => {
@@ -168,6 +181,18 @@ describe('agruparGastosPorCategoria', () => {
   it('caso vacío: sin movimientos, devuelve un arreglo vacío', () => {
     expect(agruparGastosPorCategoria([], 0, 'Sin categoría')).toEqual([])
   })
+
+  it('ignora los movimientos de retiro: no tienen categoría y no son un gasto categorizado', () => {
+    const movimientos = [
+      { tipo: 'retiro', monto: 500000, categoria: null },
+      { tipo: 'gasto', monto: 30000, categoria: CATEGORIA_VARIABLE },
+    ]
+
+    const resultado = agruparGastosPorCategoria(movimientos, 30000, 'Sin categoría')
+
+    expect(resultado).toHaveLength(1)
+    expect(resultado[0].id).toBe('cat-comida')
+  })
 })
 
 describe('agruparPorMes', () => {
@@ -197,6 +222,17 @@ describe('agruparPorMes', () => {
   it('ignora los traslados al sumar ingresos/gastos de cada mes', () => {
     const movimientos = [
       { tipo: 'traslado', monto: 999999, fecha: '2026-05-01' },
+      { tipo: 'gasto', monto: 40000, fecha: '2026-05-02' },
+    ]
+
+    const resultado = agruparPorMes(movimientos)
+
+    expect(resultado[4]).toEqual({ mes: 4, ingresos: 0, gastos: 40000 }) // mayo
+  })
+
+  it('ignora los retiros al sumar ingresos/gastos de cada mes', () => {
+    const movimientos = [
+      { tipo: 'retiro', monto: 999999, fecha: '2026-05-01' },
       { tipo: 'gasto', monto: 40000, fecha: '2026-05-02' },
     ]
 

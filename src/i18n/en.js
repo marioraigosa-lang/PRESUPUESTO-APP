@@ -210,7 +210,9 @@ export default {
       tipoPlaceholder: 'E.g. Savings account',
       colorLabel: 'Color',
       colorAria: 'Color {{color}}',
-      saldoLabel: 'Balance',
+      saldoLabel: 'Starting balance',
+      saldoBloqueadoNota:
+        "The starting balance can't be changed because this account already has recorded transactions. If you need to correct it, add a transaction (income, expense, or withdrawal) to this account.",
       esAhorroPregunta: 'Is this balance part of your emergency fund?',
       esAhorroAyuda: 'Savings or investment accounts count toward your cushion for the unexpected.',
       esAhorroAria: 'Is this account part of your emergency fund?',
@@ -370,6 +372,7 @@ export default {
       tipoGasto: 'Expense',
       tipoIngreso: 'Income',
       tipoTraslado: 'Transfer',
+      tipoRetiro: 'Withdrawal',
       montoLabel: 'Amount',
       errorMontoVacio: 'Enter an amount',
       errorCuentasTraslado: 'Select the source and destination accounts',
@@ -385,6 +388,7 @@ export default {
       descripcionLabel: 'Description (optional)',
       descripcionPlaceholderTraslado: 'E.g. Monthly savings',
       descripcionPlaceholderGasto: 'E.g. Movies with friends',
+      descripcionPlaceholderRetiro: 'E.g. ATM withdrawal',
       errorGuardar: "Couldn't save the transaction. Please try again.",
       guardando: 'Saving...',
       guardarCambios: 'Save changes',
@@ -912,8 +916,8 @@ export default {
     // alone says nothing to a screen reader).
     ayuda: {
       movimientoTipos:
-        'Income is money coming in, expense is money going out, and a transfer moves money between two of your own accounts without counting as either.',
-      movimientoTiposAria: 'Help: difference between income, expense, and transfer',
+        'Income is money coming in, expense is money going out with a category, a transfer moves money between two of your own accounts without counting as either, and a withdrawal is money that leaves the account and leaves the system entirely (no category, like a transfer, but without going to another account of yours).',
+      movimientoTiposAria: 'Help: difference between income, expense, transfer, and withdrawal',
       gastoFijoPagado:
         "Marking it as paid lets you choose which account the money came out of: the app creates a real transaction, deducts that account's balance, and logs it in your history.",
       gastoFijoPagadoAria: 'Help: what happens when you mark a fixed expense as paid',

@@ -231,7 +231,9 @@ export default {
       tipoPlaceholder: 'Ej: Cuenta de ahorros',
       colorLabel: 'Color',
       colorAria: 'Color {{color}}',
-      saldoLabel: 'Saldo',
+      saldoLabel: 'Saldo inicial',
+      saldoBloqueadoNota:
+        'El saldo inicial no se puede cambiar porque esta cuenta ya tiene movimientos registrados. Si necesitas corregirlo, agrega un movimiento (ingreso, gasto o retiro) en esta cuenta.',
       esAhorroPregunta: '¿El saldo de esta cuenta es parte de tu fondo de emergencia?',
       esAhorroAyuda: 'Las cuentas de ahorro o inversión suman a tu colchón para imprevistos.',
       esAhorroAria: '¿Esta cuenta es parte de tu fondo de emergencia?',
@@ -390,6 +392,7 @@ export default {
       tipoGasto: 'Gasto',
       tipoIngreso: 'Ingreso',
       tipoTraslado: 'Traslado',
+      tipoRetiro: 'Retiro',
       montoLabel: 'Monto',
       errorMontoVacio: 'Ingresa un monto',
       errorCuentasTraslado: 'Selecciona cuenta de origen y de destino',
@@ -405,6 +408,7 @@ export default {
       descripcionLabel: 'Descripción (opcional)',
       descripcionPlaceholderTraslado: 'Ej: Ahorro del mes',
       descripcionPlaceholderGasto: 'Ej: Cine con amigos',
+      descripcionPlaceholderRetiro: 'Ej: Retiro en cajero',
       errorGuardar: 'No se pudo guardar el movimiento. Intenta de nuevo.',
       guardando: 'Guardando...',
       guardarCambios: 'Guardar cambios',
@@ -950,8 +954,8 @@ export default {
     // QUÉ explica, ya que un "?" solo no dice nada a un lector de pantalla).
     ayuda: {
       movimientoTipos:
-        'Ingreso es dinero que entra, gasto es dinero que sale, y traslado es mover dinero entre dos cuentas tuyas sin que cuente como ingreso ni gasto.',
-      movimientoTiposAria: 'Ayuda: diferencia entre ingreso, gasto y traslado',
+        'Ingreso es dinero que entra, gasto es dinero que sale con categoría, traslado es mover dinero entre dos cuentas tuyas sin que cuente como ingreso ni gasto, y retiro es dinero que sale de la cuenta y sale del sistema (sin categoría, como un traslado, pero sin ir a otra cuenta tuya).',
+      movimientoTiposAria: 'Ayuda: diferencia entre ingreso, gasto, traslado y retiro',
       gastoFijoPagado:
         'Al marcarlo como pagado eliges de qué cuenta salió el dinero: la app crea un movimiento real, descuenta el saldo de esa cuenta y lo deja registrado en tu historial.',
       gastoFijoPagadoAria: 'Ayuda: qué pasa al marcar un gasto fijo como pagado',

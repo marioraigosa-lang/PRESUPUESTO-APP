@@ -117,6 +117,33 @@ function App() {
     setCargandoCuentas(false)
   }
 
+  // Recarga silenciosa de "cuentas_con_saldo", de fondo: a diferencia de
+  // cargarCuentas() de arriba, NO toca cargandoCuentas/errorCuentas -- esos
+  // flags controlan el gate de pantalla completa de más abajo
+  // (`if (cargandoCuentas) return <PantallaCargando />`), así que llamar a
+  // cargarCuentas() de nuevo cada vez que se crea/edita/borra un movimiento
+  // haría parpadear TODA la app a la pantalla de carga en cada guardado.
+  //
+  // Se usa para refrescar "cantidad_movimientos" (Fase 5 del plan de saldo
+  // calculado -- decide si HojaCuenta.jsx deja editar el saldo inicial de
+  // una cuenta), que no tiene equivalente optimista como el saldo: crear o
+  // borrar un movimiento cambia cuántos movimientos tiene esa cuenta, pero
+  // eso no es algo que aplicarActualizacionesSaldo (pensada solo para el
+  // NÚMERO del saldo) sepa ajustar. En vez de duplicar esa lógica de deltas
+  // a mano (¿qué cuentas están afectadas, sumar o restar 1, casos de
+  // traslado/edición-que-cambia-de-cuenta...) se reutiliza la MISMA
+  // consulta de siempre -- ya devuelve cantidad_movimientos recalculado en
+  // vivo, siempre correcto, sin tener que razonar de nuevo cada caso. Si la
+  // consulta falla, no pasa nada grave: cantidad_movimientos se queda con
+  // el valor de antes hasta el próximo intento -- mismo criterio de "se
+  // corrige solo" que ya usa el saldo optimista.
+  async function refrescarCuentas() {
+    const { data, error } = await seleccionarPropio('cuentas_con_saldo').order('saldo', { ascending: false })
+    if (!error) {
+      setCuentas(data)
+    }
+  }
+
   async function cargarCategorias() {
     setCargandoCategorias(true)
     setErrorCategorias(null)
@@ -162,6 +189,11 @@ function App() {
     const { actualizaciones } = await movimientosService.agregarMovimiento(datosUsuario, cuentas, datos)
     aplicarActualizacionesSaldo(actualizaciones)
     setMovimientosVersion((version) => version + 1)
+    // Sin await a propósito: el saldo ya se actualizó al instante arriba
+    // (hint optimista), así que no hay que esperar esta consulta extra para
+    // cerrar la hoja del formulario -- cantidad_movimientos llega un
+    // instante después, de fondo, sin bloquear nada.
+    refrescarCuentas()
   }
 
   function abrirNuevoMovimiento() {
@@ -188,12 +220,18 @@ function App() {
     )
     aplicarActualizacionesSaldo(actualizaciones)
     setMovimientosVersion((version) => version + 1)
+    // Cubre también el caso de editar un movimiento cambiándolo de cuenta:
+    // ambas cuentas (la vieja y la nueva) pueden haber cambiado su
+    // cantidad_movimientos, y esta consulta las trae ya recalculadas todas
+    // de una vez, sin tener que distinguir cuáles fueron las afectadas.
+    refrescarCuentas()
   }
 
   async function eliminarMovimiento(movimiento) {
     const { actualizaciones } = await movimientosService.eliminarMovimiento(datosUsuario, cuentas, movimiento)
     aplicarActualizacionesSaldo(actualizaciones)
     setMovimientosVersion((version) => version + 1)
+    refrescarCuentas()
   }
 
   // `periodo` es { mes, anio, quincena }: el mes/año seleccionado en el
@@ -212,6 +250,10 @@ function App() {
     )
     aplicarActualizacionesSaldo(actualizaciones)
     setMovimientosVersion((version) => version + 1)
+    // Marcar como pagado inserta un movimiento real (ver el servicio): la
+    // cuenta elegida puede pasar de 0 a 1 movimiento, así que también hay
+    // que refrescar cantidad_movimientos, igual que en agregarMovimiento.
+    refrescarCuentas()
     return movimiento
   }
 
@@ -227,6 +269,8 @@ function App() {
     )
     aplicarActualizacionesSaldo(actualizaciones)
     setMovimientosVersion((version) => version + 1)
+    // Desmarcar borra el movimiento vinculado -- mismo motivo que arriba.
+    refrescarCuentas()
   }
 
   async function agregarGastoFijo(datos) {
@@ -253,17 +297,37 @@ function App() {
     aplicarActualizacionesSaldo(actualizaciones)
     if (gasto.pagado) {
       setMovimientosVersion((version) => version + 1)
+      // Solo si estaba pagado había un movimiento vinculado que borrar --
+      // mismo motivo que en desmarcarGastoFijoPagado.
+      refrescarCuentas()
     }
   }
 
   async function agregarCuenta(datos) {
     const data = await cuentasService.agregarCuenta(datosUsuario, datos)
-    setCuentas((actuales) => cuentasService.ordenarPorSaldo([...actuales, data]))
+    // El INSERT devuelve la fila cruda de la tabla "cuentas" (sin
+    // "cantidad_movimientos", que solo existe en la vista "cuentas_con_saldo"
+    // -- ver cargarCuentas arriba). Una cuenta recién creada nunca tiene
+    // movimientos todavía, así que es seguro completarlo en 0 a mano en vez
+    // de esperar el próximo refetch de la vista.
+    setCuentas((actuales) =>
+      cuentasService.ordenarPorSaldo([...actuales, { ...data, cantidad_movimientos: 0 }]),
+    )
   }
 
   async function actualizarCuenta(id, datos) {
     const data = await cuentasService.actualizarCuenta(datosUsuario, id, datos)
-    setCuentas((actuales) => cuentasService.ordenarPorSaldo(actuales.map((c) => (c.id === id ? data : c))))
+    // Igual que arriba, el UPDATE devuelve la fila cruda de "cuentas", sin
+    // "cantidad_movimientos" -- se MEZCLA sobre la cuenta que ya había en
+    // pantalla (no se reemplaza entera) para conservar ese dato. Si se
+    // reemplazara tal cual por `data`, la próxima vez que se abriera esta
+    // MISMA cuenta para editar, HojaCuenta.jsx vería cantidad_movimientos
+    // en undefined y dejaría el saldo inicial editable de nuevo aunque la
+    // cuenta sí tenga movimientos (ver el blindaje de esto mismo en
+    // services/cuentas.js/actualizarCuenta).
+    setCuentas((actuales) =>
+      cuentasService.ordenarPorSaldo(actuales.map((c) => (c.id === id ? { ...c, ...data } : c))),
+    )
   }
 
   async function eliminarCuenta(cuenta) {

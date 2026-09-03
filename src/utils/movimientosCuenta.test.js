@@ -34,6 +34,12 @@ describe('esEntradaEnCuenta', () => {
 
     expect(esEntradaEnCuenta(movimiento, CUENTA_A)).toBe(false)
   })
+
+  it('un retiro siempre sale de la cuenta (no va a ninguna otra cuenta)', () => {
+    const movimiento = { tipo: 'retiro', cuenta_destino_id: null }
+
+    expect(esEntradaEnCuenta(movimiento, CUENTA_A)).toBe(false)
+  })
 })
 
 describe('calcularResumenCuenta', () => {
@@ -97,6 +103,17 @@ describe('calcularResumenCuenta', () => {
     const resultado = calcularResumenCuenta([], CUENTA_A)
 
     expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 0, neto: 0, listaMovimientos: [] })
+  })
+
+  it('suma un retiro a totalEgresos y SÍ lo incluye en la lista (a diferencia de un gasto)', () => {
+    const movimientos = [{ id: 1, tipo: 'retiro', monto: 60000 }]
+
+    const resultado = calcularResumenCuenta(movimientos, CUENTA_A)
+
+    expect(resultado.totalIngresos).toBe(0)
+    expect(resultado.totalEgresos).toBe(60000)
+    expect(resultado.neto).toBe(-60000)
+    expect(resultado.listaMovimientos).toEqual(movimientos)
   })
 })
 

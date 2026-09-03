@@ -51,7 +51,7 @@ describe('agregarCuenta', () => {
       nombre: '  ahorros  ',
       tipo: '  banco  ',
       color: '#fff',
-      saldo: 1000,
+      saldoInicial: 1000,
       esAhorro: true,
     })
 
@@ -61,6 +61,7 @@ describe('agregarCuenta', () => {
       tipo: 'banco',
       color: '#fff',
       inicial: 'A',
+      saldo_inicial: 1000,
       saldo: 1000,
       es_ahorro: true,
     })
@@ -70,11 +71,35 @@ describe('agregarCuenta', () => {
     const insertarPropio = vi.fn(() => crearConstructor({ data: { id: 1 }, error: null }))
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
-    await agregarCuenta(datosUsuario, { nombre: 'Efectivo', tipo: '   ', color: '#000', saldo: 0, esAhorro: undefined })
+    await agregarCuenta(datosUsuario, {
+      nombre: 'Efectivo',
+      tipo: '   ',
+      color: '#000',
+      saldoInicial: 0,
+      esAhorro: undefined,
+    })
 
     expect(insertarPropio).toHaveBeenCalledWith(
       'cuentas',
       expect.objectContaining({ tipo: null, es_ahorro: false }),
+    )
+  })
+
+  it('escribe el mismo valor en saldo_inicial y en la columna vieja saldo (una cuenta recién creada no tiene movimientos)', async () => {
+    const insertarPropio = vi.fn(() => crearConstructor({ data: { id: 1 }, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+
+    await agregarCuenta(datosUsuario, {
+      nombre: 'Efectivo',
+      tipo: '',
+      color: '#000',
+      saldoInicial: 250000,
+      esAhorro: false,
+    })
+
+    expect(insertarPropio).toHaveBeenCalledWith(
+      'cuentas',
+      expect.objectContaining({ saldo_inicial: 250000, saldo: 250000 }),
     )
   })
 
@@ -83,13 +108,19 @@ describe('agregarCuenta', () => {
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     await expect(
-      agregarCuenta(datosUsuario, { nombre: 'Efectivo', tipo: '', color: '#000', saldo: 0, esAhorro: false }),
+      agregarCuenta(datosUsuario, {
+        nombre: 'Efectivo',
+        tipo: '',
+        color: '#000',
+        saldoInicial: 0,
+        esAhorro: false,
+      }),
     ).rejects.toThrow('boom')
   })
 })
 
 describe('actualizarCuenta', () => {
-  it('actualiza una cuenta y devuelve el dato actualizado', async () => {
+  it('sin movimientos (cantidadMovimientos === 0): actualiza saldo_inicial (y la columna vieja saldo en el mismo valor)', async () => {
     const cuentaActualizada = { id: 1, nombre: 'Ahorros' }
     const actualizarPropio = vi.fn(() => crearConstructor({ data: cuentaActualizada, error: null }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
@@ -98,15 +129,60 @@ describe('actualizarCuenta', () => {
       nombre: '  Ahorros  ',
       tipo: 'Banco',
       color: '#fff',
-      saldo: 500,
+      saldoInicial: 500,
       esAhorro: true,
+      cantidadMovimientos: 0,
     })
 
     expect(resultado).toEqual(cuentaActualizada)
     expect(actualizarPropio).toHaveBeenCalledWith(
       'cuentas',
+      expect.objectContaining({
+        nombre: 'Ahorros',
+        inicial: 'A',
+        es_ahorro: true,
+        saldo_inicial: 500,
+        saldo: 500,
+      }),
+    )
+  })
+
+  it('con movimientos (cantidadMovimientos > 0): NO incluye saldo_inicial ni saldo en el payload, sin importar qué traiga saldoInicial', async () => {
+    const actualizarPropio = vi.fn(() => crearConstructor({ data: { id: 1 }, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+
+    await actualizarCuenta(datosUsuario, 1, {
+      nombre: 'Ahorros',
+      tipo: 'Banco',
+      color: '#fff',
+      saldoInicial: 999999, // intento de cambiarlo -- debe ser ignorado
+      esAhorro: true,
+      cantidadMovimientos: 3,
+    })
+
+    const payloadEnviado = actualizarPropio.mock.calls[0][1]
+    expect(payloadEnviado).not.toHaveProperty('saldo_inicial')
+    expect(payloadEnviado).not.toHaveProperty('saldo')
+    expect(payloadEnviado).toEqual(
       expect.objectContaining({ nombre: 'Ahorros', inicial: 'A', es_ahorro: true }),
     )
+  })
+
+  it('cantidadMovimientos undefined (no viene del llamador): por seguridad, tampoco toca saldo_inicial ni saldo', async () => {
+    const actualizarPropio = vi.fn(() => crearConstructor({ data: { id: 1 }, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+
+    await actualizarCuenta(datosUsuario, 1, {
+      nombre: 'Ahorros',
+      tipo: '',
+      color: '#000',
+      saldoInicial: 500,
+      esAhorro: false,
+    })
+
+    const payloadEnviado = actualizarPropio.mock.calls[0][1]
+    expect(payloadEnviado).not.toHaveProperty('saldo_inicial')
+    expect(payloadEnviado).not.toHaveProperty('saldo')
   })
 
   it('propaga el mensaje de error de Supabase', async () => {
@@ -114,7 +190,14 @@ describe('actualizarCuenta', () => {
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
     await expect(
-      actualizarCuenta(datosUsuario, 1, { nombre: 'Efectivo', tipo: '', color: '#000', saldo: 0, esAhorro: false }),
+      actualizarCuenta(datosUsuario, 1, {
+        nombre: 'Efectivo',
+        tipo: '',
+        color: '#000',
+        saldoInicial: 0,
+        esAhorro: false,
+        cantidadMovimientos: 0,
+      }),
     ).rejects.toThrow('boom')
   })
 })

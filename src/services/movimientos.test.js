@@ -78,6 +78,26 @@ describe('agregarMovimiento', () => {
     expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 200 }] })
   })
 
+  it('inserta un retiro (sin categoría) y devuelve el delta de saldo (negativo) de la cuenta, igual que un gasto', async () => {
+    const insertarPropio = vi.fn(() => crearConstructor({ data: null, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+
+    const resultado = await agregarMovimiento(datosUsuario, [cuenta1], {
+      tipo: 'retiro',
+      descripcion: 'Retiro en cajero',
+      monto: 100,
+      emoji: '🏧',
+      cuentaId: 1,
+      categoriaId: null,
+    })
+
+    expect(insertarPropio).toHaveBeenCalledWith(
+      'movimientos',
+      expect.objectContaining({ tipo: 'retiro', monto: 100, cuenta_id: 1, categoria_id: null }),
+    )
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: -100 }] })
+  })
+
   it('rechaza si la cuenta no existe', async () => {
     const datosUsuario = crearDatosUsuarioMock()
 

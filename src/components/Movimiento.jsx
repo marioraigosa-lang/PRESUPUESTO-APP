@@ -18,6 +18,7 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
   } = movimiento
   const esIngreso = tipo === 'ingreso'
   const esTraslado = tipo === 'traslado'
+  const esRetiro = tipo === 'retiro'
   const esEditable = !gastoFijoId
 
   // Perspectiva direccional: solo aplica a traslados, y solo cuando la
@@ -43,7 +44,9 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
       ? 'border-transparent bg-mint/15'
       : esTraslado
         ? 'border-transparent bg-azul/15'
-        : 'border-line bg-panel-2'
+        : esRetiro
+          ? 'border-transparent bg-coral/15'
+          : 'border-line bg-panel-2'
 
   // Para un traslado visto "desde afuera", la segunda línea muestra el
   // recorrido del dinero (origen → destino) en vez de solo la cuenta. Si la
@@ -62,7 +65,9 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
       ? 'text-mint'
       : esTraslado
         ? 'text-azul'
-        : 'text-text'
+        : esRetiro
+          ? 'text-coral'
+          : 'text-text'
 
   const signoMonto = esTrasladoEnContexto
     ? esOrigenEnContexto

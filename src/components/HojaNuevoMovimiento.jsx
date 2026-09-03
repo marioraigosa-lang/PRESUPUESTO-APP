@@ -145,7 +145,14 @@ function HojaNuevoMovimiento({
       cuentaId,
       cuentaDestinoId: tipo === 'traslado' ? cuentaDestinoId : null,
       categoriaId: tipo === 'gasto' ? categoriaId : null,
-      emoji: tipo === 'ingreso' ? '💰' : tipo === 'traslado' ? '🔄' : (categoriaSeleccionada?.emoji ?? '✨'),
+      emoji:
+        tipo === 'ingreso'
+          ? '💰'
+          : tipo === 'traslado'
+            ? '🔄'
+            : tipo === 'retiro'
+              ? '🏧'
+              : (categoriaSeleccionada?.emoji ?? '✨'),
       descripcion:
         descripcion.trim() ||
         (tipo === 'ingreso'
@@ -154,7 +161,9 @@ function HojaNuevoMovimiento({
             ? `${cuentaOrigenSeleccionada?.nombre ?? t('movimientos.formulario.cuentaGenerica')} → ${
                 cuentaDestinoSeleccionada?.nombre ?? t('movimientos.formulario.cuentaGenerica')
               }`
-            : (categoriaSeleccionada?.nombre ?? t('movimientos.formulario.tipoGasto'))),
+            : tipo === 'retiro'
+              ? t('movimientos.formulario.tipoRetiro')
+              : (categoriaSeleccionada?.nombre ?? t('movimientos.formulario.tipoGasto'))),
     }
 
     try {
@@ -222,11 +231,11 @@ function HojaNuevoMovimiento({
                 etiqueta={t('guia.ayuda.movimientoTiposAria')}
               />
             </div>
-            <div className="flex gap-2 rounded-full bg-panel-2 p-1">
+            <div className="grid grid-cols-4 gap-1 rounded-full bg-panel-2 p-1">
               <button
                 type="button"
                 onClick={() => setTipo('gasto')}
-                className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors ${
+                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
                   tipo === 'gasto' ? 'bg-coral text-bg' : 'text-text-dim'
                 }`}
               >
@@ -235,7 +244,7 @@ function HojaNuevoMovimiento({
               <button
                 type="button"
                 onClick={() => setTipo('ingreso')}
-                className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors ${
+                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
                   tipo === 'ingreso' ? 'bg-mint text-bg' : 'text-text-dim'
                 }`}
               >
@@ -244,11 +253,20 @@ function HojaNuevoMovimiento({
               <button
                 type="button"
                 onClick={() => setTipo('traslado')}
-                className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors ${
+                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
                   tipo === 'traslado' ? 'bg-azul text-bg' : 'text-text-dim'
                 }`}
               >
                 {t('movimientos.formulario.tipoTraslado')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTipo('retiro')}
+                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
+                  tipo === 'retiro' ? 'bg-gold text-bg' : 'text-text-dim'
+                }`}
+              >
+                {t('movimientos.formulario.tipoRetiro')}
               </button>
             </div>
           </div>
@@ -388,7 +406,9 @@ function HojaNuevoMovimiento({
             placeholder={
               tipo === 'traslado'
                 ? t('movimientos.formulario.descripcionPlaceholderTraslado')
-                : t('movimientos.formulario.descripcionPlaceholderGasto')
+                : tipo === 'retiro'
+                  ? t('movimientos.formulario.descripcionPlaceholderRetiro')
+                  : t('movimientos.formulario.descripcionPlaceholderGasto')
             }
             className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim"
           />
