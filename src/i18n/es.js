@@ -71,6 +71,14 @@ export default {
     errorCargarCuentas: 'No se pudieron cargar las cuentas. Intenta de nuevo.',
     totalDisponible: 'Total disponible',
     disponibleEtiqueta: 'Disponible',
+
+    misTarjetas: 'Mis tarjetas',
+    gestionarTarjetas: 'Gestionar tarjetas',
+    cargandoTarjetas: 'Cargando tarjetas...',
+    errorCargarTarjetas: 'No se pudieron cargar las tarjetas. Intenta de nuevo.',
+    deudaTarjetasEtiqueta: 'Deuda',
+    cupoDisponibleTarjetasEtiqueta: 'Cupo disponible',
+
     ingresos: 'Ingresos',
     gastos: 'Gastos',
     ahorro: 'Ahorro',
@@ -262,6 +270,53 @@ export default {
       // los gastos normales -- ver DetalleCuenta.jsx.
       listaTitulo: 'Ingresos y traslados',
       sinMovimientosLista: 'No hay ingresos ni traslados este mes.',
+    },
+  },
+
+  // Fase 3 del plan "Tarjetas de crédito" (ver sql/supabase_tarjetas.sql y
+  // sql/supabase_tarjetas_movimientos.sql): gestión de tarjetas (crear,
+  // editar, borrar, ver deuda/cupo). Todavía no se gasta ni se paga con
+  // ellas -- eso es Fases 4-5.
+  tarjetas: {
+    abrirAria: 'Ver tarjeta {{nombre}}',
+    deudaLabel: 'Deuda',
+    disponibleLabel: 'Disponible',
+    cupoTotalLabel: 'Cupo total',
+    gestion: {
+      volverAria: 'Volver',
+      titulo: 'Gestionar tarjetas',
+      subtitulo: 'Agrega, edita y elimina tus tarjetas de crédito',
+      agregarTarjeta: '+ Agregar tarjeta',
+      cargando: 'Cargando tarjetas...',
+      errorCargar: 'No se pudieron cargar las tarjetas. Intenta de nuevo.',
+      errorEliminar: 'No se pudo eliminar la tarjeta. Intenta de nuevo.',
+      confirmarEliminar: '¿Eliminar la tarjeta "{{nombre}}"? Esta acción no se puede deshacer.',
+      errorEliminarConDeuda:
+        'No puedes eliminar esta tarjeta porque todavía tiene deuda pendiente. Paga o reduce la deuda a 0 primero.',
+      sinTarjetas: 'Aún no tienes tarjetas. Crea la primera con "+ Agregar tarjeta".',
+      cupoTotalEtiqueta: 'Cupo total',
+      deudaEtiqueta: 'Deuda',
+      disponibleEtiqueta: 'Disponible',
+      editarAria: 'Editar tarjeta {{nombre}}',
+      eliminarAria: 'Eliminar tarjeta {{nombre}}',
+    },
+    formulario: {
+      nuevoTitulo: 'Nueva tarjeta',
+      editarTitulo: 'Editar tarjeta',
+      cerrarAria: 'Cerrar',
+      nombreLabel: 'Nombre',
+      nombrePlaceholder: 'Ej: Nu Mastercard',
+      colorLabel: 'Color',
+      colorAria: 'Color {{color}}',
+      cupoLabel: 'Cupo total',
+      cupoDeudaNota: 'No puedes bajar el cupo por debajo de la deuda actual: {{monto}}.',
+      errorNombreVacio: 'Ingresa un nombre para la tarjeta',
+      errorCupoInvalido: 'Ingresa un cupo total válido',
+      errorCupoMenorQueDeuda: 'El cupo no puede ser menor que la deuda actual ({{monto}}).',
+      errorGuardar: 'No se pudo guardar la tarjeta. Intenta de nuevo.',
+      guardando: 'Guardando...',
+      guardarCambios: 'Guardar cambios',
+      guardarTarjeta: 'Guardar tarjeta',
     },
   },
 
@@ -784,8 +839,55 @@ export default {
     terminosTitulo: 'Términos y condiciones',
     terminosDescripcion: 'Reglas de uso de Seed',
     zonaPeligroTitulo: 'Zona de peligro',
+    reiniciarDatosTitulo: 'Reiniciar datos',
+    reiniciarDatosDescripcion: 'Borra tus movimientos para empezar de cero',
     eliminarCuentaTitulo: 'Eliminar cuenta',
     eliminarCuentaDescripcion: 'Borra tu cuenta y todos tus datos de forma permanente',
+  },
+
+  // Pantalla "Reiniciar datos" (ReiniciarDatos.jsx), accesible desde Perfil
+  // -> Zona de peligro. Borra movimientos (y, opcionalmente, gastos fijos
+  // definidos) del usuario vía la función RPC "reiniciar_datos_usuario" (ver
+  // sql/supabase_reiniciar_datos.sql) -- NO borra cuentas ni categorías, y
+  // no pide reautenticación (a diferencia de eliminarCuenta, más abajo).
+  reiniciarDatos: {
+    volverAria: 'Volver',
+    titulo: 'Reiniciar datos',
+    subtitulo: 'Empieza de cero conservando tus cuentas y categorías',
+    advertenciaTitulo: 'Esta acción no se puede deshacer',
+    advertenciaTexto:
+      'Elige qué quieres borrar. En ambos casos, tus cuentas y sus saldos vuelven a su saldo inicial en cuanto se borren los movimientos que los afectaban.',
+    advertenciaFinal: 'No hay forma de recuperar los movimientos borrados después de confirmar.',
+    opcionesTitulo: 'Elige una opción',
+    opcion: {
+      movimientos: {
+        titulo: 'Borrar solo mis movimientos',
+        descripcion: 'Borra el historial de ingresos, gastos, traslados y retiros. Tus gastos fijos quedan definidos, pero se desmarcan como pagados.',
+        lista: [
+          'Se borra: todos los movimientos registrados',
+          'Se conserva: cuentas, gastos fijos definidos y categorías',
+        ],
+      },
+      todo: {
+        titulo: 'Reiniciar todo',
+        descripcion: 'Borra el historial de movimientos y también las definiciones de tus gastos fijos.',
+        lista: [
+          'Se borra: todos los movimientos y las definiciones de gastos fijos',
+          'Se conserva: cuentas y categorías',
+        ],
+      },
+    },
+    seConservaTitulo: 'Siempre se conserva',
+    seConservaLista: ['Tus cuentas y su saldo inicial', 'Tus categorías'],
+    confirmacionTexto: 'Entiendo que esta acción no se puede deshacer y confirmo que quiero continuar.',
+    botonReiniciar: 'Reiniciar datos',
+    reiniciando: 'Reiniciando...',
+    cancelar: 'Cancelar',
+    errorReiniciar: 'No pudimos reiniciar tus datos. Verifica tu conexión e intenta de nuevo.',
+    exitoTitulo: 'Datos reiniciados',
+    exitoTextoMovimientos: 'Se borraron tus movimientos. Tus cuentas volvieron a su saldo inicial.',
+    exitoTextoTodo: 'Se borraron tus movimientos y tus gastos fijos. Tus cuentas volvieron a su saldo inicial.',
+    exitoBoton: 'Volver',
   },
 
   // Pantalla "Eliminar cuenta" (EliminarCuenta.jsx), accesible desde Perfil ->

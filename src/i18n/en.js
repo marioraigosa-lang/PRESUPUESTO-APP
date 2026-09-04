@@ -54,6 +54,14 @@ export default {
     errorCargarCuentas: "Couldn't load your accounts. Please try again.",
     totalDisponible: 'Total available',
     disponibleEtiqueta: 'Available',
+
+    misTarjetas: 'My cards',
+    gestionarTarjetas: 'Manage cards',
+    cargandoTarjetas: 'Loading cards...',
+    errorCargarTarjetas: "Couldn't load your cards. Please try again.",
+    deudaTarjetasEtiqueta: 'Debt',
+    cupoDisponibleTarjetasEtiqueta: 'Available credit',
+
     ingresos: 'Income',
     gastos: 'Expenses',
     ahorro: 'Savings',
@@ -242,6 +250,53 @@ export default {
       // regular expenses -- see DetalleCuenta.jsx.
       listaTitulo: 'Income and transfers',
       sinMovimientosLista: 'No income or transfers this month.',
+    },
+  },
+
+  // Phase 3 of the "Credit cards" plan (see sql/supabase_tarjetas.sql and
+  // sql/supabase_tarjetas_movimientos.sql): card management (create, edit,
+  // delete, view debt/available credit). Spending or paying with a card is
+  // not wired up yet -- that's Phases 4-5.
+  tarjetas: {
+    abrirAria: 'View card {{nombre}}',
+    deudaLabel: 'Debt',
+    disponibleLabel: 'Available',
+    cupoTotalLabel: 'Credit limit',
+    gestion: {
+      volverAria: 'Back',
+      titulo: 'Manage cards',
+      subtitulo: 'Add, edit, and delete your credit cards',
+      agregarTarjeta: '+ Add card',
+      cargando: 'Loading cards...',
+      errorCargar: "Couldn't load your cards. Please try again.",
+      errorEliminar: "Couldn't delete the card. Please try again.",
+      confirmarEliminar: 'Delete the card "{{nombre}}"? This action cannot be undone.',
+      errorEliminarConDeuda:
+        "You can't delete this card because it still has pending debt. Pay it down to 0 first.",
+      sinTarjetas: 'You don\'t have any cards yet. Create your first one with "+ Add card".',
+      cupoTotalEtiqueta: 'Credit limit',
+      deudaEtiqueta: 'Debt',
+      disponibleEtiqueta: 'Available',
+      editarAria: 'Edit card {{nombre}}',
+      eliminarAria: 'Delete card {{nombre}}',
+    },
+    formulario: {
+      nuevoTitulo: 'New card',
+      editarTitulo: 'Edit card',
+      cerrarAria: 'Close',
+      nombreLabel: 'Name',
+      nombrePlaceholder: 'E.g. Nu Mastercard',
+      colorLabel: 'Color',
+      colorAria: 'Color {{color}}',
+      cupoLabel: 'Credit limit',
+      cupoDeudaNota: "You can't lower the limit below the current debt: {{monto}}.",
+      errorNombreVacio: 'Enter a name for the card',
+      errorCupoInvalido: 'Enter a valid credit limit',
+      errorCupoMenorQueDeuda: "The limit can't be lower than the current debt ({{monto}}).",
+      errorGuardar: "Couldn't save the card. Please try again.",
+      guardando: 'Saving...',
+      guardarCambios: 'Save changes',
+      guardarTarjeta: 'Save card',
     },
   },
 
@@ -744,8 +799,58 @@ export default {
     terminosTitulo: 'Terms and conditions',
     terminosDescripcion: "Seed's rules of use",
     zonaPeligroTitulo: 'Danger zone',
+    reiniciarDatosTitulo: 'Reset data',
+    reiniciarDatosDescripcion: 'Delete your transactions to start fresh',
     eliminarCuentaTitulo: 'Delete account',
     eliminarCuentaDescripcion: 'Permanently delete your account and all your data',
+  },
+
+  // "Reset data" screen (ReiniciarDatos.jsx), reachable from Profile ->
+  // Danger zone. Deletes transactions (and, optionally, defined fixed
+  // expenses) for the current user via the "reiniciar_datos_usuario" RPC
+  // function (see sql/supabase_reiniciar_datos.sql) -- it does NOT delete
+  // accounts or categories, and unlike eliminarCuenta below, it doesn't
+  // require re-authentication.
+  reiniciarDatos: {
+    volverAria: 'Back',
+    titulo: 'Reset data',
+    subtitulo: 'Start fresh while keeping your accounts and categories',
+    advertenciaTitulo: 'This action cannot be undone',
+    advertenciaTexto:
+      'Choose what to delete. Either way, your accounts and balances go back to their starting balance as soon as the transactions affecting them are gone.',
+    advertenciaFinal: "There's no way to recover deleted transactions after confirming.",
+    opcionesTitulo: 'Choose an option',
+    opcion: {
+      movimientos: {
+        titulo: 'Delete only my transactions',
+        descripcion:
+          'Deletes your history of income, expenses, transfers, and withdrawals. Your fixed expenses stay defined, but get marked as unpaid again.',
+        lista: [
+          'Deleted: all recorded transactions',
+          'Kept: accounts, defined fixed expenses, and categories',
+        ],
+      },
+      todo: {
+        titulo: 'Reset everything',
+        descripcion: 'Deletes your transaction history and also your fixed expense definitions.',
+        lista: [
+          'Deleted: all transactions and fixed expense definitions',
+          'Kept: accounts and categories',
+        ],
+      },
+    },
+    seConservaTitulo: 'Always kept',
+    seConservaLista: ['Your accounts and their starting balance', 'Your categories'],
+    confirmacionTexto: 'I understand this action cannot be undone and I confirm I want to continue.',
+    botonReiniciar: 'Reset data',
+    reiniciando: 'Resetting...',
+    cancelar: 'Cancel',
+    errorReiniciar: "We couldn't reset your data. Check your connection and try again.",
+    exitoTitulo: 'Data reset',
+    exitoTextoMovimientos: 'Your transactions were deleted. Your accounts are back to their starting balance.',
+    exitoTextoTodo:
+      'Your transactions and fixed expenses were deleted. Your accounts are back to their starting balance.',
+    exitoBoton: 'Back',
   },
 
   // "Delete account" screen (EliminarCuenta.jsx), reachable from Profile ->

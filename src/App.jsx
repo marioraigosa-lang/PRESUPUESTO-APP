@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Home from './views/Home'
 import Emergencia from './views/Emergencia'
 import GestionCuentas from './views/GestionCuentas'
+import GestionTarjetas from './views/GestionTarjetas'
 import GestionCategorias from './views/GestionCategorias'
 import GestionGastosFijos from './views/GestionGastosFijos'
 import Perfil from './views/Perfil'
@@ -23,8 +24,10 @@ import { useGuia } from './context/GuiaContext'
 import { useDatosUsuario } from './lib/datosUsuario'
 import * as categoriasService from './services/categorias'
 import * as cuentasService from './services/cuentas'
+import * as tarjetasService from './services/tarjetas'
 import * as movimientosService from './services/movimientos'
 import * as gastosFijosService from './services/gastosFijos'
+import * as reinicioService from './services/reinicio'
 
 // Pantalla de carga mínima compartida por los gates de App.jsx (sesión y,
 // más abajo, cuentas): mismo look en ambos casos, sin duplicar el markup.
@@ -47,6 +50,9 @@ function App() {
   const [cuentas, setCuentas] = useState([])
   const [cargandoCuentas, setCargandoCuentas] = useState(true)
   const [errorCuentas, setErrorCuentas] = useState(null)
+  const [tarjetas, setTarjetas] = useState([])
+  const [cargandoTarjetas, setCargandoTarjetas] = useState(true)
+  const [errorTarjetas, setErrorTarjetas] = useState(null)
   const [categorias, setCategorias] = useState([])
   const [cargandoCategorias, setCargandoCategorias] = useState(true)
   const [errorCategorias, setErrorCategorias] = useState(null)
@@ -76,6 +82,7 @@ function App() {
     // los protege, acá evitamos pedirlos de más).
     if (!sesion || recuperacion || requiereVerificacionMfa || requiereConsentimiento) return
     cargarCuentas()
+    cargarTarjetas()
     cargarCategorias()
   }, [sesion, recuperacion, requiereVerificacionMfa, requiereConsentimiento])
 
@@ -142,6 +149,28 @@ function App() {
     if (!error) {
       setCuentas(data)
     }
+  }
+
+  async function cargarTarjetas() {
+    setCargandoTarjetas(true)
+    setErrorTarjetas(null)
+
+    // Se lee de la vista "tarjetas_con_deuda" (Fase 2 del plan de tarjetas
+    // de crédito, ver sql/supabase_tarjetas_movimientos.sql): expone cada
+    // tarjeta con "deuda", "cupo_disponible" y "cantidad_movimientos"
+    // calculados en vivo a partir de sus movimientos -- mismo criterio que
+    // "cuentas_con_saldo". La tabla "tarjetas" en sí (services/tarjetas.js)
+    // sigue siendo la que se ESCRIBE; la vista es de solo lectura.
+    const { data, error } = await seleccionarPropio('tarjetas_con_deuda').order('deuda', { ascending: false })
+
+    if (error) {
+      console.error(error)
+      setErrorTarjetas(true)
+    } else {
+      setTarjetas(data)
+    }
+
+    setCargandoTarjetas(false)
   }
 
   async function cargarCategorias() {
@@ -335,6 +364,42 @@ function App() {
     setCuentas((actuales) => actuales.filter((c) => c.id !== cuenta.id))
   }
 
+  async function agregarTarjeta(datos) {
+    const data = await tarjetasService.agregarTarjeta(datosUsuario, datos)
+    // El INSERT devuelve la fila cruda de la tabla "tarjetas" (sin "deuda",
+    // "cupo_disponible" ni "cantidad_movimientos", que solo existen en la
+    // vista "tarjetas_con_deuda" -- ver cargarTarjetas arriba). Una tarjeta
+    // recién creada nunca tiene movimientos todavía, así que es seguro
+    // completarlos a mano (deuda 0, cupo_disponible = cupo_total) en vez de
+    // esperar el próximo refetch de la vista.
+    setTarjetas((actuales) =>
+      tarjetasService.ordenarPorDeuda([
+        ...actuales,
+        { ...data, deuda: 0, cupo_disponible: data.cupo_total, cantidad_movimientos: 0 },
+      ]),
+    )
+  }
+
+  async function actualizarTarjeta(id, datos) {
+    const data = await tarjetasService.actualizarTarjeta(datosUsuario, id, datos)
+    // Igual que actualizarCuenta: el UPDATE devuelve la fila cruda de
+    // "tarjetas", sin "deuda"/"cantidad_movimientos" -- se MEZCLA sobre la
+    // tarjeta que ya había en pantalla para conservarlos. "cupo_disponible"
+    // SÍ se recalcula a mano acá (cupo_total pudo cambiar, deuda no cambió
+    // en este flujo -- solo pagarTarjeta/gastar con tarjeta, Fases 4-5,
+    // tocan la deuda).
+    setTarjetas((actuales) =>
+      tarjetasService.ordenarPorDeuda(
+        actuales.map((t) => (t.id === id ? { ...t, ...data, cupo_disponible: data.cupo_total - t.deuda } : t)),
+      ),
+    )
+  }
+
+  async function eliminarTarjeta(tarjeta) {
+    await tarjetasService.eliminarTarjeta(datosUsuario, tarjeta)
+    setTarjetas((actuales) => actuales.filter((t) => t.id !== tarjeta.id))
+  }
+
   // Actualización optimista: el estado de React cambia de inmediato y el
   // servicio solo confirma en Supabase; si falla, se revierte al valor
   // original de `cuenta` (capturado antes del cambio optimista).
@@ -380,6 +445,21 @@ function App() {
   async function reasignarYEliminarCategoria(categoria, categoriaDestinoId) {
     await categoriasService.reasignarYEliminarCategoria(datosUsuario, categoria, categoriaDestinoId)
     setCategorias((actuales) => actuales.filter((c) => c.id !== categoria.id))
+    setMovimientosVersion((version) => version + 1)
+  }
+
+  // Fase 6 del plan de saldo calculado ("Reiniciar datos", ver
+  // sql/supabase_reiniciar_datos.sql): borra movimientos (y, si se elige,
+  // las definiciones de gastos fijos) del usuario vía la función RPC. Como
+  // el saldo es calculado, no hace falta ningún ajuste optimista de saldo
+  // acá -- basta con volver a cargar "cuentas_con_saldo" (refrescarCuentas,
+  // la misma recarga silenciosa que ya usa cantidad_movimientos) para que
+  // cada cuenta muestre su saldo_inicial de vuelta, y bump-ear
+  // movimientosVersion para que Home/Resumen/etc. recarguen sus listas de
+  // movimientos (ahora vacías, o sin los gastos fijos que se hayan borrado).
+  async function reiniciarDatos(opciones) {
+    await reinicioService.reiniciarDatos(datosUsuario, opciones)
+    await refrescarCuentas()
     setMovimientosVersion((version) => version + 1)
   }
 
@@ -464,9 +544,13 @@ function App() {
           cuentas={cuentas}
           cargandoCuentas={cargandoCuentas}
           errorCuentas={errorCuentas}
+          tarjetas={tarjetas}
+          cargandoTarjetas={cargandoTarjetas}
+          errorTarjetas={errorTarjetas}
           categorias={categorias.filter((categoria) => !categoria.es_sistema)}
           movimientosVersion={movimientosVersion}
           onGestionarCuentas={() => setVista('cuentas')}
+          onGestionarTarjetas={() => setVista('tarjetas')}
           onGestionarCategorias={() => setVista('categorias')}
           onGestionarGastosFijos={() => setVista('gastosFijos')}
           onMarcarGastoFijoPagado={marcarGastoFijoPagado}
@@ -487,6 +571,17 @@ function App() {
           onActualizarCuenta={actualizarCuenta}
           onEliminarCuenta={eliminarCuenta}
           onAlternarEsAhorro={alternarEsAhorro}
+        />
+      )}
+      {vista === 'tarjetas' && (
+        <GestionTarjetas
+          tarjetas={tarjetas}
+          cargandoTarjetas={cargandoTarjetas}
+          errorTarjetas={errorTarjetas}
+          onVolver={() => setVista('inicio')}
+          onAgregarTarjeta={agregarTarjeta}
+          onActualizarTarjeta={actualizarTarjeta}
+          onEliminarTarjeta={eliminarTarjeta}
         />
       )}
       {vista === 'categorias' && (
@@ -517,6 +612,7 @@ function App() {
         <Perfil
           abrirSeguridadInicial={abrirSeguridadAlEntrarAPerfil}
           onSeguridadInicialConsumida={() => setAbrirSeguridadAlEntrarAPerfil(false)}
+          onReiniciarDatos={reiniciarDatos}
         />
       )}
 

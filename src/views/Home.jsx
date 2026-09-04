@@ -3,6 +3,7 @@ import Encabezado from '../components/Encabezado'
 import SelectorPeriodo from '../components/SelectorPeriodo'
 import TarjetaSaldo from '../components/TarjetaSaldo'
 import Cuenta from '../components/Cuenta'
+import Tarjeta from '../components/Tarjeta'
 import GastosFijos from '../components/GastosFijos'
 import GastosVariables from '../components/GastosVariables'
 import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
@@ -30,9 +31,13 @@ function Home({
   cuentas,
   cargandoCuentas,
   errorCuentas,
+  tarjetas,
+  cargandoTarjetas,
+  errorTarjetas,
   categorias,
   movimientosVersion,
   onGestionarCuentas,
+  onGestionarTarjetas,
   onGestionarCategorias,
   onGestionarGastosFijos,
   onMarcarGastoFijoPagado,
@@ -82,7 +87,18 @@ function Home({
     { ingresos: 0, gastos: 0, ahorro: 0 },
   )
 
+  // El total de "Cuentas" (dinero disponible) NUNCA incluye tarjetas: son
+  // cosas separadas por diseño (ver sql/supabase_tarjetas.sql) -- un cupo de
+  // crédito no es plata del usuario. `tarjetas` es un array aparte que nunca
+  // se mezcla con `cuentas`, así que esto no necesita ningún filtro extra.
   const total = cuentas.reduce((suma, cuenta) => suma + cuenta.saldo, 0)
+
+  // Totales de la sección "Tarjetas": deuda total (lo que se debe en TODAS
+  // las tarjetas) y cupo disponible total, para el mini-resumen colapsado y
+  // el resumen al pie de la lista -- mismo criterio que "Total disponible"
+  // en la sección de Cuentas.
+  const deudaTotalTarjetas = tarjetas.reduce((suma, tarjeta) => suma + tarjeta.deuda, 0)
+  const cupoDisponibleTotalTarjetas = tarjetas.reduce((suma, tarjeta) => suma + tarjeta.cupo_disponible, 0)
 
   function irMesAnterior() {
     setPeriodo((actual) => {
@@ -231,6 +247,64 @@ function Home({
               <div className="mt-1 flex items-center justify-between rounded-2xl bg-mint/10 px-4 py-3">
                 <p className="text-sm font-semibold text-mint">{t('home.totalDisponible')}</p>
                 <p className="text-sm font-bold text-mint">{formatear(total)}</p>
+              </div>
+            </div>
+          )}
+        </Acordeon>
+
+        <Acordeon
+          titulo={t('home.misTarjetas')}
+          resumenColapsado={
+            !cargandoTarjetas && !errorTarjetas && tarjetas.length > 0 ? (
+              <p className="flex items-baseline gap-1.5">
+                <span className="text-xs text-text-dim">{t('home.deudaTarjetasEtiqueta')}</span>
+                <span
+                  className={`truncate text-sm font-semibold ${
+                    deudaTotalTarjetas > 0 ? 'text-coral' : 'text-mint'
+                  }`}
+                >
+                  {formatear(deudaTotalTarjetas)}
+                </span>
+              </p>
+            ) : null
+          }
+        >
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={onGestionarTarjetas}
+              className="text-xs font-semibold text-mint"
+            >
+              {t('home.gestionarTarjetas')}
+            </button>
+          </div>
+
+          {cargandoTarjetas && (
+            <p className="px-2 text-sm text-text-dim">{t('home.cargandoTarjetas')}</p>
+          )}
+
+          {errorTarjetas && <MensajeError>{t('home.errorCargarTarjetas')}</MensajeError>}
+
+          {!cargandoTarjetas && !errorTarjetas && tarjetas.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {tarjetas.map((tarjeta) => (
+                // onClick queda preparado para la Fase 5 (detalle navegable
+                // + botón "Pagar tarjeta") -- todavía no hay pantalla de
+                // destino, así que por ahora no hace nada.
+                <Tarjeta key={tarjeta.id} {...tarjeta} onClick={() => {}} />
+              ))}
+
+              <div className="mt-1 flex items-center justify-between rounded-2xl bg-panel shadow-card px-4 py-3">
+                <div>
+                  <p className="text-xs text-text-dim">{t('home.deudaTarjetasEtiqueta')}</p>
+                  <p className={`text-sm font-bold ${deudaTotalTarjetas > 0 ? 'text-coral' : 'text-mint'}`}>
+                    {formatear(deudaTotalTarjetas)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-text-dim">{t('home.cupoDisponibleTarjetasEtiqueta')}</p>
+                  <p className="text-sm font-bold text-mint">{formatear(cupoDisponibleTotalTarjetas)}</p>
+                </div>
               </div>
             </div>
           )}
