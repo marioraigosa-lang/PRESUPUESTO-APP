@@ -30,6 +30,7 @@ const hoy = new Date()
 function DetalleCuenta({
   cuenta,
   cuentas,
+  tarjetas,
   categorias,
   movimientosVersion,
   onVolver,
@@ -78,7 +79,12 @@ function DetalleCuenta({
   }
 
   function abrirEditarMovimiento(movimiento) {
-    if (movimiento.gasto_fijo_id) return
+    // Un pago a tarjeta (Fase 5 del plan de tarjetas de crédito) puede
+    // aparecer en esta lista -- es un egreso de esta cuenta, ver
+    // esEntradaEnCuenta -- pero no se puede editar (ver
+    // services/movimientos.js); Movimiento.jsx ya oculta el lápiz, esto es
+    // la misma defensa doble que ya usa gasto_fijo_id.
+    if (movimiento.gasto_fijo_id || movimiento.tipo === 'pago_tarjeta') return
     setMovimientoEditando(movimiento)
     setHojaAbierta(true)
   }
@@ -217,6 +223,7 @@ function DetalleCuenta({
         abierta={hojaAbierta}
         onCerrar={cerrarHoja}
         cuentas={cuentas}
+        tarjetas={tarjetas}
         categorias={categorias}
         cuentaPreseleccionadaId={cuenta.id}
         onGuardar={onAgregarMovimiento}

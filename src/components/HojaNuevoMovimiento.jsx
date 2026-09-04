@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
-import { useMoneda } from '../context/MonedaContext'
+import { useMoneda, useFormatoMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import AyudaContextual from './AyudaContextual'
@@ -11,6 +11,7 @@ function HojaNuevoMovimiento({
   abierta,
   onCerrar,
   cuentas,
+  tarjetas = [],
   categorias,
   onGuardar,
   onActualizar,
@@ -27,10 +28,13 @@ function HojaNuevoMovimiento({
   const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
+  const formatear = useFormatoMoneda()
 
   const [tipo, setTipo] = useState('gasto')
   const [monto, setMonto] = useState('')
+  const [origen, setOrigen] = useState('cuenta')
   const [cuentaId, setCuentaId] = useState(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
+  const [tarjetaId, setTarjetaId] = useState('')
   const [cuentaDestinoId, setCuentaDestinoId] = useState('')
   const [categoriaId, setCategoriaId] = useState(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
   const [descripcion, setDescripcion] = useState('')
@@ -49,6 +53,16 @@ function HojaNuevoMovimiento({
       setCategoriaId(categorias[0].id)
     }
   }, [categorias, categoriaId])
+
+  // Mismo criterio que el useEffect de cuentaId de arriba: si el origen
+  // elegido es "tarjeta" y todavía no hay ninguna seleccionada (recién se
+  // cambió de "cuenta" a "tarjeta", o la lista de tarjetas acaba de cargar),
+  // le asigna la primera por defecto.
+  useEffect(() => {
+    if (origen === 'tarjeta' && !tarjetaId && tarjetas.length > 0) {
+      setTarjetaId(tarjetas[0].id)
+    }
+  }, [origen, tarjetas, tarjetaId])
 
   // Mantiene la cuenta destino siempre válida mientras se arma un traslado
   // nuevo: si todavía no hay destino elegido, o quedó igual a la cuenta
@@ -74,14 +88,24 @@ function HojaNuevoMovimiento({
     if (movimientoEditando) {
       setTipo(movimientoEditando.tipo)
       setMonto(String(movimientoEditando.monto))
-      setCuentaId(movimientoEditando.cuenta_id ?? '')
+      if (movimientoEditando.tarjeta_id) {
+        setOrigen('tarjeta')
+        setTarjetaId(movimientoEditando.tarjeta_id)
+        setCuentaId('')
+      } else {
+        setOrigen('cuenta')
+        setCuentaId(movimientoEditando.cuenta_id ?? '')
+        setTarjetaId('')
+      }
       setCuentaDestinoId(movimientoEditando.cuenta_destino_id ?? '')
       setCategoriaId(movimientoEditando.categoria_id ?? '')
       setDescripcion(movimientoEditando.descripcion ?? '')
     } else {
       setTipo('gasto')
       setMonto('')
+      setOrigen('cuenta')
       setCuentaId(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
+      setTarjetaId('')
       setCuentaDestinoId('')
       setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
       setDescripcion('')
@@ -96,7 +120,9 @@ function HojaNuevoMovimiento({
   function limpiarFormulario() {
     setTipo('gasto')
     setMonto('')
+    setOrigen('cuenta')
     setCuentaId(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
+    setTarjetaId('')
     setCuentaDestinoId('')
     setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
     setDescripcion('')
@@ -133,6 +159,11 @@ function HojaNuevoMovimiento({
       }
     }
 
+    if (usaTarjeta && !tarjetaId) {
+      setError(t('movimientos.formulario.errorTarjetaInvalida'))
+      return
+    }
+
     const cuentaOrigenSeleccionada = cuentas.find((cuenta) => cuenta.id === cuentaId)
     const cuentaDestinoSeleccionada = cuentas.find((cuenta) => cuenta.id === cuentaDestinoId)
 
@@ -142,7 +173,8 @@ function HojaNuevoMovimiento({
     const datos = {
       tipo,
       monto: Number(monto),
-      cuentaId,
+      cuentaId: usaTarjeta ? null : cuentaId,
+      tarjetaId: usaTarjeta ? tarjetaId : null,
       cuentaDestinoId: tipo === 'traslado' ? cuentaDestinoId : null,
       categoriaId: tipo === 'gasto' ? categoriaId : null,
       emoji:
@@ -183,6 +215,14 @@ function HojaNuevoMovimiento({
   }
 
   const categoriaSeleccionada = categorias.find((categoria) => categoria.id === categoriaId)
+  // Solo un gasto puede salir de una tarjeta (ver constraint
+  // movimientos_traslado_forma_check en sql/supabase_tarjetas_movimientos.sql):
+  // ingreso/traslado/retiro siempre usan cuenta, sin importar qué haya
+  // quedado guardado en `origen` de una vez anterior en que sí era gasto.
+  const usaTarjeta = tipo === 'gasto' && origen === 'tarjeta'
+  const tarjetaSeleccionada = tarjetas.find((tarjeta) => tarjeta.id === tarjetaId)
+  const montoExcedeCupo =
+    usaTarjeta && tarjetaSeleccionada && Number(monto) > tarjetaSeleccionada.cupo_disponible
   const montoFormateado = formatearEntradaMonto(monto, moneda)
   const nombreCuentaOrigen =
     cuentas.find((cuenta) => cuenta.id === cuentaId)?.nombre ?? t('movimientos.formulario.cuentaEliminada')
@@ -348,23 +388,77 @@ function HojaNuevoMovimiento({
             </>
           )
         ) : (
-          <div>
-            <label htmlFor="cuenta" className="mb-1 block text-xs text-text-dim">
-              {t('movimientos.formulario.cuentaLabel')}
-            </label>
-            <select
-              id="cuenta"
-              value={cuentaId}
-              onChange={(evento) => setCuentaId(evento.target.value)}
-              className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none"
-            >
-              {cuentas.map((cuenta) => (
-                <option key={cuenta.id} value={cuenta.id}>
-                  {cuenta.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+          <>
+            {tipo === 'gasto' && tarjetas.length > 0 && (
+              <div>
+                <p className="mb-1 text-xs text-text-dim">{t('movimientos.formulario.origenLabel')}</p>
+                <div className="grid grid-cols-2 gap-1 rounded-full bg-panel-2 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setOrigen('cuenta')}
+                    className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
+                      origen === 'cuenta' ? 'bg-mint text-bg' : 'text-text-dim'
+                    }`}
+                  >
+                    {t('movimientos.formulario.origenCuenta')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOrigen('tarjeta')}
+                    className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
+                      origen === 'tarjeta' ? 'bg-coral text-bg' : 'text-text-dim'
+                    }`}
+                  >
+                    {t('movimientos.formulario.origenTarjeta')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {usaTarjeta ? (
+              <div>
+                <label htmlFor="tarjeta" className="mb-1 block text-xs text-text-dim">
+                  {t('movimientos.formulario.tarjetaLabel')}
+                </label>
+                <select
+                  id="tarjeta"
+                  value={tarjetaId}
+                  onChange={(evento) => setTarjetaId(evento.target.value)}
+                  className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none"
+                >
+                  {tarjetas.map((tarjeta) => (
+                    <option key={tarjeta.id} value={tarjeta.id}>
+                      {tarjeta.nombre} ·{' '}
+                      {t('movimientos.formulario.cupoDisponibleSufijo', {
+                        monto: formatear(tarjeta.cupo_disponible),
+                      })}
+                    </option>
+                  ))}
+                </select>
+                {montoExcedeCupo && (
+                  <p className="mt-1 text-xs text-coral">{t('movimientos.formulario.avisoCupoExcedido')}</p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label htmlFor="cuenta" className="mb-1 block text-xs text-text-dim">
+                  {t('movimientos.formulario.cuentaLabel')}
+                </label>
+                <select
+                  id="cuenta"
+                  value={cuentaId}
+                  onChange={(evento) => setCuentaId(evento.target.value)}
+                  className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none"
+                >
+                  {cuentas.map((cuenta) => (
+                    <option key={cuenta.id} value={cuenta.id}>
+                      {cuenta.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </>
         )}
 
         {tipo === 'gasto' && (

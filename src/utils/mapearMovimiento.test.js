@@ -58,6 +58,22 @@ describe('mapearMovimiento', () => {
     expect(resultado.cuenta).toBe('home.sinCuenta')
   })
 
+  it('gasto con tarjeta (cuenta_id null): usa el nombre de la tarjeta como respaldo antes de "sin cuenta"', () => {
+    const fila = {
+      id: 7,
+      tipo: 'gasto',
+      monto: 80000,
+      fecha: '2026-04-10',
+      cuenta: null,
+      cuenta_destino: null,
+      tarjeta: { nombre: 'Nu Mastercard' },
+    }
+
+    const resultado = mapearMovimiento(fila, tFalso, 'es')
+
+    expect(resultado.cuenta).toBe('Nu Mastercard')
+  })
+
   it('traslado con cuenta destino borrada: cuentaDestino queda en null, no en un texto de respaldo', () => {
     const fila = {
       id: 4,

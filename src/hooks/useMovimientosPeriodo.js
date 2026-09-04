@@ -10,8 +10,13 @@ import { construirConsultaMovimientosPeriodo } from '../utils/consultaMovimiento
 // esta última para traslados), así que hay que indicarle a Supabase con
 // cuál de las dos se hace cada unión; sin el "!columna" la consulta queda
 // ambigua y falla.
+//
+// "tarjeta:tarjetas!tarjeta_id(...)" (Fase 4 del plan de tarjetas de
+// crédito): un gasto con tarjeta tiene cuenta_id null, así que sin esta
+// unión mapearMovimiento no tendría de dónde sacar un nombre que mostrar
+// para ese movimiento -- ver mapearMovimiento.js.
 const COLUMNAS =
-  'id, tipo, descripcion, monto, emoji, fecha, cuenta_id, cuenta_destino_id, categoria_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre)'
+  'id, tipo, descripcion, monto, emoji, fecha, cuenta_id, cuenta_destino_id, categoria_id, tarjeta_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre), tarjeta:tarjetas!tarjeta_id(nombre)'
 
 // Motor de datos compartido para "movimientos de un periodo": la misma
 // consulta que antes vivía solo dentro de MovimientosRecientes.jsx (Home),
@@ -29,13 +34,18 @@ const COLUMNAS =
 // - `categoriaId`: si se pasa, solo trae movimientos de esa categoría. Los
 //   traslados nunca tienen categoria_id, así que nunca aparecen acá -- es
 //   el comportamiento esperado (no hace falta excluirlos a mano).
+// - `tarjetaId` (Fase 5 del plan de tarjetas de crédito): si se pasa, solo
+//   trae movimientos con esa tarjeta -- gastos hechos con ella y pagos hacia
+//   ella, ver construirConsultaMovimientosPeriodo. Usado por
+//   DetalleTarjeta.jsx.
 // - `limite`: si se pasa, corta el resultado a esa cantidad (Home solo
 //   muestra los más recientes); si se omite, trae todos los del periodo.
 //
-// El filtrado por cuenta/categoría se arma acá, en la capa de consulta del
-// componente -- services/movimientos.js (que está bajo test) no cambia:
-// esas funciones solo mutan datos, nunca deciden qué se lista en pantalla.
-export function useMovimientosPeriodo({ periodo, version, cuentaId, categoriaId, limite } = {}) {
+// El filtrado por cuenta/categoría/tarjeta se arma acá, en la capa de
+// consulta del componente -- services/movimientos.js (que está bajo test)
+// no cambia: esas funciones solo mutan datos, nunca deciden qué se lista en
+// pantalla.
+export function useMovimientosPeriodo({ periodo, version, cuentaId, categoriaId, tarjetaId, limite } = {}) {
   const { seleccionarPropio } = useDatosUsuario()
   const { idioma, t } = useIdioma()
 
@@ -47,6 +57,7 @@ export function useMovimientosPeriodo({ periodo, version, cuentaId, categoriaId,
       hasta,
       cuentaId,
       categoriaId,
+      tarjetaId,
       limite,
     })
 
@@ -61,7 +72,7 @@ export function useMovimientosPeriodo({ periodo, version, cuentaId, categoriaId,
 
   return useConsulta(
     cargarMovimientos,
-    [version, periodo.anio, periodo.mes, periodo.quincena, cuentaId, categoriaId, limite],
+    [version, periodo.anio, periodo.mes, periodo.quincena, cuentaId, categoriaId, tarjetaId, limite],
     [],
   )
 }

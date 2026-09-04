@@ -27,6 +27,7 @@ const hoy = new Date()
 function DetalleCategoria({
   categoria,
   cuentas,
+  tarjetas,
   categorias,
   movimientosVersion,
   onVolver,
@@ -233,6 +234,7 @@ function DetalleCategoria({
         abierta={hojaAbierta}
         onCerrar={cerrarHoja}
         cuentas={cuentas}
+        tarjetas={tarjetas}
         categorias={categorias}
         categoriaPreseleccionadaId={categoria.id}
         onGuardar={onAgregarMovimiento}

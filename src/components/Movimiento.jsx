@@ -3,7 +3,7 @@ import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { descripcionEnContexto } from '../utils/movimientosCuenta'
 
-function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onEliminar }) {
+function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminando, onEditar, onEliminar }) {
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
   const {
@@ -19,7 +19,14 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
   const esIngreso = tipo === 'ingreso'
   const esTraslado = tipo === 'traslado'
   const esRetiro = tipo === 'retiro'
-  const esEditable = !gastoFijoId
+  // Un pago a tarjeta (Fase 5 del plan de tarjetas de crédito) no se puede
+  // editar (ver actualizarMovimiento en services/movimientos.js) -- solo
+  // borrar. gasto_fijo_id sigue mandando por encima: si además viniera de
+  // un gasto fijo (nunca pasa hoy, pago_tarjeta no se crea desde ahí, pero
+  // se deja explícito por si acaso) se ve como el Pin, no como "solo
+  // borrar".
+  const esPagoTarjeta = tipo === 'pago_tarjeta'
+  const esEditable = !gastoFijoId && !esPagoTarjeta
 
   // Perspectiva direccional: solo aplica a traslados, y solo cuando la
   // pantalla que llama indica desde qué cuenta se está mirando la lista
@@ -32,21 +39,33 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
   const esTrasladoEnContexto = esTraslado && Boolean(cuentaContextoId)
   const esOrigenEnContexto = esTrasladoEnContexto && cuentaIdOrigen === cuentaContextoId
 
+  // Perspectiva de DEUDA: solo aplica dentro de DetalleTarjeta.jsx
+  // (`tarjetaContextoId` pasado), donde esta lista solo puede traer 'gasto'
+  // (sube la deuda) o 'pago_tarjeta' (la baja) -- ver
+  // construirConsultaMovimientosPeriodo. Coral/"+" para el gasto (la deuda
+  // crece, mismo color que "egreso" en el resto de la app) y mint/"−" para
+  // el pago (la deuda baja, buena noticia).
+  const enContextoTarjeta = Boolean(tarjetaContextoId)
+
   const descripcionMostrada = esTrasladoEnContexto
     ? descripcionEnContexto(movimiento, cuentaContextoId, t)
     : movimiento.descripcion
 
-  const colorIcono = esTrasladoEnContexto
-    ? esOrigenEnContexto
-      ? 'border-transparent bg-coral/15'
-      : 'border-transparent bg-mint/15'
-    : esIngreso
+  const colorIcono = enContextoTarjeta
+    ? esPagoTarjeta
       ? 'border-transparent bg-mint/15'
-      : esTraslado
-        ? 'border-transparent bg-azul/15'
-        : esRetiro
-          ? 'border-transparent bg-coral/15'
-          : 'border-line bg-panel-2'
+      : 'border-transparent bg-coral/15'
+    : esTrasladoEnContexto
+      ? esOrigenEnContexto
+        ? 'border-transparent bg-coral/15'
+        : 'border-transparent bg-mint/15'
+      : esIngreso
+        ? 'border-transparent bg-mint/15'
+        : esTraslado
+          ? 'border-transparent bg-azul/15'
+          : esRetiro
+            ? 'border-transparent bg-coral/15'
+            : 'border-line bg-panel-2'
 
   // Para un traslado visto "desde afuera", la segunda línea muestra el
   // recorrido del dinero (origen → destino) en vez de solo la cuenta. Si la
@@ -57,27 +76,35 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
     ? fecha
     : `${fecha} · ${esTraslado ? `${cuenta} → ${cuentaDestino ?? t('home.cuentaEliminada')}` : cuenta}`
 
-  const colorMonto = esTrasladoEnContexto
-    ? esOrigenEnContexto
-      ? 'text-coral'
-      : 'text-mint'
-    : esIngreso
+  const colorMonto = enContextoTarjeta
+    ? esPagoTarjeta
       ? 'text-mint'
-      : esTraslado
-        ? 'text-azul'
-        : esRetiro
-          ? 'text-coral'
-          : 'text-text'
+      : 'text-coral'
+    : esTrasladoEnContexto
+      ? esOrigenEnContexto
+        ? 'text-coral'
+        : 'text-mint'
+      : esIngreso
+        ? 'text-mint'
+        : esTraslado
+          ? 'text-azul'
+          : esRetiro
+            ? 'text-coral'
+            : 'text-text'
 
-  const signoMonto = esTrasladoEnContexto
-    ? esOrigenEnContexto
+  const signoMonto = enContextoTarjeta
+    ? esPagoTarjeta
       ? '−'
       : '+'
-    : esIngreso
-      ? '+'
-      : esTraslado
-        ? ''
-        : '−'
+    : esTrasladoEnContexto
+      ? esOrigenEnContexto
+        ? '−'
+        : '+'
+      : esIngreso
+        ? '+'
+        : esTraslado
+          ? ''
+          : '−'
 
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3">
@@ -97,16 +124,22 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
         {formatear(monto)}
       </p>
 
-      {esEditable ? (
+      {gastoFijoId ? (
+        <span className="shrink-0 px-1 text-text-dim" title={t('home.vieneDeGastoFijo')}>
+          <Pin className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+      ) : (
         <div className="flex shrink-0 items-center gap-1">
-          <button
-            type="button"
-            onClick={onEditar}
-            aria-label={t('home.editarMovimiento', { descripcion: descripcionMostrada })}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel hover:text-mint"
-          >
-            <Pencil className="h-4 w-4" aria-hidden="true" />
-          </button>
+          {esEditable && (
+            <button
+              type="button"
+              onClick={onEditar}
+              aria-label={t('home.editarMovimiento', { descripcion: descripcionMostrada })}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel hover:text-mint"
+            >
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
           <button
             type="button"
             onClick={onEliminar}
@@ -117,10 +150,6 @@ function Movimiento({ movimiento, cuentaContextoId, eliminando, onEditar, onElim
             <Trash2 className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
-      ) : (
-        <span className="shrink-0 px-1 text-text-dim" title={t('home.vieneDeGastoFijo')}>
-          <Pin className="h-3.5 w-3.5" aria-hidden="true" />
-        </span>
       )}
     </div>
   )

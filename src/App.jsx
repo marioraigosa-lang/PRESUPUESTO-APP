@@ -151,6 +151,20 @@ function App() {
     }
   }
 
+  // Recarga silenciosa de "tarjetas_con_deuda", de fondo -- mismo criterio y
+  // mismo motivo que refrescarCuentas arriba, pero para "cantidad_movimientos"
+  // de las tarjetas: un gasto (o su edición/borrado) puede haber cambiado
+  // cuántos movimientos tiene la tarjeta afectada. Se llama junto con
+  // refrescarCuentas en cada operación de movimiento, sin distinguir si ese
+  // movimiento en particular tocó una cuenta o una tarjeta -- más simple que
+  // decidirlo caso por caso, y sin costo real (una consulta de más).
+  async function refrescarTarjetas() {
+    const { data, error } = await seleccionarPropio('tarjetas_con_deuda').order('deuda', { ascending: false })
+    if (!error) {
+      setTarjetas(data)
+    }
+  }
+
   async function cargarTarjetas() {
     setCargandoTarjetas(true)
     setErrorTarjetas(null)
@@ -214,15 +228,45 @@ function App() {
     )
   }
 
+  // Calco de aplicarActualizacionesSaldo, pero sobre `tarjetas`: el hint
+  // optimista que devuelven los servicios de movimientos (Fase 4 del plan de
+  // tarjetas de crédito) es un DELTA de "deuda", no el valor final -- acá se
+  // suma a la deuda que ya está en pantalla y se recalcula "cupo_disponible"
+  // a mano (cupo_total - deuda nueva), igual que ya hace actualizarTarjeta
+  // más abajo cuando cambia el cupo. Nunca se escribe a la base: si quedara
+  // desactualizado, la próxima carga real de "tarjetas_con_deuda" lo corrige
+  // solo.
+  function aplicarActualizacionesDeuda(actualizaciones) {
+    if (!actualizaciones.length) return
+
+    setTarjetas((actuales) =>
+      tarjetasService.ordenarPorDeuda(
+        actuales.map((t) => {
+          const ajuste = actualizaciones.find((a) => a.id === t.id)
+          if (!ajuste) return t
+          const deuda = t.deuda + ajuste.delta
+          return { ...t, deuda, cupo_disponible: t.cupo_total - deuda }
+        }),
+      ),
+    )
+  }
+
   async function agregarMovimiento(datos) {
-    const { actualizaciones } = await movimientosService.agregarMovimiento(datosUsuario, cuentas, datos)
+    const { actualizaciones, actualizacionesTarjeta = [] } = await movimientosService.agregarMovimiento(
+      datosUsuario,
+      cuentas,
+      tarjetas,
+      datos,
+    )
     aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
     setMovimientosVersion((version) => version + 1)
-    // Sin await a propósito: el saldo ya se actualizó al instante arriba
-    // (hint optimista), así que no hay que esperar esta consulta extra para
-    // cerrar la hoja del formulario -- cantidad_movimientos llega un
-    // instante después, de fondo, sin bloquear nada.
+    // Sin await a propósito: el saldo/deuda ya se actualizó al instante
+    // arriba (hint optimista), así que no hay que esperar estas consultas
+    // extra para cerrar la hoja del formulario -- cantidad_movimientos llega
+    // un instante después, de fondo, sin bloquear nada.
     refrescarCuentas()
+    refrescarTarjetas()
   }
 
   function abrirNuevoMovimiento() {
@@ -241,26 +285,57 @@ function App() {
   }
 
   async function actualizarMovimiento(movimientoOriginal, datos) {
-    const { actualizaciones } = await movimientosService.actualizarMovimiento(
+    const { actualizaciones, actualizacionesTarjeta = [] } = await movimientosService.actualizarMovimiento(
       datosUsuario,
       cuentas,
+      tarjetas,
       movimientoOriginal,
       datos,
     )
     aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
     setMovimientosVersion((version) => version + 1)
-    // Cubre también el caso de editar un movimiento cambiándolo de cuenta:
-    // ambas cuentas (la vieja y la nueva) pueden haber cambiado su
-    // cantidad_movimientos, y esta consulta las trae ya recalculadas todas
-    // de una vez, sin tener que distinguir cuáles fueron las afectadas.
+    // Cubre también el caso de editar un movimiento cambiándolo de
+    // cuenta/tarjeta: todas las involucradas (la vieja y la nueva, sea cuenta
+    // o tarjeta) pueden haber cambiado su cantidad_movimientos, y estas
+    // consultas las traen ya recalculadas todas de una vez, sin tener que
+    // distinguir cuáles fueron las afectadas.
     refrescarCuentas()
+    refrescarTarjetas()
   }
 
   async function eliminarMovimiento(movimiento) {
-    const { actualizaciones } = await movimientosService.eliminarMovimiento(datosUsuario, cuentas, movimiento)
+    const { actualizaciones, actualizacionesTarjeta = [] } = await movimientosService.eliminarMovimiento(
+      datosUsuario,
+      cuentas,
+      tarjetas,
+      movimiento,
+    )
     aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
     setMovimientosVersion((version) => version + 1)
     refrescarCuentas()
+    refrescarTarjetas()
+  }
+
+  // Paga (total o parcialmente) la deuda de `tarjeta` desde una cuenta --
+  // Fase 5 del plan de tarjetas de crédito. Mismo patrón que
+  // agregarMovimiento/actualizarMovimiento/eliminarMovimiento: aplica los
+  // dos hints optimistas (baja el saldo de la cuenta, baja la deuda de la
+  // tarjeta) y refresca ambas listas de fondo, sin bloquear el cierre de la
+  // hoja de pago.
+  async function pagarTarjeta(tarjeta, datos) {
+    const { actualizaciones, actualizacionesTarjeta } = await movimientosService.pagarTarjeta(
+      datosUsuario,
+      cuentas,
+      tarjeta,
+      datos,
+    )
+    aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
+    setMovimientosVersion((version) => version + 1)
+    refrescarCuentas()
+    refrescarTarjetas()
   }
 
   // `periodo` es { mes, anio, quincena }: el mes/año seleccionado en el
@@ -558,6 +633,7 @@ function App() {
           onEliminarMovimiento={eliminarMovimiento}
           onAgregarMovimiento={agregarMovimiento}
           onActualizarMovimiento={actualizarMovimiento}
+          onPagarTarjeta={pagarTarjeta}
           onIrASeguridad={irASeguridadDesdeHome}
         />
       )}
@@ -622,6 +698,7 @@ function App() {
         abierta={hojaAbierta}
         onCerrar={cerrarHojaMovimiento}
         cuentas={cuentas}
+        tarjetas={tarjetas}
         categorias={categorias.filter((categoria) => !categoria.es_sistema)}
         onGuardar={agregarMovimiento}
         onActualizar={(datos) => actualizarMovimiento(movimientoEditando, datos)}

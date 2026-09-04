@@ -10,6 +10,7 @@ import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
 import Acordeon from '../components/ui/Acordeon'
 import DetalleCuenta from './DetalleCuenta'
 import DetalleCategoria from './DetalleCategoria'
+import DetalleTarjeta from './DetalleTarjeta'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -45,6 +46,7 @@ function Home({
   onEliminarMovimiento,
   onAgregarMovimiento,
   onActualizarMovimiento,
+  onPagarTarjeta,
   onIrASeguridad,
 }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -58,6 +60,7 @@ function Home({
   const [modo, setModo] = useState('resumen')
   const [cuentaSeleccionadaId, setCuentaSeleccionadaId] = useState(null)
   const [categoriaSeleccionadaId, setCategoriaSeleccionadaId] = useState(null)
+  const [tarjetaSeleccionadaId, setTarjetaSeleccionadaId] = useState(null)
 
   // Ingresos/gastos/ahorro del mes seleccionado, calculados a partir de los
   // movimientos reales (no del saldo de las cuentas, que es el saldo actual
@@ -136,10 +139,16 @@ function Home({
     setModo('detalleCategoria')
   }
 
+  function abrirDetalleTarjeta(tarjeta) {
+    setTarjetaSeleccionadaId(tarjeta.id)
+    setModo('detalleTarjeta')
+  }
+
   function volverAResumen() {
     setModo('resumen')
     setCuentaSeleccionadaId(null)
     setCategoriaSeleccionadaId(null)
+    setTarjetaSeleccionadaId(null)
   }
 
   // Se busca por id en `cuentas`/`categorias` (en vez de guardar el objeto
@@ -161,11 +170,17 @@ function Home({
       ? categorias.find((c) => c.id === categoriaSeleccionadaId)
       : null
 
+  const tarjetaActual =
+    modo === 'detalleTarjeta' && tarjetaSeleccionadaId
+      ? tarjetas.find((t) => t.id === tarjetaSeleccionadaId)
+      : null
+
   if (cuentaActual) {
     return (
       <DetalleCuenta
         cuenta={cuentaActual}
         cuentas={cuentas}
+        tarjetas={tarjetas}
         categorias={categorias}
         movimientosVersion={movimientosVersion}
         onVolver={volverAResumen}
@@ -181,12 +196,29 @@ function Home({
       <DetalleCategoria
         categoria={categoriaActual}
         cuentas={cuentas}
+        tarjetas={tarjetas}
         categorias={categorias}
         movimientosVersion={movimientosVersion}
         onVolver={volverAResumen}
         onAgregarMovimiento={onAgregarMovimiento}
         onActualizarMovimiento={onActualizarMovimiento}
         onEliminarMovimiento={onEliminarMovimiento}
+      />
+    )
+  }
+
+  if (tarjetaActual) {
+    return (
+      <DetalleTarjeta
+        tarjeta={tarjetaActual}
+        cuentas={cuentas}
+        tarjetas={tarjetas}
+        categorias={categorias}
+        movimientosVersion={movimientosVersion}
+        onVolver={volverAResumen}
+        onActualizarMovimiento={onActualizarMovimiento}
+        onEliminarMovimiento={onEliminarMovimiento}
+        onPagarTarjeta={onPagarTarjeta}
       />
     )
   }
@@ -288,10 +320,7 @@ function Home({
           {!cargandoTarjetas && !errorTarjetas && tarjetas.length > 0 && (
             <div className="flex flex-col gap-2">
               {tarjetas.map((tarjeta) => (
-                // onClick queda preparado para la Fase 5 (detalle navegable
-                // + botón "Pagar tarjeta") -- todavía no hay pantalla de
-                // destino, así que por ahora no hace nada.
-                <Tarjeta key={tarjeta.id} {...tarjeta} onClick={() => {}} />
+                <Tarjeta key={tarjeta.id} {...tarjeta} onClick={() => abrirDetalleTarjeta(tarjeta)} />
               ))}
 
               <div className="mt-1 flex items-center justify-between rounded-2xl bg-panel shadow-card px-4 py-3">

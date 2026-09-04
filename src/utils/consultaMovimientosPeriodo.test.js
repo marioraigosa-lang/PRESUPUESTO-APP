@@ -52,6 +52,18 @@ describe('construirConsultaMovimientosPeriodo', () => {
     expect(llamadas).toContainEqual(['eq', 'categoria_id', 'cat-5'])
   })
 
+  it('con tarjetaId: agrega eq() sobre tarjeta_id', () => {
+    const { builder, llamadas } = crearConstructorEspia()
+
+    construirConsultaMovimientosPeriodo(builder, {
+      desde: '2026-01-01',
+      hasta: '2026-01-31',
+      tarjetaId: 'tar-1',
+    })
+
+    expect(llamadas).toContainEqual(['eq', 'tarjeta_id', 'tar-1'])
+  })
+
   it('con limite: agrega limit() al final, después de ordenar', () => {
     const { builder, llamadas } = crearConstructorEspia()
 

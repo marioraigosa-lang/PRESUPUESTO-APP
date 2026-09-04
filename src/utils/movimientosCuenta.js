@@ -1,13 +1,15 @@
 // ¿Este movimiento representa dinero que ENTRA a `cuentaId`? Un ingreso
 // siempre entra; un gasto siempre sale; un retiro también siempre sale (es
-// plata que sale del sistema, no va a ninguna otra cuenta); un traslado
-// depende de qué lado de la cuenta se está mirando -- entra si esta cuenta
-// es el destino, sale si es el origen (ver decisión de diseño: los
+// plata que sale del sistema, no va a ninguna otra cuenta); un pago_tarjeta
+// (Fase 5 del plan de tarjetas de crédito) también siempre sale -- es plata
+// que se va de esta cuenta hacia una tarjeta, nunca hacia otra cuenta -- un
+// traslado depende de qué lado de la cuenta se está mirando -- entra si esta
+// cuenta es el destino, sale si es el origen (ver decisión de diseño: los
 // traslados cuentan como ingreso/egreso "normal" desde la perspectiva de
 // cada cuenta).
 export function esEntradaEnCuenta(movimiento, cuentaId) {
   if (movimiento.tipo === 'ingreso') return true
-  if (movimiento.tipo === 'gasto' || movimiento.tipo === 'retiro') return false
+  if (movimiento.tipo === 'gasto' || movimiento.tipo === 'retiro' || movimiento.tipo === 'pago_tarjeta') return false
   return movimiento.cuenta_destino_id === cuentaId
 }
 

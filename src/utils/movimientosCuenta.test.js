@@ -40,6 +40,12 @@ describe('esEntradaEnCuenta', () => {
 
     expect(esEntradaEnCuenta(movimiento, CUENTA_A)).toBe(false)
   })
+
+  it('un pago_tarjeta siempre sale de la cuenta (va hacia una tarjeta, no a otra cuenta)', () => {
+    const movimiento = { tipo: 'pago_tarjeta', cuenta_destino_id: null }
+
+    expect(esEntradaEnCuenta(movimiento, CUENTA_A)).toBe(false)
+  })
 })
 
 describe('calcularResumenCuenta', () => {
@@ -113,6 +119,17 @@ describe('calcularResumenCuenta', () => {
     expect(resultado.totalIngresos).toBe(0)
     expect(resultado.totalEgresos).toBe(60000)
     expect(resultado.neto).toBe(-60000)
+    expect(resultado.listaMovimientos).toEqual(movimientos)
+  })
+
+  it('suma un pago_tarjeta a totalEgresos y SÍ lo incluye en la lista (aparece como egreso en la cuenta de origen)', () => {
+    const movimientos = [{ id: 1, tipo: 'pago_tarjeta', monto: 70000 }]
+
+    const resultado = calcularResumenCuenta(movimientos, CUENTA_A)
+
+    expect(resultado.totalIngresos).toBe(0)
+    expect(resultado.totalEgresos).toBe(70000)
+    expect(resultado.neto).toBe(-70000)
     expect(resultado.listaMovimientos).toEqual(movimientos)
   })
 })

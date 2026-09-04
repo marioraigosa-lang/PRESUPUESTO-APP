@@ -318,6 +318,39 @@ export default {
       guardarCambios: 'Guardar cambios',
       guardarTarjeta: 'Guardar tarjeta',
     },
+    // Fase 5 del plan "Tarjetas de crédito": pantalla de detalle navegable
+    // (se abre al tocar una tarjeta en Inicio) con sus movimientos del mes
+    // -- gastos hechos con ella y pagos hacia ella -- y el botón "Pagar
+    // tarjeta". Reutiliza a propósito varias claves de "home.*" (cargando/
+    // error de movimientos), mismo criterio que cuentas.detalle.
+    detalle: {
+      volverAria: 'Volver a inicio',
+      pagarTarjeta: 'Pagar tarjeta',
+      gastadoTitulo: 'Gastado',
+      pagadoTitulo: 'Pagado',
+      netoTitulo: 'Neto',
+      listaTitulo: 'Movimientos',
+      sinMovimientos: 'No hay movimientos este mes.',
+      confirmarEliminarPago: '¿Eliminar el pago "{{descripcion}}"? La deuda de la tarjeta volverá a subir.',
+    },
+    // Hoja para pagar (total o parcialmente) la deuda de una tarjeta desde
+    // una cuenta -- se abre desde el botón "Pagar tarjeta" de
+    // tarjetas.detalle.
+    pago: {
+      titulo: 'Pagar tarjeta',
+      cerrarAria: 'Cerrar',
+      deudaActualLabel: 'Deuda actual',
+      montoLabel: 'Monto a pagar',
+      cuentaLabel: '¿Desde qué cuenta?',
+      sinCuentas: 'No tienes cuentas registradas todavía.',
+      errorMontoInvalido: 'Ingresa un monto válido',
+      errorSobrepago: 'El pago no puede superar la deuda actual ({{monto}}).',
+      errorSinCuenta: 'Selecciona una cuenta',
+      errorGuardar: 'No se pudo registrar el pago. Intenta de nuevo.',
+      guardando: 'Pagando...',
+      confirmar: 'Confirmar pago',
+      descripcion: 'Pago {{tarjeta}}',
+    },
   },
 
   categorias: {
@@ -459,6 +492,13 @@ export default {
       sufijoOrigen: ' (origen)',
       minimoCuentasTraslado: 'Necesitas al menos 2 cuentas para hacer un traslado.',
       cuentaLabel: 'Cuenta',
+      origenLabel: 'Cuenta o tarjeta',
+      origenCuenta: 'Cuenta',
+      origenTarjeta: 'Tarjeta',
+      tarjetaLabel: 'Tarjeta',
+      cupoDisponibleSufijo: 'Disponible: {{monto}}',
+      errorTarjetaInvalida: 'Selecciona una tarjeta válida',
+      avisoCupoExcedido: 'Este gasto supera el cupo disponible de la tarjeta.',
       categoriaLabel: 'Categoría',
       descripcionLabel: 'Descripción (opcional)',
       descripcionPlaceholderTraslado: 'Ej: Ahorro del mes',
