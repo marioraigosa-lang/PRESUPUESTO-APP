@@ -198,9 +198,10 @@ export default {
       errorCargar: "Couldn't load your accounts. Please try again.",
       errorEliminar: "Couldn't delete the account. Please try again.",
       errorActualizar: "Couldn't update the account. Please try again.",
-      confirmarEliminar: 'Delete the account "{{nombre}}"? This action cannot be undone.',
+      confirmarEliminar:
+        'Deleting "{{nombre}}" also deletes all of its transactions: income, expenses, transfers, withdrawals, and card payments made from it. This can affect the balance of other accounts and your cards\' debt. This action cannot be undone. Delete "{{nombre}}"?',
       confirmarEliminarUltima:
-        'This is your only account. If you delete it, you\'ll need to create a new one to keep logging transactions. Delete "{{nombre}}"?',
+        'This is your only account. Deleting it also deletes all of its transactions (including card payments, which can raise your cards\' debt back up), and you\'ll need to create a new one to keep logging transactions. This action cannot be undone. Delete "{{nombre}}"?',
       sinCuentas: 'You don\'t have any accounts yet. Create your first one with "+ Add account".',
       badgeAhorro: 'Savings',
       editarAria: 'Edit account {{nombre}}',

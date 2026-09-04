@@ -437,6 +437,18 @@ function App() {
   async function eliminarCuenta(cuenta) {
     await cuentasService.eliminarCuenta(datosUsuario, cuenta)
     setCuentas((actuales) => actuales.filter((c) => c.id !== cuenta.id))
+    // Fase 6 del plan de tarjetas de crédito: borrar una cuenta ahora borra
+    // en cascada sus movimientos (ver sql/supabase_fix_borrado_cuentas.sql
+    // -- "on delete cascade" en cuenta_id/cuenta_destino_id, en vez de "on
+    // delete set null"). Eso puede incluir traslados (afecta el saldo de la
+    // OTRA cuenta del traslado, que sigue existiendo) y pagos de tarjeta
+    // (la deuda de esa tarjeta vuelve a subir, porque ese pago ya no
+    // existe). No hay un delta optimista simple que calcular acá -- no se
+    // sabe, sin consultar, cuántos traslados/pagos tenía esta cuenta ni con
+    // quién -- así que se refresca completo, mismo criterio que ya usan las
+    // operaciones de movimientos (agregarMovimiento, etc.).
+    refrescarCuentas()
+    refrescarTarjetas()
   }
 
   async function agregarTarjeta(datos) {

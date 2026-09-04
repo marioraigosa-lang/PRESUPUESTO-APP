@@ -219,9 +219,10 @@ export default {
       errorCargar: 'No se pudieron cargar las cuentas. Intenta de nuevo.',
       errorEliminar: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
       errorActualizar: 'No se pudo actualizar la cuenta. Intenta de nuevo.',
-      confirmarEliminar: '¿Eliminar la cuenta "{{nombre}}"? Esta acción no se puede deshacer.',
+      confirmarEliminar:
+        'Al eliminar "{{nombre}}" también se borran todos sus movimientos: ingresos, gastos, traslados, retiros y pagos de tarjeta hechos desde ella. Esto puede afectar el saldo de otras cuentas y la deuda de tus tarjetas. Esta acción no se puede deshacer. ¿Eliminar "{{nombre}}"?',
       confirmarEliminarUltima:
-        'Esta es tu única cuenta. Si la eliminas, tendrás que crear una nueva para seguir registrando movimientos. ¿Eliminar "{{nombre}}"?',
+        'Esta es tu única cuenta. Al eliminarla también se borran todos sus movimientos (incluidos pagos de tarjeta, que pueden hacer subir la deuda de tus tarjetas), y tendrás que crear una nueva para seguir registrando. Esta acción no se puede deshacer. ¿Eliminar "{{nombre}}"?',
       sinCuentas: 'Aún no tienes cuentas. Crea la primera con "+ Agregar cuenta".',
       badgeAhorro: 'Ahorro',
       editarAria: 'Editar cuenta {{nombre}}',

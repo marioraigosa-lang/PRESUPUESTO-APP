@@ -69,10 +69,20 @@ export async function actualizarTarjeta(datosUsuario, id, { nombre, color, cupoT
 // Bloquea borrar una tarjeta con deuda pendiente (decisión confirmada del
 // plan): borrarla no cancela lo que se debe, y dejaría esa deuda "invisible"
 // -- a diferencia de eliminarCuenta (services/cuentas.js), que sí permite
-// borrar una cuenta con movimientos (sus movimientos solo quedan huérfanos,
-// on delete set null). GestionTarjetas.jsx ya evita mostrar el diálogo de
-// confirmación en este caso (mejor UX), pero esta validación es la que de
-// verdad protege el dato, sin importar desde dónde se llame.
+// borrar una cuenta con movimientos, sin importar cuántos tenga. Desde la
+// Fase 6 (ver sql/supabase_fix_borrado_cuentas.sql), esos movimientos se
+// borran EN CASCADA junto con la cuenta (antes quedaban huérfanos con
+// "on delete set null" -- eso empezó a violar movimientos_traslado_forma_check
+// en cuanto existió tarjeta_id, así que se cambió a cascade). "tarjeta_id"
+// en movimientos, en cambio, SIGUE en "on delete set null" -- borrar una
+// tarjeta con movimientos (gastos o pagos) todavía puede romper por el
+// mismo motivo si algún día deuda llega a 0 con historial detrás; por eso
+// esta función bloquea directamente por deuda > 0, más estricto que lo que
+// hace falta para el constraint, pero evita también ese problema sin tener
+// que decidir todavía qué hacer con el historial de una tarjeta borrada.
+// GestionTarjetas.jsx ya evita mostrar el diálogo de confirmación en este
+// caso (mejor UX), pero esta validación es la que de verdad protege el
+// dato, sin importar desde dónde se llame.
 export async function eliminarTarjeta(datosUsuario, tarjeta) {
   if ((tarjeta.deuda ?? 0) > 0) {
     throw new Error('No puedes eliminar una tarjeta con deuda pendiente. Primero paga o reduce la deuda a 0.')
