@@ -1,0 +1,279 @@
+-- ============================================================================
+-- supabase_fix_borrado_tarjetas.sql
+--
+-- ❌ SUPERADO POR sql/supabase_borrado_tarjetas_reasignacion.sql -- NO APLICAR
+-- ESTE SCRIPT.
+--
+-- Este script proponía "on delete cascade" para movimientos.tarjeta_id: al
+-- borrar una tarjeta se borraban TODOS sus movimientos, incluidos los pagos
+-- (pago_tarjeta). Como los pagos tienen cuenta_id, el saldo de esas cuentas
+-- "recuperaba" ese dinero -- la app pasaba a comportarse como si esos pagos
+-- nunca hubieran ocurrido. El usuario replanteó el modelo: eso NO es
+-- correcto.
+--
+-- El modelo FINAL (ver supabase_borrado_tarjetas_reasignacion.sql): la
+-- tarjeta solo se borra con deuda 0; sus GASTOS se REASIGNAN a la cuenta que
+-- la pagó (se conservan en el historial y en sus categorías) y sus PAGOS se
+-- ELIMINAN (ya no hacen falta, el gasto ahora sale directo de la cuenta).
+-- Ese script además cambia la FK a ON DELETE RESTRICT (no CASCADE) y hace
+-- todo vía la función eliminar_tarjeta_usuario().
+--
+-- ESTADO REAL EN LA BD: el "on delete cascade" de este script SÍ se ejecutó
+-- en su momento, pero YA FUE REVERTIDO -- supabase_borrado_tarjetas_reasignacion.sql
+-- (aplicado el 2026-09-06) lo cambió a "on delete restrict" en su PASO 1. La
+-- FK movimientos_tarjeta_id_fkey está hoy en RESTRICT. No hay nada que hacer
+-- con este archivo: no volver a ejecutarlo.
+--
+-- Se deja el contenido de abajo TAL CUAL como referencia del diagnóstico
+-- original del bug (que sí sigue siendo correcto: el "set null" original
+-- rompía movimientos_traslado_forma_check).
+--
+-- ----------------------------------------------------------------------------
+-- [texto original, previo al rediseño:]
+--
+-- Continuación de sql/supabase_fix_borrado_cuentas.sql (ya aplicado el
+-- 2026-09-04): ese script resolvió el borrado de CUENTAS con movimientos;
+-- este resuelve el bug SIMÉTRICO en el borrado de TARJETAS. Misma causa,
+-- misma decisión (cascada), otra FK.
+--
+-- ============================================================================
+-- EL BUG, EN DETALLE
+-- ============================================================================
+-- "movimientos.tarjeta_id" es "on delete set null" desde que existe
+-- (supabase_tarjetas_movimientos.sql, Fase 2 de tarjetas -- PASO 1 de ese
+-- script). Nunca se tocó.
+--
+-- La misma Fase 2 reescribió "movimientos_traslado_forma_check" con 4 ramas
+-- explícitas (ver supabase_tarjetas_movimientos.sql, PASO 3). Las dos que
+-- importan acá:
+--
+--   -- un gasto exige EXACTAMENTE UNO de (cuenta_id, tarjeta_id):
+--   tipo = 'gasto' and cuenta_destino_id is null and (
+--     (cuenta_id is not null and tarjeta_id is null)
+--     or
+--     (cuenta_id is null and tarjeta_id is not null)
+--   )
+--
+--   -- un pago_tarjeta exige cuenta_id Y tarjeta_id, los dos:
+--   tipo = 'pago_tarjeta'
+--   and cuenta_id is not null
+--   and tarjeta_id is not null
+--   and cuenta_destino_id is null
+--   and categoria_id is null
+--
+-- Al borrar una tarjeta con "on delete set null":
+--   - un GASTO hecho con esa tarjeta (cuenta_id ya era null, tarjeta_id era
+--     la tarjeta) queda con cuenta_id = null Y tarjeta_id = null a la vez --
+--     ninguna rama del OR de 'gasto' aplica.
+--   - un PAGO a esa tarjeta (pago_tarjeta, tenía cuenta_id Y tarjeta_id)
+--     queda con tarjeta_id = null -- deja de cumplir "tarjeta_id is not
+--     null" de la rama 'pago_tarjeta'.
+-- En ambos casos el UPDATE que dispara la propia cascada de la FK viola el
+-- CHECK -> la transacción entera (incluido el DELETE de la tarjeta) falla
+-- con un error de Postgres.
+--
+-- Hoy esto casi nunca se dispara porque services/tarjetas.js/eliminarTarjeta
+-- BLOQUEA el borrado si la tarjeta tiene deuda > 0. Pero una tarjeta puede
+-- tener movimientos y deuda 0 (gastó y pagó todo) -- ahí el borrado se
+-- permite y es donde el bug aparece.
+--
+-- ============================================================================
+-- LA DECISIÓN (misma que para cuentas, confirmada con el usuario)
+-- ============================================================================
+-- En vez de dejar esos movimientos huérfanos (que ya no es una forma válida
+-- bajo el constraint nuevo), se borran EN CASCADA junto con la tarjeta:
+-- cambiar "movimientos.tarjeta_id" de "on delete set null" a
+-- "on delete cascade".
+--
+-- Efecto al borrar una tarjeta T:
+--   - GASTO con tarjeta_id = T  -> se borra la fila. Ese gasto solo afectaba
+--     la deuda de T (nunca tocó ninguna cuenta -- un gasto con tarjeta no
+--     tiene cuenta_id). T ya no existe, así que no queda nada descuadrado:
+--     simplemente ese gasto desaparece del historial.
+--   - PAGO_TARJETA con tarjeta_id = T (y cuenta_id = C, la cuenta de ahorro
+--     desde la que se pagó, que SIGUE existiendo) -> se borra la fila
+--     completa (cascade por tarjeta_id). Efecto downstream: "cuentas_con_saldo"
+--     (vista calculada, ver supabase_tarjetas_movimientos.sql PASO 5)
+--     recalcula el saldo de C SIN este pago -> C "recupera" ese dinero,
+--     porque para la vista el pago ya no existió nunca. Ver el análisis
+--     completo más abajo.
+--
+-- Ningún movimiento puede quedar violando movimientos_traslado_forma_check
+-- después de este cambio: las filas que antes hubieran quedado en una forma
+-- inválida ("cuenta_id null y tarjeta_id null", o "pago_tarjeta con
+-- tarjeta_id null") ahora simplemente no existen más -- se fueron con el
+-- DELETE en cascada.
+--
+-- ============================================================================
+-- ANÁLISIS: "borrar una tarjeta con pagos -> la cuenta recupera saldo"
+-- ============================================================================
+-- Escenario típico (tarjeta con deuda 0 y con historial): gasté 100.000 con
+-- la tarjeta (deuda +100.000) y luego pagué 100.000 desde mi cuenta de
+-- ahorro C (saldo de C -100.000, deuda -100.000 -> deuda 0).
+--
+-- Al borrar la tarjeta se borran las DOS filas:
+--   - el gasto de 100.000: no tocaba ninguna cuenta -> nada que recalcular.
+--   - el pago de 100.000: tenía cuenta_id = C -> "cuentas_con_saldo" ahora
+--     suma un movimiento menos para C -> el saldo de C sube +100.000.
+--
+-- ¿Tiene sentido contablemente?
+--
+--   SÍ, dentro del modelo de la app. Seed App es un libro contable personal
+--   AUTO-CONSISTENTE: los saldos y deudas SIEMPRE se derivan de las filas de
+--   "movimientos" (nunca se guardan -- ver supabase_saldo_calculado.sql y
+--   supabase_tarjetas_movimientos.sql). Borrar la tarjeta es declarar "esta
+--   tarjeta y todo su historial ya no existen en mis registros". Si el pago
+--   nunca existió, entonces esa plata nunca salió de C -> que C recupere el
+--   saldo es el resultado COHERENTE, no un bug. Es exactamente el mismo
+--   mecanismo que ya usa borrar un pago_tarjeta suelto desde la lista de
+--   movimientos (i18n: "La deuda de la tarjeta volverá a subir") -- solo que
+--   acá la tarjeta se va también, así que el lado "la deuda sube" es mudo y
+--   queda solo el lado "la cuenta recupera".
+--
+--   EL CASO RARO / LA DIVERGENCIA CON LA REALIDAD: si el usuario de verdad
+--   pagó plata real a una tarjeta real y después borra la tarjeta en la app,
+--   el saldo que la app muestra para C va a quedar MÁS ALTO que el saldo
+--   real del banco, por el total de los pagos borrados. La app pasa a
+--   comportarse como si esos pagos nunca hubieran ocurrido. No es un
+--   descuadre interno (la app sigue siendo consistente consigo misma), es
+--   una divergencia entre la app y el mundo. Por eso:
+--     1. La advertencia ANTES de confirmar el borrado lo dice explícito.
+--     2. Se MANTIENE la regla "no borrar tarjeta con deuda > 0" -- así al
+--        menos nunca se puede borrar una tarjeta a mitad de deuda y perder
+--        de vista lo que se debe.
+--
+--   OTRO EFECTO DOWNSTREAM (menor, coherente): "cuentas_con_saldo" también
+--   expone "cantidad_movimientos" de C, que baja en 1 por cada pago borrado.
+--   Si con eso C llega a 0 movimientos, HojaCuenta.jsx vuelve a permitir
+--   editar su "saldo_inicial". Es el mismo comportamiento que ya tiene
+--   borrar cualquier movimiento de una cuenta -- no es nuevo ni específico
+--   de este fix.
+--
+--   CASOS QUE NO PUEDEN PASAR (no hay que contemplarlos):
+--     - Un pago_tarjeta cuya cuenta_id ya no existe: imposible. cuenta_id es
+--       "on delete cascade" desde supabase_fix_borrado_cuentas.sql -- si esa
+--       cuenta se hubiera borrado, el pago se habría ido con ella. Todo
+--       pago_tarjeta que sobrevive tiene una cuenta viva del otro lado.
+--     - Montos negativos que hagan "recuperar" de más: imposible.
+--       "movimientos" tiene CHECK monto > 0 (supabase_reforzar_integridad.sql).
+--
+-- ============================================================================
+-- QUÉ NO TOCA ESTE SCRIPT (a propósito)
+-- ============================================================================
+-- - No toca "cuenta_id" ni "cuenta_destino_id" -- ya quedaron en cascade en
+--   supabase_fix_borrado_cuentas.sql.
+-- - No toca "movimientos_traslado_forma_check" ni "movimientos_tipo_check"
+--   -- no hace falta, las filas problemáticas dejan de existir con la
+--   cascada, no hay constraint que relajar.
+-- - No toca las vistas "tarjetas_con_deuda" ni "cuentas_con_saldo" -- se
+--   recalculan solas con una fila menos, que es justo lo que se quiere.
+-- - No toca la regla de negocio "no borrar tarjeta con deuda > 0" -- esa
+--   vive en services/tarjetas.js y se MANTIENE.
+--
+-- ============================================================================
+-- PASO 0: VERIFICAR EL NOMBRE REAL DE LA CONSTRAINT -- CORRER ESTO PRIMERO,
+-- SEPARADO, ANTES DE TOCAR NADA
+-- ============================================================================
+-- "movimientos.tarjeta_id" se creó con "references public.tarjetas(id) on
+-- delete set null" dentro de un ADD COLUMN (supabase_tarjetas_movimientos.sql,
+-- PASO 1), sin nombrar la FK explícitamente -> Postgres le puso el nombre
+-- por defecto "movimientos_tarjeta_id_fkey". El usuario confirmó ese nombre,
+-- pero igual: correr esta consulta primero y comparar el resultado contra el
+-- nombre usado en el PASO 1 de abajo antes de ejecutar nada más. Si no
+-- coincide, ajustar el DROP/ADD con el nombre real.
+
+select
+  conname as nombre_constraint,
+  pg_get_constraintdef(oid) as definicion
+from pg_constraint
+where conrelid = 'public.movimientos'::regclass
+  and contype = 'f' -- 'f' = foreign key
+order by conname;
+
+-- Se espera ver, entre otras:
+--   movimientos_tarjeta_id_fkey  FOREIGN KEY (tarjeta_id)
+--     REFERENCES tarjetas(id) ON DELETE SET NULL
+--   movimientos_cuenta_id_fkey            ... ON DELETE CASCADE  (ya migrada)
+--   movimientos_cuenta_destino_id_fkey    ... ON DELETE CASCADE  (ya migrada)
+
+-- ============================================================================
+-- PASO 1: "tarjeta_id" -- de "on delete set null" a "on delete cascade"
+-- ============================================================================
+-- "drop constraint if exists" con el nombre confirmado en el PASO 0: si el
+-- nombre real fuera distinto, esto no hace nada (no falla, tampoco corrige)
+-- y el "add constraint" de abajo fallaría por choque de nombre -- se notaría
+-- de inmediato. Por eso la verificación del PASO 0 es obligatoria.
+alter table public.movimientos
+  drop constraint if exists movimientos_tarjeta_id_fkey;
+
+alter table public.movimientos
+  add constraint movimientos_tarjeta_id_fkey
+  foreign key (tarjeta_id) references public.tarjetas(id) on delete cascade;
+
+-- ============================================================================
+-- VERIFICACIÓN (correr esto después del PASO 1)
+-- ============================================================================
+
+-- 1) La FK debe mostrar "ON DELETE CASCADE" ahora.
+-- select conname, pg_get_constraintdef(oid) as definicion
+-- from pg_constraint
+-- where conrelid = 'public.movimientos'::regclass
+--   and conname = 'movimientos_tarjeta_id_fkey';
+
+-- 2) Sanity check -- NO debería haber ninguna fila hoy que ya viole el
+--    constraint de forma (independiente de este script; solo confirma que
+--    no hay corrupción previa antes de probar el borrado en cascada). Debe
+--    devolver 0 filas.
+-- select id, tipo, cuenta_id, cuenta_destino_id, tarjeta_id, categoria_id
+-- from public.movimientos
+-- where not (
+--   (tipo = 'traslado' and cuenta_destino_id is not null and categoria_id is null and tarjeta_id is null)
+--   or
+--   (tipo = 'pago_tarjeta' and cuenta_id is not null and tarjeta_id is not null and cuenta_destino_id is null and categoria_id is null)
+--   or
+--   (tipo = 'gasto' and cuenta_destino_id is null and (
+--     (cuenta_id is not null and tarjeta_id is null) or (cuenta_id is null and tarjeta_id is not null)
+--   ))
+--   or
+--   (tipo in ('ingreso', 'retiro') and cuenta_destino_id is null and tarjeta_id is null)
+-- );
+
+-- 3) Prueba funcional completa (con un usuario logueado; reemplaza
+--    '<tu-cuenta-id>' por el id de una cuenta tuya real):
+--
+-- -- 3a) Crear una tarjeta de prueba con cupo 1.000.000
+-- insert into public.tarjetas (user_id, nombre, color, inicial, cupo_total)
+-- values (auth.uid(), 'Tarjeta borrado prueba', '#5aa9e6', 'T', 1000000)
+-- returning id; -- guardar como '<tarjeta-id>'
+--
+-- -- 3b) Un gasto de 100.000 con esa tarjeta (deuda -> 100.000)
+-- insert into public.movimientos (user_id, tipo, descripcion, monto, tarjeta_id, categoria_id, fecha)
+-- values (auth.uid(), 'gasto', 'Gasto con tarjeta prueba', 100000, '<tarjeta-id>', null, current_date);
+--
+-- -- 3c) Anotar el saldo de la cuenta ANTES del pago
+-- select id, nombre, saldo, cantidad_movimientos from public.cuentas_con_saldo where id = '<tu-cuenta-id>';
+--
+-- -- 3d) Pagar los 100.000 completos desde esa cuenta (deuda -> 0, saldo de la cuenta -100.000)
+-- insert into public.movimientos (user_id, tipo, descripcion, monto, cuenta_id, tarjeta_id, fecha)
+-- values (auth.uid(), 'pago_tarjeta', 'Pago tarjeta prueba', 100000, '<tu-cuenta-id>', '<tarjeta-id>', current_date);
+--
+-- -- 3e) Confirmar deuda 0 y saldo de la cuenta bajado en 100.000
+-- select * from public.tarjetas_con_deuda where id = '<tarjeta-id>'; -- deuda = 0
+-- select id, nombre, saldo from public.cuentas_con_saldo where id = '<tu-cuenta-id>'; -- 3c menos 100.000
+--
+-- -- 3f) CRÍTICO -- borrar la tarjeta. Antes de este fix, esto fallaba con
+-- --     "violates check constraint movimientos_traslado_forma_check". Con el
+-- --     fix aplicado, debe borrarse sin error.
+-- delete from public.tarjetas where id = '<tarjeta-id>';
+--
+-- -- 3g) Confirmar que el gasto Y el pago desaparecieron los dos.
+-- select * from public.movimientos where descripcion in ('Gasto con tarjeta prueba', 'Pago tarjeta prueba');
+-- -- debe devolver 0 filas
+--
+-- -- 3h) Confirmar que la cuenta "recuperó" el saldo: vuelve a ser el de 3c.
+-- select id, nombre, saldo, cantidad_movimientos from public.cuentas_con_saldo where id = '<tu-cuenta-id>';
+-- -- saldo == el de 3c, cantidad_movimientos == la de 3c
+
+-- ============================================================================
+-- Fin del script.
+-- ============================================================================

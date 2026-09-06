@@ -1,15 +1,22 @@
 import { useState } from 'react'
 import { Pencil, Trash2, CreditCard } from 'lucide-react'
 import HojaTarjeta from '../components/HojaTarjeta'
+import HojaEliminarTarjeta from '../components/HojaEliminarTarjeta'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 
+// Tolerancia de medio centavo para tratar la deuda calculada como "0"
+// (misma que usan services/tarjetas.js y la RPC eliminar_tarjeta_usuario).
+const EPSILON_DEUDA = 0.005
+
 function GestionTarjetas({
   tarjetas,
+  cuentas = [],
   cargandoTarjetas,
   errorTarjetas,
+  movimientosVersion,
   onVolver,
   onAgregarTarjeta,
   onActualizarTarjeta,
@@ -19,8 +26,15 @@ function GestionTarjetas({
   const formatear = useFormatoMoneda()
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [tarjetaEditando, setTarjetaEditando] = useState(null)
+  const [tarjetaEliminando, setTarjetaEliminando] = useState(null)
   const [eliminandoId, setEliminandoId] = useState(null)
   const [errorAccion, setErrorAccion] = useState(null)
+
+  function mensajeErrorEliminar(error) {
+    return error?.message === 'TARJETA_DEUDA_NO_CERO'
+      ? t('tarjetas.gestion.errorEliminarConDeuda')
+      : t('tarjetas.gestion.errorEliminar')
+  }
 
   function abrirCrear() {
     setTarjetaEditando(null)
@@ -38,25 +52,39 @@ function GestionTarjetas({
   }
 
   async function manejarEliminar(tarjeta) {
-    // Bloqueo de UI: si ya sabemos que services/tarjetas.js va a rechazar el
-    // borrado (deuda > 0), no tiene sentido mostrar un diálogo de
-    // confirmación para una acción que va a fallar -- se avisa el motivo de
-    // una vez, sin un paso intermedio que no lleva a ningún lado.
-    if (tarjeta.deuda > 0) {
+    setErrorAccion(null)
+
+    const deuda = tarjeta.deuda ?? 0
+
+    // Ramas 1 y 2: la tarjeta no está saldada -- deuda pendiente (deuda > 0)
+    // o saldo a favor (deuda < 0, se pagó de más o se borró a mano un gasto
+    // ya pagado). En ninguno de los dos casos se puede borrar; el mismo
+    // mensaje cubre ambos. Se avisa sin abrir ningún diálogo.
+    if (Math.abs(deuda) >= EPSILON_DEUDA) {
       setErrorAccion(t('tarjetas.gestion.errorEliminarConDeuda'))
       return
     }
 
+    // Rama 3b: deuda 0 y CON gastos -> hay que reasignarlos a una cuenta.
+    // Eso se decide/confirma en HojaEliminarTarjeta (calcula desde qué
+    // cuentas se pagó la tarjeta).
+    if ((tarjeta.cantidad_gastos ?? 0) > 0) {
+      setTarjetaEliminando(tarjeta)
+      return
+    }
+
+    // Rama 3a: deuda 0 y SIN gastos (tarjeta nueva sin usar, o solo con
+    // pagos -- que no puede pasar, no se paga una tarjeta sin deuda). Un
+    // window.confirm simple y borrado directo, sin cuenta de reasignación.
     const confirmado = window.confirm(t('tarjetas.gestion.confirmarEliminar', { nombre: tarjeta.nombre }))
     if (!confirmado) return
 
-    setErrorAccion(null)
     setEliminandoId(tarjeta.id)
     try {
-      await onEliminarTarjeta(tarjeta)
+      await onEliminarTarjeta(tarjeta, null)
     } catch (error) {
       console.error(error)
-      setErrorAccion(t('tarjetas.gestion.errorEliminar'))
+      setErrorAccion(mensajeErrorEliminar(error))
     } finally {
       setEliminandoId(null)
     }
@@ -151,6 +179,15 @@ function GestionTarjetas({
         onCerrar={cerrarHoja}
         onGuardar={onAgregarTarjeta}
         onActualizar={onActualizarTarjeta}
+      />
+
+      <HojaEliminarTarjeta
+        abierta={Boolean(tarjetaEliminando)}
+        tarjeta={tarjetaEliminando}
+        cuentas={cuentas}
+        movimientosVersion={movimientosVersion}
+        onCerrar={() => setTarjetaEliminando(null)}
+        onConfirmar={(cuentaDestinoId) => onEliminarTarjeta(tarjetaEliminando, cuentaDestinoId)}
       />
     </main>
   )

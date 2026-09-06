@@ -2,10 +2,14 @@
 // validaciones) sin estado de React. App.jsx sigue siendo dueño del estado
 // (setTarjetas) y aplica los resultados que estas funciones devuelven.
 //
-// `datosUsuario` es el objeto { seleccionarPropio, insertarPropio,
+// `datosUsuario` es el objeto { usuarioId, seleccionarPropio, insertarPropio,
 // actualizarPropio, eliminarPropio } que App.jsx obtiene de
 // useDatosUsuario(). No se llama al hook aquí porque estas son funciones
 // normales, no componentes ni hooks -- mismo criterio que services/cuentas.js.
+//
+// eliminarTarjeta NO usa datosUsuario.eliminarPropio: el borrado es una
+// función RPC transaccional en la base (eliminar_tarjeta_usuario), no un
+// DELETE simple -- mismo criterio que services/reinicio.js.
 //
 // A diferencia de "saldo_inicial" en cuentas.js, "cupo_total" NO se bloquea
 // cuando la tarjeta ya tiene movimientos -- no es un ancla de un cálculo
@@ -15,6 +19,8 @@
 // sql/supabase_tarjetas_movimientos.sql) -- se valida acá, del lado del
 // servicio, además de en el formulario (HojaTarjeta.jsx), para que la regla
 // se cumpla sin importar desde dónde se llame.
+
+import { supabase } from '../lib/supabase'
 
 export function ordenarPorDeuda(lista) {
   return [...lista].sort((a, b) => b.deuda - a.deuda)
@@ -66,29 +72,56 @@ export async function actualizarTarjeta(datosUsuario, id, { nombre, color, cupoT
   return data
 }
 
-// Bloquea borrar una tarjeta con deuda pendiente (decisión confirmada del
-// plan): borrarla no cancela lo que se debe, y dejaría esa deuda "invisible"
-// -- a diferencia de eliminarCuenta (services/cuentas.js), que sí permite
-// borrar una cuenta con movimientos, sin importar cuántos tenga. Desde la
-// Fase 6 (ver sql/supabase_fix_borrado_cuentas.sql), esos movimientos se
-// borran EN CASCADA junto con la cuenta (antes quedaban huérfanos con
-// "on delete set null" -- eso empezó a violar movimientos_traslado_forma_check
-// en cuanto existió tarjeta_id, así que se cambió a cascade). "tarjeta_id"
-// en movimientos, en cambio, SIGUE en "on delete set null" -- borrar una
-// tarjeta con movimientos (gastos o pagos) todavía puede romper por el
-// mismo motivo si algún día deuda llega a 0 con historial detrás; por eso
-// esta función bloquea directamente por deuda > 0, más estricto que lo que
-// hace falta para el constraint, pero evita también ese problema sin tener
-// que decidir todavía qué hacer con el historial de una tarjeta borrada.
-// GestionTarjetas.jsx ya evita mostrar el diálogo de confirmación en este
-// caso (mejor UX), pero esta validación es la que de verdad protege el
-// dato, sin importar desde dónde se llame.
-export async function eliminarTarjeta(datosUsuario, tarjeta) {
-  if ((tarjeta.deuda ?? 0) > 0) {
-    throw new Error('No puedes eliminar una tarjeta con deuda pendiente. Primero paga o reduce la deuda a 0.')
+// Códigos que puede lanzar eliminarTarjeta como `Error.message`. Los seis
+// coinciden 1:1 con los `raise exception` de la función
+// eliminar_tarjeta_usuario (sql/supabase_borrado_tarjetas_reasignacion.sql);
+// TARJETA_ELIMINAR_ERROR es el genérico para cualquier otro fallo de la RPC.
+// GestionTarjetas.jsx los mapea a un mensaje traducido: TARJETA_DEUDA_NO_CERO
+// tiene texto propio, el resto cae en el genérico.
+const CODIGOS_ERROR_ELIMINAR = new Set([
+  'TARJETA_DEUDA_NO_CERO',
+  'FALTA_CUENTA_DESTINO',
+  'CUENTA_DESTINO_INVALIDA',
+  'TARJETA_INVALIDA',
+  'FALTA_TARJETA',
+  'BORRADO_INESPERADO',
+])
+
+// Borra una tarjeta vía la RPC transaccional `eliminar_tarjeta_usuario`
+// (sql/supabase_borrado_tarjetas_reasignacion.sql). NO es un DELETE simple:
+// la función valida que la deuda CALCULADA (desde movimientos) sea 0,
+// REASIGNA los gastos de la tarjeta a `cuentaDestinoId` (pasan de tarjeta_id
+// a cuenta_id, conservando monto/fecha/categoría -> siguen contando en sus
+// categorías) y BORRA los pagos (ya no hacen falta, el gasto ahora sale
+// directo de la cuenta). Como deuda = 0 => Σgastos = Σpagos, el patrimonio
+// total no cambia.
+//
+// `cuentaDestinoId` puede ser null: solo hace falta si la tarjeta tiene
+// gastos. Si no tiene (o no tiene ningún movimiento), se pasa null y la RPC
+// solo borra la tarjeta. GestionTarjetas.jsx (Fase 3) decide con
+// `tarjeta.cantidad_gastos` si pedir la cuenta al usuario.
+//
+// Check de primera línea: la RPC es la fuente de verdad (revalida la deuda
+// desde movimientos), pero si el valor que ya tenemos en pantalla dice que
+// la deuda no es 0 -- deuda pendiente O saldo a favor -- se corta acá sin
+// viajar a la base, con la misma tolerancia de medio centavo que usa la
+// función.
+export async function eliminarTarjeta(datosUsuario, tarjeta, cuentaDestinoId = null) {
+  if (!datosUsuario?.usuarioId) {
+    throw new Error('SIN_SESION')
   }
 
-  const { error } = await datosUsuario.eliminarPropio('tarjetas').eq('id', tarjeta.id)
+  if (Math.abs(tarjeta?.deuda ?? 0) >= 0.005) {
+    throw new Error('TARJETA_DEUDA_NO_CERO')
+  }
 
-  if (error) throw new Error(error.message)
+  const { error } = await supabase.rpc('eliminar_tarjeta_usuario', {
+    p_tarjeta_id: tarjeta.id,
+    p_cuenta_destino_id: cuentaDestinoId,
+  })
+
+  if (error) {
+    const codigo = CODIGOS_ERROR_ELIMINAR.has(error.message) ? error.message : 'TARJETA_ELIMINAR_ERROR'
+    throw new Error(codigo, { cause: error })
+  }
 }

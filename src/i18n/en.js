@@ -273,13 +273,39 @@ export default {
       errorEliminar: "Couldn't delete the card. Please try again.",
       confirmarEliminar: 'Delete the card "{{nombre}}"? This action cannot be undone.',
       errorEliminarConDeuda:
-        "You can't delete this card because it still has pending debt. Pay it down to 0 first.",
+        "You can't delete this card: its balance isn't at 0. Pay off what's left (or, if you overpaid, adjust the payments) to bring it to 0.",
       sinTarjetas: 'You don\'t have any cards yet. Create your first one with "+ Add card".',
       cupoTotalEtiqueta: 'Credit limit',
       deudaEtiqueta: 'Debt',
       disponibleEtiqueta: 'Available',
       editarAria: 'Edit card {{nombre}}',
       eliminarAria: 'Delete card {{nombre}}',
+    },
+    // Confirmation sheet when deleting a card that HAS expenses (debt 0):
+    // those expenses are reassigned to the account the card was paid from,
+    // and the payments are deleted (see
+    // sql/supabase_borrado_tarjetas_reasignacion.sql). A card with no
+    // expenses uses gestion.confirmarEliminar (a plain window.confirm)
+    // instead of this sheet.
+    eliminar: {
+      titulo: 'Delete {{nombre}}',
+      cerrarAria: 'Close',
+      cargandoPagos: 'Loading the card\'s payments...',
+      errorCargarPagos: "Couldn't load the card's payments. Please try again.",
+      resumenGastos: {
+        uno: '{{count}} expense to reassign · {{total}}',
+        otro: '{{count}} expenses to reassign · {{total}}',
+      },
+      explicacionUnaCuenta:
+        'This card\'s expenses will be charged to {{cuenta}}, the account you paid it from. The payments will be deleted. Your total balance doesn\'t change.',
+      explicacionVariasCuentas:
+        'This card was paid from several accounts. Choose which one to charge its expenses to. The total balance doesn\'t change, but each account\'s will adjust (the chosen one goes down for the expenses, the others go up as their payments are removed).',
+      preguntaCuenta: 'Which account should the expenses go to?',
+      irreversible: 'This action cannot be undone.',
+      sinCuentas: "You don't have any account to charge the expenses to.",
+      errorSinCuenta: 'Choose an account.',
+      confirmar: 'Delete card',
+      guardando: 'Deleting...',
     },
     formulario: {
       nuevoTitulo: 'New card',
