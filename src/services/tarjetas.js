@@ -7,9 +7,12 @@
 // useDatosUsuario(). No se llama al hook aquí porque estas son funciones
 // normales, no componentes ni hooks -- mismo criterio que services/cuentas.js.
 //
-// eliminarTarjeta NO usa datosUsuario.eliminarPropio: el borrado es una
-// función RPC transaccional en la base (eliminar_tarjeta_usuario), no un
-// DELETE simple -- mismo criterio que services/reinicio.js.
+// archivarTarjeta (antes eliminarTarjeta con reasignación) NO borra nada: una
+// tarjeta con historial nunca se puede borrar sin dejar movimientos huérfanos
+// o reescribir el pasado. En vez de eso la ARCHIVA -- un UPDATE simple de
+// "archivada_en", sujeto a RLS -- y la tarjeta deja de aparecer en la vista
+// "tarjetas_con_deuda" (ver sql/supabase_archivar_tarjetas.sql). El historial
+// de movimientos queda intacto.
 //
 // A diferencia de "saldo_inicial" en cuentas.js, "cupo_total" NO se bloquea
 // cuando la tarjeta ya tiene movimientos -- no es un ancla de un cálculo
@@ -19,8 +22,6 @@
 // sql/supabase_tarjetas_movimientos.sql) -- se valida acá, del lado del
 // servicio, además de en el formulario (HojaTarjeta.jsx), para que la regla
 // se cumpla sin importar desde dónde se llame.
-
-import { supabase } from '../lib/supabase'
 
 export function ordenarPorDeuda(lista) {
   return [...lista].sort((a, b) => b.deuda - a.deuda)
@@ -72,56 +73,61 @@ export async function actualizarTarjeta(datosUsuario, id, { nombre, color, cupoT
   return data
 }
 
-// Códigos que puede lanzar eliminarTarjeta como `Error.message`. Los seis
-// coinciden 1:1 con los `raise exception` de la función
-// eliminar_tarjeta_usuario (sql/supabase_borrado_tarjetas_reasignacion.sql);
-// TARJETA_ELIMINAR_ERROR es el genérico para cualquier otro fallo de la RPC.
-// GestionTarjetas.jsx los mapea a un mensaje traducido: TARJETA_DEUDA_NO_CERO
-// tiene texto propio, el resto cae en el genérico.
-const CODIGOS_ERROR_ELIMINAR = new Set([
-  'TARJETA_DEUDA_NO_CERO',
-  'FALTA_CUENTA_DESTINO',
-  'CUENTA_DESTINO_INVALIDA',
-  'TARJETA_INVALIDA',
-  'FALTA_TARJETA',
-  'BORRADO_INESPERADO',
-])
+// Tolerancia de medio centavo para tratar la deuda calculada como "0" -- la
+// misma que usa GestionTarjetas.jsx (EPSILON_DEUDA) y la que usaba la RPC de
+// reasignación. "monto" es numeric(14,2) y la suma es exacta en Postgres, así
+// que "!= 0" alcanzaría; medio centavo es un cinturón extra sin costo.
+const EPSILON_DEUDA = 0.005
 
-// Borra una tarjeta vía la RPC transaccional `eliminar_tarjeta_usuario`
-// (sql/supabase_borrado_tarjetas_reasignacion.sql). NO es un DELETE simple:
-// la función valida que la deuda CALCULADA (desde movimientos) sea 0,
-// REASIGNA los gastos de la tarjeta a `cuentaDestinoId` (pasan de tarjeta_id
-// a cuenta_id, conservando monto/fecha/categoría -> siguen contando en sus
-// categorías) y BORRA los pagos (ya no hacen falta, el gasto ahora sale
-// directo de la cuenta). Como deuda = 0 => Σgastos = Σpagos, el patrimonio
-// total no cambia.
+// Códigos conocidos que archivarTarjeta propaga tal cual como `Error.message`.
+// GestionTarjetas.jsx los mapea a un texto traducido: TARJETA_DEUDA_NO_CERO
+// tiene mensaje propio, cualquier otro fallo cae en TARJETA_ARCHIVAR_ERROR
+// (el genérico).
+const CODIGOS_ERROR_ARCHIVAR = new Set(['SIN_SESION', 'TARJETA_DEUDA_NO_CERO'])
+
+// Archiva una tarjeta: la marca con "archivada_en = ahora" y así deja de
+// aparecer en la vista "tarjetas_con_deuda" (Home, Gestión, selector al
+// gastar). NO borra nada -- los gastos y pagos de la tarjeta quedan intactos
+// en "movimientos" y se siguen viendo en DetalleCuenta/DetalleCategoria/
+// Resumen con su 💳 + nombre. Ver sql/supabase_archivar_tarjetas.sql.
 //
-// `cuentaDestinoId` puede ser null: solo hace falta si la tarjeta tiene
-// gastos. Si no tiene (o no tiene ningún movimiento), se pasa null y la RPC
-// solo borra la tarjeta. GestionTarjetas.jsx (Fase 3) decide con
-// `tarjeta.cantidad_gastos` si pedir la cuenta al usuario.
-//
-// Check de primera línea: la RPC es la fuente de verdad (revalida la deuda
-// desde movimientos), pero si el valor que ya tenemos en pantalla dice que
-// la deuda no es 0 -- deuda pendiente O saldo a favor -- se corta acá sin
-// viajar a la base, con la misma tolerancia de medio centavo que usa la
-// función.
-export async function eliminarTarjeta(datosUsuario, tarjeta, cuentaDestinoId = null) {
+// Regla (igual que un banco): solo se archiva con deuda EXACTAMENTE 0 (ni
+// deuda pendiente ni saldo a favor). Se valida DOS veces:
+//   1. Check de primera línea contra `tarjeta.deuda` (lo que ya está en
+//      pantalla) -- feedback instantáneo, sin viajar a la base.
+//   2. Revalidación contra la vista "tarjetas_con_deuda" -- el valor de la UI
+//      puede estar viejo si entró un gasto/pago desde otra sesión desde que
+//      se cargó la lista. Es lo que reemplaza la revalidación que antes hacía
+//      la RPC desde dentro de la transacción.
+// Recién si las dos pasan se hace el UPDATE.
+export async function archivarTarjeta(datosUsuario, tarjeta) {
   if (!datosUsuario?.usuarioId) {
     throw new Error('SIN_SESION')
   }
 
-  if (Math.abs(tarjeta?.deuda ?? 0) >= 0.005) {
+  if (Math.abs(tarjeta?.deuda ?? 0) >= EPSILON_DEUDA) {
     throw new Error('TARJETA_DEUDA_NO_CERO')
   }
 
-  const { error } = await supabase.rpc('eliminar_tarjeta_usuario', {
-    p_tarjeta_id: tarjeta.id,
-    p_cuenta_destino_id: cuentaDestinoId,
-  })
+  const { data: deudaActual, error: errorDeuda } = await datosUsuario
+    .seleccionarPropio('tarjetas_con_deuda', 'deuda')
+    .eq('id', tarjeta.id)
+    .single()
+
+  if (errorDeuda) {
+    throw new Error('TARJETA_ARCHIVAR_ERROR', { cause: errorDeuda })
+  }
+
+  if (Math.abs(deudaActual?.deuda ?? 0) >= EPSILON_DEUDA) {
+    throw new Error('TARJETA_DEUDA_NO_CERO')
+  }
+
+  const { error } = await datosUsuario
+    .actualizarPropio('tarjetas', { archivada_en: new Date().toISOString() })
+    .eq('id', tarjeta.id)
 
   if (error) {
-    const codigo = CODIGOS_ERROR_ELIMINAR.has(error.message) ? error.message : 'TARJETA_ELIMINAR_ERROR'
+    const codigo = CODIGOS_ERROR_ARCHIVAR.has(error.message) ? error.message : 'TARJETA_ARCHIVAR_ERROR'
     throw new Error(codigo, { cause: error })
   }
 }

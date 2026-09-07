@@ -278,8 +278,10 @@ export default {
 
   // Fase 3 del plan "Tarjetas de crédito" (ver sql/supabase_tarjetas.sql y
   // sql/supabase_tarjetas_movimientos.sql): gestión de tarjetas (crear,
-  // editar, borrar, ver deuda/cupo). Todavía no se gasta ni se paga con
-  // ellas -- eso es Fases 4-5.
+  // editar, archivar, ver deuda/cupo). "Archivar" reemplazó al borrado con
+  // reasignación (ver sql/supabase_archivar_tarjetas.sql): una tarjeta nunca
+  // se borra, solo deja de mostrarse -- su historial de movimientos se
+  // conserva intacto.
   tarjetas: {
     abrirAria: 'Ver tarjeta {{nombre}}',
     deudaLabel: 'Deuda',
@@ -288,45 +290,21 @@ export default {
     gestion: {
       volverAria: 'Volver',
       titulo: 'Gestionar tarjetas',
-      subtitulo: 'Agrega, edita y elimina tus tarjetas de crédito',
+      subtitulo: 'Agrega, edita y archiva tus tarjetas de crédito',
       agregarTarjeta: '+ Agregar tarjeta',
       cargando: 'Cargando tarjetas...',
       errorCargar: 'No se pudieron cargar las tarjetas. Intenta de nuevo.',
-      errorEliminar: 'No se pudo eliminar la tarjeta. Intenta de nuevo.',
-      confirmarEliminar: '¿Eliminar la tarjeta "{{nombre}}"? Esta acción no se puede deshacer.',
-      errorEliminarConDeuda:
-        'No puedes eliminar esta tarjeta: su deuda no está en 0. Paga lo que falte (o, si pagaste de más, ajusta los pagos) para dejarla en 0.',
+      errorArchivar: 'No se pudo archivar la tarjeta. Intenta de nuevo.',
+      confirmarArchivar:
+        '¿Archivar la tarjeta «{{nombre}}»? Dejará de aparecer en la app, pero todo su historial (los gastos y pagos ya registrados) se conserva.',
+      errorArchivarConDeuda:
+        'No puedes archivar esta tarjeta: su deuda no está en 0. Deja la deuda en 0 (paga lo que falte o, si pagaste de más, ajusta los pagos) y vuelve a intentarlo.',
       sinTarjetas: 'Aún no tienes tarjetas. Crea la primera con "+ Agregar tarjeta".',
       cupoTotalEtiqueta: 'Cupo total',
       deudaEtiqueta: 'Deuda',
       disponibleEtiqueta: 'Disponible',
       editarAria: 'Editar tarjeta {{nombre}}',
-      eliminarAria: 'Eliminar tarjeta {{nombre}}',
-    },
-    // Hoja de confirmación al eliminar una tarjeta CON gastos (deuda 0):
-    // reasigna esos gastos a la cuenta desde la que se pagó la tarjeta y
-    // borra los pagos (ver sql/supabase_borrado_tarjetas_reasignacion.sql).
-    // Si la tarjeta no tiene gastos, se usa gestion.confirmarEliminar (un
-    // window.confirm simple), no esta hoja.
-    eliminar: {
-      titulo: 'Eliminar {{nombre}}',
-      cerrarAria: 'Cerrar',
-      cargandoPagos: 'Cargando los pagos de la tarjeta...',
-      errorCargarPagos: 'No se pudieron cargar los pagos de la tarjeta. Intenta de nuevo.',
-      resumenGastos: {
-        uno: '{{count}} gasto a reasignar · {{total}}',
-        otro: '{{count}} gastos a reasignar · {{total}}',
-      },
-      explicacionUnaCuenta:
-        'Los gastos de esta tarjeta se cargarán a {{cuenta}}, la cuenta desde la que la pagaste. Los pagos se eliminarán. Tu saldo total no cambia.',
-      explicacionVariasCuentas:
-        'Esta tarjeta se pagó desde varias cuentas. Elige a cuál cargar sus gastos. El saldo total no cambia, pero el de cada cuenta se ajustará (la elegida baja por los gastos, las otras suben al quitarse sus pagos).',
-      preguntaCuenta: '¿A qué cuenta cargar los gastos?',
-      irreversible: 'Esta acción no se puede deshacer.',
-      sinCuentas: 'No tienes ninguna cuenta donde cargar los gastos.',
-      errorSinCuenta: 'Elige una cuenta.',
-      confirmar: 'Eliminar tarjeta',
-      guardando: 'Eliminando...',
+      archivarAria: 'Archivar tarjeta {{nombre}}',
     },
     formulario: {
       nuevoTitulo: 'Nueva tarjeta',

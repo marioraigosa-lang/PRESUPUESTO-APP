@@ -1,14 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { agregarTarjeta, actualizarTarjeta, eliminarTarjeta, ordenarPorDeuda } from './tarjetas'
+import { describe, expect, it, vi } from 'vitest'
+import { agregarTarjeta, actualizarTarjeta, archivarTarjeta, ordenarPorDeuda } from './tarjetas'
 
-// eliminarTarjeta llama a supabase.rpc('eliminar_tarjeta_usuario', ...); el
-// resto de funciones del servicio usan `datosUsuario` (mock aparte, más
-// abajo). Mismo patrón de mock que services/reinicio.test.js.
-const { rpcMock } = vi.hoisted(() => ({ rpcMock: vi.fn() }))
-
-vi.mock('../lib/supabase', () => ({
-  supabase: { rpc: rpcMock },
-}))
+// Todas las funciones del servicio usan `datosUsuario` (mock más abajo) --
+// ninguna llama ya a supabase directamente (archivarTarjeta reemplazó a la
+// RPC de reasignación por un UPDATE simple de archivada_en).
 
 // Imita el "query builder" encadenable de Supabase (.eq(), .select(),
 // .single(), etc.): cada método devuelve el mismo builder para poder
@@ -152,86 +147,95 @@ describe('actualizarTarjeta', () => {
   })
 })
 
-describe('eliminarTarjeta', () => {
-  beforeEach(() => {
-    rpcMock.mockReset()
-  })
+describe('archivarTarjeta', () => {
+  const usuario = { usuarioId: 'user-1' }
 
-  const datosUsuario = { usuarioId: 'user-1' }
+  // Arma un datosUsuario mock donde:
+  //   - seleccionarPropio('tarjetas_con_deuda') -> .eq().single() resuelve
+  //     con la deuda revalidada `deudaVista` (o el error `errorVista`).
+  //   - actualizarPropio('tarjetas') -> .eq() resuelve con `errorUpdate`.
+  function crearMock({ deudaVista = 0, errorVista = null, errorUpdate = null } = {}) {
+    const seleccionarPropio = vi.fn(() =>
+      crearConstructor({ data: errorVista ? null : { deuda: deudaVista }, error: errorVista }),
+    )
+    const actualizarPropio = vi.fn(() => crearConstructor({ error: errorUpdate }))
+    return {
+      datosUsuario: crearDatosUsuarioMock({ ...usuario, seleccionarPropio, actualizarPropio }),
+      seleccionarPropio,
+      actualizarPropio,
+    }
+  }
 
-  it('deuda 0 sin gastos: llama a la RPC con p_cuenta_destino_id null', async () => {
-    rpcMock.mockResolvedValueOnce({ error: null })
+  it('deuda 0: revalida contra la vista y hace el UPDATE de archivada_en', async () => {
+    const { datosUsuario, seleccionarPropio, actualizarPropio } = crearMock({ deudaVista: 0 })
 
-    await expect(
-      eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0, cantidad_gastos: 0 }),
-    ).resolves.toBeUndefined()
+    await expect(archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 })).resolves.toBeUndefined()
 
-    expect(rpcMock).toHaveBeenCalledWith('eliminar_tarjeta_usuario', {
-      p_tarjeta_id: 'tar-1',
-      p_cuenta_destino_id: null,
+    expect(seleccionarPropio).toHaveBeenCalledWith('tarjetas_con_deuda', 'deuda')
+    expect(actualizarPropio).toHaveBeenCalledWith('tarjetas', {
+      archivada_en: expect.any(String),
     })
   })
 
-  it('deuda 0 con gastos: llama a la RPC con la cuenta de reasignación', async () => {
-    rpcMock.mockResolvedValueOnce({ error: null })
+  it('deuda pendiente: corta antes de tocar la base', async () => {
+    const { datosUsuario, seleccionarPropio, actualizarPropio } = crearMock()
 
-    await eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0, cantidad_gastos: 3 }, 'cta-9')
-
-    expect(rpcMock).toHaveBeenCalledWith('eliminar_tarjeta_usuario', {
-      p_tarjeta_id: 'tar-1',
-      p_cuenta_destino_id: 'cta-9',
-    })
-  })
-
-  it('deuda pendiente: corta antes de llamar a la RPC', async () => {
     await expect(
-      eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: 50000 }),
+      archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: 50000 }),
     ).rejects.toThrow('TARJETA_DEUDA_NO_CERO')
-    expect(rpcMock).not.toHaveBeenCalled()
+    expect(seleccionarPropio).not.toHaveBeenCalled()
+    expect(actualizarPropio).not.toHaveBeenCalled()
   })
 
-  it('saldo a favor (deuda negativa): también corta antes de la RPC', async () => {
+  it('saldo a favor (deuda negativa): también corta antes de tocar la base', async () => {
+    const { datosUsuario, actualizarPropio } = crearMock()
+
     await expect(
-      eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: -1000 }),
+      archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: -1000 }),
     ).rejects.toThrow('TARJETA_DEUDA_NO_CERO')
-    expect(rpcMock).not.toHaveBeenCalled()
+    expect(actualizarPropio).not.toHaveBeenCalled()
   })
 
-  it('deuda undefined se trata como 0 (deja llamar a la RPC)', async () => {
-    rpcMock.mockResolvedValueOnce({ error: null })
-
-    await expect(eliminarTarjeta(datosUsuario, { id: 'tar-1' })).resolves.toBeUndefined()
-    expect(rpcMock).toHaveBeenCalled()
-  })
-
-  it('mapea el error TARJETA_DEUDA_NO_CERO de la RPC', async () => {
-    rpcMock.mockResolvedValueOnce({ error: { message: 'TARJETA_DEUDA_NO_CERO' } })
+  it('la revalidación devuelve deuda: no archiva (el valor en pantalla estaba viejo)', async () => {
+    const { datosUsuario, actualizarPropio } = crearMock({ deudaVista: 12000 })
 
     await expect(
-      eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 }),
+      archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 }),
     ).rejects.toThrow('TARJETA_DEUDA_NO_CERO')
+    expect(actualizarPropio).not.toHaveBeenCalled()
   })
 
-  it('preserva los otros códigos conocidos de la RPC (ej. FALTA_CUENTA_DESTINO)', async () => {
-    rpcMock.mockResolvedValueOnce({ error: { message: 'FALTA_CUENTA_DESTINO' } })
+  it('deuda undefined se trata como 0 (deja continuar)', async () => {
+    const { datosUsuario, actualizarPropio } = crearMock({ deudaVista: 0 })
 
-    await expect(
-      eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0, cantidad_gastos: 2 }),
-    ).rejects.toThrow('FALTA_CUENTA_DESTINO')
+    await expect(archivarTarjeta(datosUsuario, { id: 'tar-1' })).resolves.toBeUndefined()
+    expect(actualizarPropio).toHaveBeenCalled()
   })
 
-  it('colapsa un error desconocido de la RPC en TARJETA_ELIMINAR_ERROR', async () => {
-    rpcMock.mockResolvedValueOnce({ error: { message: 'no dice nada útil' } })
+  it('error al revalidar la deuda -> TARJETA_ARCHIVAR_ERROR, sin UPDATE', async () => {
+    const { datosUsuario, actualizarPropio } = crearMock({ errorVista: { message: 'boom' } })
 
     await expect(
-      eliminarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 }),
-    ).rejects.toThrow('TARJETA_ELIMINAR_ERROR')
+      archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 }),
+    ).rejects.toThrow('TARJETA_ARCHIVAR_ERROR')
+    expect(actualizarPropio).not.toHaveBeenCalled()
   })
 
-  it('rechaza sin llamar a la RPC si no hay sesión activa', async () => {
+  it('error de Supabase en el UPDATE -> TARJETA_ARCHIVAR_ERROR', async () => {
+    const { datosUsuario } = crearMock({ deudaVista: 0, errorUpdate: { message: 'boom' } })
+
     await expect(
-      eliminarTarjeta({ usuarioId: null }, { id: 'tar-1', deuda: 0 }),
+      archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 }),
+    ).rejects.toThrow('TARJETA_ARCHIVAR_ERROR')
+  })
+
+  it('rechaza sin tocar la base si no hay sesión activa', async () => {
+    const { datosUsuario, seleccionarPropio } = crearMock()
+    datosUsuario.usuarioId = null
+
+    await expect(
+      archivarTarjeta(datosUsuario, { id: 'tar-1', deuda: 0 }),
     ).rejects.toThrow('SIN_SESION')
-    expect(rpcMock).not.toHaveBeenCalled()
+    expect(seleccionarPropio).not.toHaveBeenCalled()
   })
 })

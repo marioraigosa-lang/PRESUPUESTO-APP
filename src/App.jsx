@@ -482,23 +482,16 @@ function App() {
     )
   }
 
-  async function eliminarTarjeta(tarjeta, cuentaDestinoId = null) {
-    await tarjetasService.eliminarTarjeta(datosUsuario, tarjeta, cuentaDestinoId)
+  async function archivarTarjeta(tarjeta) {
+    await tarjetasService.archivarTarjeta(datosUsuario, tarjeta)
+    // Archivar es solo un UPDATE de "archivada_en" (ver
+    // sql/supabase_archivar_tarjetas.sql): los movimientos de la tarjeta
+    // (gastos y pagos) quedan INTACTOS, así que ni las listas de movimientos
+    // ni los saldos de las cuentas cambian. Lo único que pasa es que la
+    // tarjeta deja de estar en la vista "tarjetas_con_deuda" -> se saca del
+    // estado local y listo. No hace falta setMovimientosVersion ni
+    // refrescarCuentas.
     setTarjetas((actuales) => actuales.filter((t) => t.id !== tarjeta.id))
-    // La RPC eliminar_tarjeta_usuario (sql/supabase_borrado_tarjetas_reasignacion.sql)
-    // REASIGNA los gastos de la tarjeta a `cuentaDestinoId` (pasan de
-    // tarjeta_id a cuenta_id) y BORRA los pagos. No hay delta optimista
-    // simple que calcular acá (no se sabe sin consultar cuántos gastos/pagos
-    // había ni desde qué cuentas), así que:
-    //   - setMovimientosVersion: los gastos cambiaron de dueño y los pagos
-    //     ya no existen -> Home/Resumen/DetalleCuenta/DetalleCategoria deben
-    //     recargar sus listas.
-    //   - refrescarCuentas: el saldo y cantidad_movimientos de la cuenta
-    //     reasignada (y, si hubo varios pagadores, de las otras) cambian.
-    //   - refrescarTarjetas: la tarjeta ya no está.
-    setMovimientosVersion((version) => version + 1)
-    refrescarCuentas()
-    refrescarTarjetas()
   }
 
   // Actualización optimista: el estado de React cambia de inmediato y el
@@ -678,14 +671,12 @@ function App() {
       {vista === 'tarjetas' && (
         <GestionTarjetas
           tarjetas={tarjetas}
-          cuentas={cuentas}
           cargandoTarjetas={cargandoTarjetas}
           errorTarjetas={errorTarjetas}
-          movimientosVersion={movimientosVersion}
           onVolver={() => setVista('inicio')}
           onAgregarTarjeta={agregarTarjeta}
           onActualizarTarjeta={actualizarTarjeta}
-          onEliminarTarjeta={eliminarTarjeta}
+          onArchivarTarjeta={archivarTarjeta}
         />
       )}
       {vista === 'categorias' && (

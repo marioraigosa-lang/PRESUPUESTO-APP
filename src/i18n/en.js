@@ -258,8 +258,9 @@ export default {
 
   // Phase 3 of the "Credit cards" plan (see sql/supabase_tarjetas.sql and
   // sql/supabase_tarjetas_movimientos.sql): card management (create, edit,
-  // delete, view debt/available credit). Spending or paying with a card is
-  // not wired up yet -- that's Phases 4-5.
+  // archive, view debt/available credit). "Archive" replaced the delete-with-
+  // reassignment flow (see sql/supabase_archivar_tarjetas.sql): a card is
+  // never deleted, it just stops showing -- its movement history is kept.
   tarjetas: {
     abrirAria: 'View card {{nombre}}',
     deudaLabel: 'Debt',
@@ -268,46 +269,21 @@ export default {
     gestion: {
       volverAria: 'Back',
       titulo: 'Manage cards',
-      subtitulo: 'Add, edit, and delete your credit cards',
+      subtitulo: 'Add, edit, and archive your credit cards',
       agregarTarjeta: '+ Add card',
       cargando: 'Loading cards...',
       errorCargar: "Couldn't load your cards. Please try again.",
-      errorEliminar: "Couldn't delete the card. Please try again.",
-      confirmarEliminar: 'Delete the card "{{nombre}}"? This action cannot be undone.',
-      errorEliminarConDeuda:
-        "You can't delete this card: its balance isn't at 0. Pay off what's left (or, if you overpaid, adjust the payments) to bring it to 0.",
+      errorArchivar: "Couldn't archive the card. Please try again.",
+      confirmarArchivar:
+        'Archive the card "{{nombre}}"? It will stop showing up in the app, but its full history (the expenses and payments already recorded) is kept.',
+      errorArchivarConDeuda:
+        "You can't archive this card: its balance isn't at 0. Bring the debt to 0 (pay off what's left or, if you overpaid, adjust the payments) and try again.",
       sinTarjetas: 'You don\'t have any cards yet. Create your first one with "+ Add card".',
       cupoTotalEtiqueta: 'Credit limit',
       deudaEtiqueta: 'Debt',
       disponibleEtiqueta: 'Available',
       editarAria: 'Edit card {{nombre}}',
-      eliminarAria: 'Delete card {{nombre}}',
-    },
-    // Confirmation sheet when deleting a card that HAS expenses (debt 0):
-    // those expenses are reassigned to the account the card was paid from,
-    // and the payments are deleted (see
-    // sql/supabase_borrado_tarjetas_reasignacion.sql). A card with no
-    // expenses uses gestion.confirmarEliminar (a plain window.confirm)
-    // instead of this sheet.
-    eliminar: {
-      titulo: 'Delete {{nombre}}',
-      cerrarAria: 'Close',
-      cargandoPagos: 'Loading the card\'s payments...',
-      errorCargarPagos: "Couldn't load the card's payments. Please try again.",
-      resumenGastos: {
-        uno: '{{count}} expense to reassign · {{total}}',
-        otro: '{{count}} expenses to reassign · {{total}}',
-      },
-      explicacionUnaCuenta:
-        'This card\'s expenses will be charged to {{cuenta}}, the account you paid it from. The payments will be deleted. Your total balance doesn\'t change.',
-      explicacionVariasCuentas:
-        'This card was paid from several accounts. Choose which one to charge its expenses to. The total balance doesn\'t change, but each account\'s will adjust (the chosen one goes down for the expenses, the others go up as their payments are removed).',
-      preguntaCuenta: 'Which account should the expenses go to?',
-      irreversible: 'This action cannot be undone.',
-      sinCuentas: "You don't have any account to charge the expenses to.",
-      errorSinCuenta: 'Choose an account.',
-      confirmar: 'Delete card',
-      guardando: 'Deleting...',
+      archivarAria: 'Archive card {{nombre}}',
     },
     formulario: {
       nuevoTitulo: 'New card',

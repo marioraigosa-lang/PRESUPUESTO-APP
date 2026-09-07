@@ -1,40 +1,30 @@
 import { useState } from 'react'
-import { Pencil, Trash2, CreditCard } from 'lucide-react'
+import { Pencil, Archive, CreditCard } from 'lucide-react'
 import HojaTarjeta from '../components/HojaTarjeta'
-import HojaEliminarTarjeta from '../components/HojaEliminarTarjeta'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 
-// Tolerancia de medio centavo para tratar la deuda calculada como "0"
-// (misma que usan services/tarjetas.js y la RPC eliminar_tarjeta_usuario).
+// Tolerancia de medio centavo para tratar la deuda calculada como "0" (misma
+// que usan services/tarjetas.js y la vista tarjetas_con_deuda).
 const EPSILON_DEUDA = 0.005
 
 function GestionTarjetas({
   tarjetas,
-  cuentas = [],
   cargandoTarjetas,
   errorTarjetas,
-  movimientosVersion,
   onVolver,
   onAgregarTarjeta,
   onActualizarTarjeta,
-  onEliminarTarjeta,
+  onArchivarTarjeta,
 }) {
   const { t } = useIdioma()
   const formatear = useFormatoMoneda()
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [tarjetaEditando, setTarjetaEditando] = useState(null)
-  const [tarjetaEliminando, setTarjetaEliminando] = useState(null)
-  const [eliminandoId, setEliminandoId] = useState(null)
+  const [archivandoId, setArchivandoId] = useState(null)
   const [errorAccion, setErrorAccion] = useState(null)
-
-  function mensajeErrorEliminar(error) {
-    return error?.message === 'TARJETA_DEUDA_NO_CERO'
-      ? t('tarjetas.gestion.errorEliminarConDeuda')
-      : t('tarjetas.gestion.errorEliminar')
-  }
 
   function abrirCrear() {
     setTarjetaEditando(null)
@@ -51,42 +41,35 @@ function GestionTarjetas({
     setTarjetaEditando(null)
   }
 
-  async function manejarEliminar(tarjeta) {
+  async function manejarArchivar(tarjeta) {
     setErrorAccion(null)
 
-    const deuda = tarjeta.deuda ?? 0
-
-    // Ramas 1 y 2: la tarjeta no está saldada -- deuda pendiente (deuda > 0)
-    // o saldo a favor (deuda < 0, se pagó de más o se borró a mano un gasto
-    // ya pagado). En ninguno de los dos casos se puede borrar; el mismo
-    // mensaje cubre ambos. Se avisa sin abrir ningún diálogo.
-    if (Math.abs(deuda) >= EPSILON_DEUDA) {
-      setErrorAccion(t('tarjetas.gestion.errorEliminarConDeuda'))
+    // La tarjeta no está saldada -- deuda pendiente (deuda > 0) o saldo a
+    // favor (deuda < 0, se pagó de más o se borró a mano un gasto ya pagado).
+    // En ninguno de los dos casos se puede archivar; el mismo mensaje cubre
+    // ambos. Se avisa sin abrir ningún diálogo.
+    if (Math.abs(tarjeta.deuda ?? 0) >= EPSILON_DEUDA) {
+      setErrorAccion(t('tarjetas.gestion.errorArchivarConDeuda'))
       return
     }
 
-    // Rama 3b: deuda 0 y CON gastos -> hay que reasignarlos a una cuenta.
-    // Eso se decide/confirma en HojaEliminarTarjeta (calcula desde qué
-    // cuentas se pagó la tarjeta).
-    if ((tarjeta.cantidad_gastos ?? 0) > 0) {
-      setTarjetaEliminando(tarjeta)
-      return
-    }
-
-    // Rama 3a: deuda 0 y SIN gastos (tarjeta nueva sin usar, o solo con
-    // pagos -- que no puede pasar, no se paga una tarjeta sin deuda). Un
-    // window.confirm simple y borrado directo, sin cuenta de reasignación.
-    const confirmado = window.confirm(t('tarjetas.gestion.confirmarEliminar', { nombre: tarjeta.nombre }))
+    // Deuda 0: confirmación simple. Archivar no borra nada -- el texto lo
+    // deja claro ("su historial se conserva").
+    const confirmado = window.confirm(t('tarjetas.gestion.confirmarArchivar', { nombre: tarjeta.nombre }))
     if (!confirmado) return
 
-    setEliminandoId(tarjeta.id)
+    setArchivandoId(tarjeta.id)
     try {
-      await onEliminarTarjeta(tarjeta, null)
+      await onArchivarTarjeta(tarjeta)
     } catch (error) {
       console.error(error)
-      setErrorAccion(mensajeErrorEliminar(error))
+      setErrorAccion(
+        error?.message === 'TARJETA_DEUDA_NO_CERO'
+          ? t('tarjetas.gestion.errorArchivarConDeuda')
+          : t('tarjetas.gestion.errorArchivar'),
+      )
     } finally {
-      setEliminandoId(null)
+      setArchivandoId(null)
     }
   }
 
@@ -146,12 +129,12 @@ function GestionTarjetas({
                   </button>
                   <button
                     type="button"
-                    onClick={() => manejarEliminar(tarjeta)}
-                    disabled={eliminandoId === tarjeta.id}
-                    aria-label={t('tarjetas.gestion.eliminarAria', { nombre: tarjeta.nombre })}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
+                    onClick={() => manejarArchivar(tarjeta)}
+                    disabled={archivandoId === tarjeta.id}
+                    aria-label={t('tarjetas.gestion.archivarAria', { nombre: tarjeta.nombre })}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-gold disabled:opacity-60"
                   >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    <Archive className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -179,15 +162,6 @@ function GestionTarjetas({
         onCerrar={cerrarHoja}
         onGuardar={onAgregarTarjeta}
         onActualizar={onActualizarTarjeta}
-      />
-
-      <HojaEliminarTarjeta
-        abierta={Boolean(tarjetaEliminando)}
-        tarjeta={tarjetaEliminando}
-        cuentas={cuentas}
-        movimientosVersion={movimientosVersion}
-        onCerrar={() => setTarjetaEliminando(null)}
-        onConfirmar={(cuentaDestinoId) => onEliminarTarjeta(tarjetaEliminando, cuentaDestinoId)}
       />
     </main>
   )
