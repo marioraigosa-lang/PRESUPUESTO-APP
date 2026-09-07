@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Pin } from 'lucide-react'
+import { Pencil, Trash2, Pin, CreditCard } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { descripcionEnContexto } from '../utils/movimientosCuenta'
@@ -27,6 +27,19 @@ function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminand
   // borrar".
   const esPagoTarjeta = tipo === 'pago_tarjeta'
   const esEditable = !gastoFijoId && !esPagoTarjeta
+
+  // Pulido visual (tarjetas de crédito): un gasto hecho CON una tarjeta y un
+  // pago HACIA una tarjeta traen `movimiento.tarjeta` resuelto por
+  // mapearMovimiento (la unión `tarjeta:tarjetas!tarjeta_id(nombre)`). Sin
+  // esto, en las listas se veían igual que un gasto con cuenta -- solo el
+  // texto chiquito en gris los diferenciaba. Ahora la segunda línea lleva un
+  // ícono de tarjeta y el nombre de la tarjeta en un color de acento (gold,
+  // distinto del mint/coral/azul que ya usan ingreso/egreso/traslado), para
+  // que de un vistazo se entienda "esto fue con tarjeta X".
+  const nombreTarjeta = movimiento.tarjeta?.nombre ?? null
+  const esGastoConTarjeta = tipo === 'gasto' && Boolean(nombreTarjeta)
+  const esPagoConTarjeta = esPagoTarjeta && Boolean(nombreTarjeta)
+  const mostrarMarcaTarjeta = esGastoConTarjeta || esPagoConTarjeta
 
   // Perspectiva direccional: solo aplica a traslados, y solo cuando la
   // pantalla que llama indica desde qué cuenta se está mirando la lista
@@ -116,7 +129,34 @@ function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminand
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-text">{descripcionMostrada}</p>
-        <p className="truncate text-xs text-text-dim">{subtitulo}</p>
+        {mostrarMarcaTarjeta ? (
+          <p
+            className="flex min-w-0 items-center gap-1.5 text-xs text-text-dim"
+            title={t(esGastoConTarjeta ? 'home.conTarjeta' : 'home.pagoATarjeta', {
+              tarjeta: nombreTarjeta,
+            })}
+          >
+            {enContextoTarjeta ? (
+              // Dentro de DetalleTarjeta ya se está viendo esa tarjeta:
+              // repetir el nombre sobra, pero el ícono sigue ayudando a
+              // separar de un vistazo un gasto (sube deuda) de un pago.
+              <>
+                <CreditCard className="h-3.5 w-3.5 shrink-0 text-gold" aria-hidden="true" />
+                <span className="shrink-0">{fecha}</span>
+              </>
+            ) : (
+              <>
+                <span className="shrink-0">{fecha} ·</span>
+                <CreditCard className="h-3.5 w-3.5 shrink-0 text-gold" aria-hidden="true" />
+                <span className={`truncate text-gold ${esGastoConTarjeta ? 'font-semibold' : ''}`}>
+                  {nombreTarjeta}
+                </span>
+              </>
+            )}
+          </p>
+        ) : (
+          <p className="truncate text-xs text-text-dim">{subtitulo}</p>
+        )}
       </div>
 
       <p className={`shrink-0 text-sm font-semibold ${colorMonto}`}>

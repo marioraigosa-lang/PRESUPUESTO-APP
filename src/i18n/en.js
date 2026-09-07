@@ -104,6 +104,8 @@ export default {
     cuentaEliminada: 'Deleted account',
     sinCuenta: 'No account',
     vieneDeGastoFijo: "Comes from a fixed expense: to change it, unmark it from Fixed expenses",
+    conTarjeta: 'Expense paid with the {{tarjeta}} card',
+    pagoATarjeta: 'Payment to the {{tarjeta}} card',
   },
 
   resumen: {

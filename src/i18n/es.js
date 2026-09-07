@@ -121,6 +121,8 @@ export default {
     cuentaEliminada: 'Cuenta eliminada',
     sinCuenta: 'Sin cuenta',
     vieneDeGastoFijo: 'Viene de un gasto fijo: para cambiarlo, desmárcalo desde Gastos fijos',
+    conTarjeta: 'Gasto pagado con la tarjeta {{tarjeta}}',
+    pagoATarjeta: 'Pago a la tarjeta {{tarjeta}}',
   },
 
   resumen: {
