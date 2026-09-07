@@ -1,12 +1,27 @@
 -- ============================================================================
 -- supabase_borrado_tarjetas_reasignacion.sql
 --
--- ✅ APLICADO en Supabase el 2026-09-06. Verificado: FK
--- movimientos_tarjeta_id_fkey en ON DELETE RESTRICT, vista tarjetas_con_deuda
--- expone cantidad_gastos/total_pagado/total_gastado, función
--- eliminar_tarjeta_usuario creada. Se deja el detalle completo de los PASOS
--- y las VERIFICACIONES tal cual se escribieron ANTES de correrlo, como
--- referencia de qué se verificó y por qué.
+-- ❌ OBSOLETO / SUPERADO por sql/supabase_archivar_tarjetas.sql -- NO VOLVER A
+-- EJECUTAR. El usuario replanteó el modelo (2026-09-07): en vez de "borrar la
+-- tarjeta reasignando sus gastos a una cuenta", ahora una tarjeta NUNCA se
+-- borra -- se ARCHIVA (se le pone tarjetas.archivada_en y deja de mostrarse;
+-- su historial de movimientos queda intacto, sin reasignar nada). Regla igual:
+-- solo se puede archivar con deuda 0.
+--
+-- QUÉ QUEDA de este script (aplicado el 2026-09-06) y qué se revirtió:
+--   - FK movimientos_tarjeta_id_fkey en ON DELETE RESTRICT -> SE MANTIENE.
+--     Sigue siendo el backstop correcto (ver supabase_archivar_tarjetas.sql
+--     PASO 5): como ahora nunca se borra una tarjeta, RESTRICT solo actúa si
+--     alguien la borra por fuera de la app, y ahí conviene que falle ruidoso.
+--   - Vista tarjetas_con_deuda con cantidad_gastos/total_pagado/total_gastado
+--     -> REVERTIDO. supabase_archivar_tarjetas.sql PASO 3 recrea la vista sin
+--     esas 3 columnas (ya no las usa nadie) y le agrega el filtro
+--     "where archivada_en is null".
+--   - Función eliminar_tarjeta_usuario(uuid, uuid) -> ELIMINADA.
+--     supabase_archivar_tarjetas.sql PASO 4 hace "drop function".
+--
+-- Se deja el detalle de PASOS y VERIFICACIONES de abajo TAL CUAL como
+-- referencia histórica del modelo de reasignación. NO ejecutar.
 --
 -- ============================================================================
 -- QUÉ RESUELVE Y POR QUÉ REEMPLAZA AL SCRIPT ANTERIOR
