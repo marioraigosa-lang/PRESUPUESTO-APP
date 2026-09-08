@@ -1,11 +1,11 @@
-import { Check } from 'lucide-react'
+import { Check, CreditCard } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 
 function GastoFijo({ gasto, onToggle, guardando }) {
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
-  const { id, nombre, monto, dia_pago, pagado } = gasto
+  const { id, nombre, monto, dia_pago, pagado, pagadoConTarjeta } = gasto
 
   return (
     <button
@@ -30,8 +30,22 @@ function GastoFijo({ gasto, onToggle, guardando }) {
         >
           {nombre}
         </p>
-        <p className="truncate text-xs text-text-dim">
-          {dia_pago ? t('home.venceDia', { dia: dia_pago }) : t('home.sinFecha')}
+        <p className="flex min-w-0 items-center gap-1.5 text-xs text-text-dim">
+          <span className="shrink-0">
+            {dia_pago ? t('home.venceDia', { dia: dia_pago }) : t('home.sinFecha')}
+          </span>
+          {pagado && pagadoConTarjeta && (
+            <span
+              className="flex min-w-0 items-center gap-1.5"
+              title={t('home.conTarjeta', { tarjeta: pagadoConTarjeta })}
+            >
+              <span className="shrink-0" aria-hidden="true">
+                ·
+              </span>
+              <CreditCard className="h-3.5 w-3.5 shrink-0 text-gold" aria-hidden="true" />
+              <span className="truncate text-gold">{pagadoConTarjeta}</span>
+            </span>
+          )}
         </p>
       </div>
 

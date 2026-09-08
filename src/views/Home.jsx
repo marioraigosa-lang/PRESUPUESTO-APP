@@ -341,6 +341,7 @@ function Home({
 
         <GastosFijos
           cuentas={cuentas}
+          tarjetas={tarjetas}
           periodo={periodo}
           onMarcarPagado={onMarcarGastoFijoPagado}
           onDesmarcarPagado={onDesmarcarGastoFijoPagado}

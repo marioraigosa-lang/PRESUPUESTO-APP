@@ -343,21 +343,33 @@ function App() {
   // registra dentro de ESE mes (ver fechaPagoEnPeriodo dentro del
   // servicio). Devuelve el movimiento (existente o recién creado) para que
   // la pantalla pueda actualizar su estado local sin tener que recargar todo.
-  async function marcarGastoFijoPagado(gasto, cuentaId, periodo) {
-    const { movimiento, actualizaciones } = await gastosFijosService.marcarGastoFijoPagado(
+  async function marcarGastoFijoPagado(gasto, origen, periodo) {
+    const {
+      movimiento,
+      actualizaciones,
+      actualizacionesTarjeta = [],
+    } = await gastosFijosService.marcarGastoFijoPagado(
       datosUsuario,
       cuentas,
+      tarjetas,
       categorias,
       gasto,
-      cuentaId,
+      origen,
       periodo,
     )
+    // Según el origen elegido (`origen` es { cuentaId } o { tarjetaId }) el
+    // servicio devuelve el hint en una lista u otra: saldo de la cuenta, o
+    // deuda de la tarjeta -- la que no aplica llega vacía y aplicar...() la
+    // ignora.
     aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
     setMovimientosVersion((version) => version + 1)
     // Marcar como pagado inserta un movimiento real (ver el servicio): la
-    // cuenta elegida puede pasar de 0 a 1 movimiento, así que también hay
-    // que refrescar cantidad_movimientos, igual que en agregarMovimiento.
+    // cuenta o la tarjeta elegida puede pasar de 0 a 1 movimiento, así que
+    // también hay que refrescar cantidad_movimientos, igual que en
+    // agregarMovimiento.
     refrescarCuentas()
+    refrescarTarjetas()
     return movimiento
   }
 
@@ -365,16 +377,19 @@ function App() {
   // concreto (busca y borra solo el movimiento vinculado cuya fecha caiga
   // en ese mes), no cualquier movimiento del gasto fijo.
   async function desmarcarGastoFijoPagado(gasto, periodo) {
-    const { actualizaciones } = await gastosFijosService.desmarcarGastoFijoPagado(
+    const { actualizaciones, actualizacionesTarjeta = [] } = await gastosFijosService.desmarcarGastoFijoPagado(
       datosUsuario,
       cuentas,
+      tarjetas,
       gasto,
       periodo,
     )
     aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
     setMovimientosVersion((version) => version + 1)
     // Desmarcar borra el movimiento vinculado -- mismo motivo que arriba.
     refrescarCuentas()
+    refrescarTarjetas()
   }
 
   async function agregarGastoFijo(datos) {
@@ -397,13 +412,21 @@ function App() {
   // reutilizando su propia lógica de "desmarcar" (devuelve el saldo a la
   // cuenta y borra el movimiento vinculado) antes de borrar el gasto fijo.
   async function eliminarGastoFijo(gasto) {
-    const { actualizaciones } = await gastosFijosService.eliminarGastoFijo(datosUsuario, cuentas, gasto)
+    const { actualizaciones, actualizacionesTarjeta = [] } = await gastosFijosService.eliminarGastoFijo(
+      datosUsuario,
+      cuentas,
+      tarjetas,
+      gasto,
+    )
     aplicarActualizacionesSaldo(actualizaciones)
+    aplicarActualizacionesDeuda(actualizacionesTarjeta)
     if (gasto.pagado) {
       setMovimientosVersion((version) => version + 1)
       // Solo si estaba pagado había un movimiento vinculado que borrar --
-      // mismo motivo que en desmarcarGastoFijoPagado.
+      // mismo motivo que en desmarcarGastoFijoPagado. Puede haber sido con
+      // cuenta o con tarjeta, así que se refrescan ambas.
       refrescarCuentas()
+      refrescarTarjetas()
     }
   }
 

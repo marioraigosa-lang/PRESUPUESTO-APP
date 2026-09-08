@@ -12,7 +12,7 @@ import MensajeError from './ui/MensajeError'
 import Acordeon from './ui/Acordeon'
 import { calcularResumenGastosFijos } from '../utils/resumenGastosFijos'
 
-function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
+function GastosFijos({ cuentas, tarjetas = [], periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
@@ -47,9 +47,13 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
   async function cargarMovimientosDelMes() {
     const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
 
+    // "tarjeta:tarjetas!tarjeta_id(nombre)": un gasto fijo se puede pagar con
+    // tarjeta (tarjeta_id set, cuenta_id null). Traemos el nombre de la
+    // tarjeta para poder mostrar el indicador 💳 en el checklist -- mismo
+    // join y misma sintaxis que useMovimientosPeriodo.
     const { data, error } = await seleccionarPropio(
       'movimientos',
-      'id, gasto_fijo_id, cuenta_id, monto, fecha',
+      'id, gasto_fijo_id, cuenta_id, monto, fecha, tarjeta_id, tarjeta:tarjetas!tarjeta_id(nombre)',
     )
       .not('gasto_fijo_id', 'is', null)
       .gte('fecha', desde)
@@ -72,11 +76,17 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
   } = useConsulta(cargarMovimientosDelMes, [periodo.anio, periodo.mes], {})
 
   // Lista de gastos fijos con su estado "pagado" recalculado para el mes
-  // seleccionado (no el campo global de la tabla).
-  const gastosConEstado = gastos.map((gasto) => ({
-    ...gasto,
-    pagado: Boolean(movimientosMes[gasto.id]),
-  }))
+  // seleccionado (no el campo global de la tabla). `pagadoConTarjeta` es el
+  // nombre de la tarjeta si el pago de ESTE mes fue con tarjeta, o null si
+  // fue con cuenta / está pendiente -- solo alimenta el indicador visual 💳.
+  const gastosConEstado = gastos.map((gasto) => {
+    const movimiento = movimientosMes[gasto.id]
+    return {
+      ...gasto,
+      pagado: Boolean(movimiento),
+      pagadoConTarjeta: movimiento?.tarjeta?.nombre ?? null,
+    }
+  })
 
   function abrirSelectorCuenta(gasto) {
     setErrorGuardado(null)
@@ -89,7 +99,9 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
     setGastoSeleccionado(null)
   }
 
-  async function confirmarPago(cuentaId) {
+  // `origen` es { cuentaId } o { tarjetaId } -- lo que haya elegido el
+  // usuario en HojaElegirCuentaPago. Se reenvía tal cual al handler.
+  async function confirmarPago(origen) {
     const gasto = gastoSeleccionado
     if (!gasto) return
 
@@ -100,8 +112,19 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
     setGuardandoIds((actuales) => new Set(actuales).add(gasto.id))
 
     try {
-      const movimiento = await onMarcarPagado(gasto, cuentaId, periodo)
-      setMovimientosMes((actuales) => ({ ...actuales, [gasto.id]: movimiento }))
+      const movimiento = await onMarcarPagado(gasto, origen, periodo)
+      // El movimiento que devuelve el servicio trae tarjeta_id pero no el
+      // join `tarjeta:tarjetas(nombre)`. Si el pago fue con tarjeta, le
+      // adjuntamos el nombre desde la lista local para que el indicador 💳
+      // aparezca al instante, sin esperar la próxima carga de movimientos.
+      const nombreTarjeta = origen?.tarjetaId
+        ? (tarjetas.find((t) => t.id === origen.tarjetaId)?.nombre ?? null)
+        : null
+      const movimientoGuardado =
+        nombreTarjeta && !movimiento?.tarjeta?.nombre
+          ? { ...movimiento, tarjeta: { nombre: nombreTarjeta } }
+          : movimiento
+      setMovimientosMes((actuales) => ({ ...actuales, [gasto.id]: movimientoGuardado }))
       cerrarSelectorCuenta()
     } catch (error) {
       setMovimientosMes((actuales) => {
@@ -253,6 +276,7 @@ function GastosFijos({ cuentas, periodo, onMarcarPagado, onDesmarcarPagado, onGe
         abierta={hojaAbierta}
         onCerrar={cerrarSelectorCuenta}
         cuentas={cuentas}
+        tarjetas={tarjetas}
         gasto={gastoSeleccionado}
         onConfirmar={confirmarPago}
       />
