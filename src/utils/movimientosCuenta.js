@@ -13,29 +13,43 @@ export function esEntradaEnCuenta(movimiento, cuentaId) {
   return movimiento.cuenta_destino_id === cuentaId
 }
 
-// Un solo recorrido de los movimientos del mes: acumula los 3 totales (que
-// consideran TODOS los movimientos, incluidos los traslados en ambas
-// direcciones) y a la vez arma la lista de abajo, que excluye únicamente
-// los gastos normales (con categoría) -- ingresos, retiros y traslados (de
-// entrada Y de salida) sí se listan, con su texto/color direccional ya
-// resuelto por <Movimiento cuentaContextoId=... />.
-export function calcularResumenCuenta(movimientos, cuentaId) {
-  const { totalIngresos, totalEgresos, listaMovimientos } = movimientos.reduce(
-    (acumulado, movimiento) => {
-      if (esEntradaEnCuenta(movimiento, cuentaId)) {
-        acumulado.totalIngresos += movimiento.monto
-      } else {
-        acumulado.totalEgresos += movimiento.monto
-      }
-      if (movimiento.tipo !== 'gasto') {
-        acumulado.listaMovimientos.push(movimiento)
-      }
-      return acumulado
-    },
-    { totalIngresos: 0, totalEgresos: 0, listaMovimientos: [] },
-  )
+// Separa los movimientos del periodo de una cuenta en dos listas según la
+// MISMA regla que usan los 3 totales (esEntradaEnCuenta):
+//   - `entran`: plata que ENTRA a la cuenta -> ingreso + traslado donde esta
+//     cuenta es el destino.
+//   - `salen`: plata que SALE de la cuenta -> gasto + retiro + pago_tarjeta
+//     (cuenta_id = esta cuenta) + traslado donde esta cuenta es el origen.
+// El orden original (fecha desc, ver useMovimientosPeriodo) se conserva en
+// cada lista. Lo usa el toggle Ingresos/Egresos de DetalleCuenta.jsx como
+// herramienta de auditoría: a diferencia del detalle "resumido" anterior
+// (que ocultaba los gastos normales), en "salen" SÍ están incluidos.
+export function separarMovimientosCuenta(movimientos, cuentaId) {
+  const entran = []
+  const salen = []
 
-  return { totalIngresos, totalEgresos, neto: totalIngresos - totalEgresos, listaMovimientos }
+  for (const movimiento of movimientos) {
+    if (esEntradaEnCuenta(movimiento, cuentaId)) {
+      entran.push(movimiento)
+    } else {
+      salen.push(movimiento)
+    }
+  }
+
+  return { entran, salen }
+}
+
+// Los 3 totales del mes de una cuenta (ver DetalleCuenta.jsx): ingresos y
+// egresos consideran TODOS los movimientos, con los traslados contando según
+// el lado de la cuenta (esEntradaEnCuenta). Se apoya en separarMovimientosCuenta
+// para no repetir esa clasificación. `neto` = ingresos - egresos.
+export function calcularResumenCuenta(movimientos, cuentaId) {
+  const { entran, salen } = separarMovimientosCuenta(movimientos, cuentaId)
+
+  const sumarMontos = (lista) => lista.reduce((total, movimiento) => total + movimiento.monto, 0)
+  const totalIngresos = sumarMontos(entran)
+  const totalEgresos = sumarMontos(salen)
+
+  return { totalIngresos, totalEgresos, neto: totalIngresos - totalEgresos }
 }
 
 // Texto del movimiento tal como debe verse desde la perspectiva de

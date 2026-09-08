@@ -269,10 +269,13 @@ export default {
       ingresosTitulo: 'Ingresos',
       egresosTitulo: 'Egresos',
       netoTitulo: 'Neto',
-      // Lista de abajo: ingresos + traslados (de entrada y de salida), sin
-      // los gastos normales -- ver DetalleCuenta.jsx.
-      listaTitulo: 'Ingresos y traslados',
-      sinMovimientosLista: 'No hay ingresos ni traslados este mes.',
+      // Lista de abajo con un toggle Ingresos/Egresos para auditar -- ver
+      // DetalleCuenta.jsx. "Ingresos" = lo que entra (ingresos + traslados de
+      // entrada); "Egresos" = todo lo que sale (gastos, retiros, pagos de
+      // tarjeta, traslados de salida).
+      listaTitulo: 'Movimientos',
+      sinIngresos: 'No hay ingresos ni traslados de entrada este mes.',
+      sinEgresos: 'No hay egresos este mes.',
     },
   },
 

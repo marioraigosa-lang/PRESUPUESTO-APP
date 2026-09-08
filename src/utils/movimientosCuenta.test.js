@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { esEntradaEnCuenta, calcularResumenCuenta, descripcionEnContexto } from './movimientosCuenta'
+import {
+  esEntradaEnCuenta,
+  separarMovimientosCuenta,
+  calcularResumenCuenta,
+  descripcionEnContexto,
+} from './movimientosCuenta'
 
 const CUENTA_A = 'cuenta-a'
 const CUENTA_B = 'cuenta-b'
@@ -48,47 +53,92 @@ describe('esEntradaEnCuenta', () => {
   })
 })
 
+describe('separarMovimientosCuenta', () => {
+  it('un ingreso va a "entran"', () => {
+    const movimiento = { id: 1, tipo: 'ingreso', monto: 100000 }
+
+    expect(separarMovimientosCuenta([movimiento], CUENTA_A)).toEqual({ entran: [movimiento], salen: [] })
+  })
+
+  it('un gasto normal va a "salen" (antes se ocultaba de la lista)', () => {
+    const movimiento = { id: 1, tipo: 'gasto', monto: 40000 }
+
+    expect(separarMovimientosCuenta([movimiento], CUENTA_A)).toEqual({ entran: [], salen: [movimiento] })
+  })
+
+  it('un retiro va a "salen"', () => {
+    const movimiento = { id: 1, tipo: 'retiro', monto: 60000 }
+
+    expect(separarMovimientosCuenta([movimiento], CUENTA_A)).toEqual({ entran: [], salen: [movimiento] })
+  })
+
+  it('un pago_tarjeta va a "salen" (es un egreso de la cuenta de origen)', () => {
+    const movimiento = { id: 1, tipo: 'pago_tarjeta', monto: 70000 }
+
+    expect(separarMovimientosCuenta([movimiento], CUENTA_A)).toEqual({ entran: [], salen: [movimiento] })
+  })
+
+  it('un traslado donde esta cuenta es el destino va a "entran"', () => {
+    const movimiento = { id: 1, tipo: 'traslado', monto: 50000, cuenta_destino_id: CUENTA_A }
+
+    expect(separarMovimientosCuenta([movimiento], CUENTA_A)).toEqual({ entran: [movimiento], salen: [] })
+  })
+
+  it('un traslado donde esta cuenta es el origen va a "salen"', () => {
+    const movimiento = { id: 1, tipo: 'traslado', monto: 50000, cuenta_destino_id: CUENTA_B }
+
+    expect(separarMovimientosCuenta([movimiento], CUENTA_A)).toEqual({ entran: [], salen: [movimiento] })
+  })
+
+  it('reparte una mezcla conservando el orden original de cada lista', () => {
+    const ingreso = { id: 1, tipo: 'ingreso', monto: 200000 }
+    const gasto = { id: 2, tipo: 'gasto', monto: 30000 }
+    const trasladoEntrada = { id: 3, tipo: 'traslado', monto: 10000, cuenta_destino_id: CUENTA_A }
+    const retiro = { id: 4, tipo: 'retiro', monto: 5000 }
+    const trasladoSalida = { id: 5, tipo: 'traslado', monto: 8000, cuenta_destino_id: CUENTA_B }
+    const pagoTarjeta = { id: 6, tipo: 'pago_tarjeta', monto: 12000 }
+
+    const resultado = separarMovimientosCuenta(
+      [ingreso, gasto, trasladoEntrada, retiro, trasladoSalida, pagoTarjeta],
+      CUENTA_A,
+    )
+
+    expect(resultado.entran).toEqual([ingreso, trasladoEntrada])
+    expect(resultado.salen).toEqual([gasto, retiro, trasladoSalida, pagoTarjeta])
+  })
+
+  it('caso vacío: dos listas vacías', () => {
+    expect(separarMovimientosCuenta([], CUENTA_A)).toEqual({ entran: [], salen: [] })
+  })
+})
+
 describe('calcularResumenCuenta', () => {
-  it('suma un ingreso a totalIngresos y lo incluye en la lista', () => {
-    const movimientos = [{ id: 1, tipo: 'ingreso', monto: 100000 }]
+  it('suma un ingreso a totalIngresos', () => {
+    const resultado = calcularResumenCuenta([{ id: 1, tipo: 'ingreso', monto: 100000 }], CUENTA_A)
 
-    const resultado = calcularResumenCuenta(movimientos, CUENTA_A)
-
-    expect(resultado.totalIngresos).toBe(100000)
-    expect(resultado.totalEgresos).toBe(0)
-    expect(resultado.neto).toBe(100000)
-    expect(resultado.listaMovimientos).toEqual(movimientos)
+    expect(resultado).toEqual({ totalIngresos: 100000, totalEgresos: 0, neto: 100000 })
   })
 
-  it('suma un gasto a totalEgresos pero lo excluye de la lista', () => {
-    const movimientos = [{ id: 1, tipo: 'gasto', monto: 40000 }]
+  it('suma un gasto a totalEgresos', () => {
+    const resultado = calcularResumenCuenta([{ id: 1, tipo: 'gasto', monto: 40000 }], CUENTA_A)
 
-    const resultado = calcularResumenCuenta(movimientos, CUENTA_A)
-
-    expect(resultado.totalIngresos).toBe(0)
-    expect(resultado.totalEgresos).toBe(40000)
-    expect(resultado.neto).toBe(-40000)
-    expect(resultado.listaMovimientos).toEqual([])
+    expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 40000, neto: -40000 })
   })
 
-  it('un traslado de entrada (esta cuenta es el destino) suma a ingresos y aparece en la lista', () => {
+  it('un traslado de entrada (esta cuenta es el destino) suma a ingresos', () => {
     const movimiento = { id: 1, tipo: 'traslado', monto: 50000, cuenta_destino_id: CUENTA_A }
 
     const resultado = calcularResumenCuenta([movimiento], CUENTA_A)
 
-    expect(resultado.totalIngresos).toBe(50000)
-    expect(resultado.totalEgresos).toBe(0)
-    expect(resultado.listaMovimientos).toEqual([movimiento])
+    expect(resultado).toEqual({ totalIngresos: 50000, totalEgresos: 0, neto: 50000 })
   })
 
-  it('un traslado de salida (esta cuenta es el origen) suma a egresos y también aparece en la lista', () => {
+  it('un traslado de salida (esta cuenta es el origen) suma a egresos', () => {
     const movimiento = { id: 1, tipo: 'traslado', monto: 50000, cuenta_destino_id: CUENTA_B }
 
     const resultado = calcularResumenCuenta([movimiento], CUENTA_A)
 
-    expect(resultado.totalIngresos).toBe(0)
-    expect(resultado.totalEgresos).toBe(50000)
-    expect(resultado.listaMovimientos).toEqual([movimiento])
+    expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 50000, neto: -50000 })
   })
 
   it('mezcla ingresos, gastos y traslados (en ambas direcciones) en un solo periodo', () => {
@@ -102,35 +152,22 @@ describe('calcularResumenCuenta', () => {
     expect(resultado.totalIngresos).toBe(210000) // ingreso + traslado de entrada
     expect(resultado.totalEgresos).toBe(35000) // gasto + traslado de salida
     expect(resultado.neto).toBe(175000)
-    expect(resultado.listaMovimientos).toEqual([ingreso, trasladoEntrada, trasladoSalida]) // el gasto queda fuera
   })
 
-  it('caso vacío: sin movimientos, todos los totales quedan en 0 y la lista vacía', () => {
-    const resultado = calcularResumenCuenta([], CUENTA_A)
-
-    expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 0, neto: 0, listaMovimientos: [] })
+  it('caso vacío: todos los totales quedan en 0', () => {
+    expect(calcularResumenCuenta([], CUENTA_A)).toEqual({ totalIngresos: 0, totalEgresos: 0, neto: 0 })
   })
 
-  it('suma un retiro a totalEgresos y SÍ lo incluye en la lista (a diferencia de un gasto)', () => {
-    const movimientos = [{ id: 1, tipo: 'retiro', monto: 60000 }]
+  it('suma un retiro a totalEgresos', () => {
+    const resultado = calcularResumenCuenta([{ id: 1, tipo: 'retiro', monto: 60000 }], CUENTA_A)
 
-    const resultado = calcularResumenCuenta(movimientos, CUENTA_A)
-
-    expect(resultado.totalIngresos).toBe(0)
-    expect(resultado.totalEgresos).toBe(60000)
-    expect(resultado.neto).toBe(-60000)
-    expect(resultado.listaMovimientos).toEqual(movimientos)
+    expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 60000, neto: -60000 })
   })
 
-  it('suma un pago_tarjeta a totalEgresos y SÍ lo incluye en la lista (aparece como egreso en la cuenta de origen)', () => {
-    const movimientos = [{ id: 1, tipo: 'pago_tarjeta', monto: 70000 }]
+  it('suma un pago_tarjeta a totalEgresos (egreso en la cuenta de origen)', () => {
+    const resultado = calcularResumenCuenta([{ id: 1, tipo: 'pago_tarjeta', monto: 70000 }], CUENTA_A)
 
-    const resultado = calcularResumenCuenta(movimientos, CUENTA_A)
-
-    expect(resultado.totalIngresos).toBe(0)
-    expect(resultado.totalEgresos).toBe(70000)
-    expect(resultado.neto).toBe(-70000)
-    expect(resultado.listaMovimientos).toEqual(movimientos)
+    expect(resultado).toEqual({ totalIngresos: 0, totalEgresos: 70000, neto: -70000 })
   })
 })
 

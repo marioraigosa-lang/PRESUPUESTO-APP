@@ -249,10 +249,13 @@ export default {
       ingresosTitulo: 'Income',
       egresosTitulo: 'Expenses',
       netoTitulo: 'Net',
-      // List below: income + transfers (incoming and outgoing), excluding
-      // regular expenses -- see DetalleCuenta.jsx.
-      listaTitulo: 'Income and transfers',
-      sinMovimientosLista: 'No income or transfers this month.',
+      // List below with an Income/Expenses toggle for auditing -- see
+      // DetalleCuenta.jsx. "Income" = what comes in (income + incoming
+      // transfers); "Expenses" = everything that goes out (expenses,
+      // withdrawals, card payments, outgoing transfers).
+      listaTitulo: 'Transactions',
+      sinIngresos: 'No income or incoming transfers this month.',
+      sinEgresos: 'No expenses this month.',
     },
   },
 

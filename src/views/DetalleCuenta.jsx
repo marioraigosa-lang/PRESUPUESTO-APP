@@ -8,7 +8,7 @@ import { useFormatoMoneda } from '../context/MonedaContext'
 import { useMovimientosPeriodo } from '../hooks/useMovimientosPeriodo'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
-import { calcularResumenCuenta, descripcionEnContexto } from '../utils/movimientosCuenta'
+import { calcularResumenCuenta, separarMovimientosCuenta, descripcionEnContexto } from '../utils/movimientosCuenta'
 
 const hoy = new Date()
 
@@ -23,10 +23,12 @@ const hoy = new Date()
 // (agregar/actualizar/eliminar movimiento) siguen viviendo en App.jsx;
 // esta pantalla las recibe como props, igual que Home hoy.
 //
-// Versión resumida: en vez de listar TODOS los movimientos del mes, muestra
-// 3 totales (ingresos/egresos/neto, con traslados contando según el lado
-// de la cuenta) y solo el DETALLE de los ingresos -- el detalle de los
-// egresos se verá desde las categorías en una fase posterior.
+// Arriba, 3 totales del mes (ingresos/egresos/neto, con traslados contando
+// según el lado de la cuenta). Abajo, un toggle Ingresos/Egresos para
+// auditar la lista: "Ingresos" muestra lo que ENTRA (ingresos + traslados de
+// entrada), "Egresos" muestra TODO lo que SALE (gastos, retiros, pagos de
+// tarjeta y traslados de salida). La separación la hace
+// separarMovimientosCuenta con la misma regla que los totales.
 function DetalleCuenta({
   cuenta,
   cuentas,
@@ -46,6 +48,10 @@ function DetalleCuenta({
   const [movimientoEditando, setMovimientoEditando] = useState(null)
   const [eliminandoId, setEliminandoId] = useState(null)
   const [errorEliminar, setErrorEliminar] = useState(null)
+  // Toggle de la lista de abajo. Arranca en 'ingresos' (lo que la lista
+  // mostraba antes del cambio). No se resetea al cambiar de mes: si el
+  // usuario está auditando egresos, los sigue viendo mes a mes.
+  const [vistaLista, setVistaLista] = useState('ingresos')
 
   const {
     datos: movimientos,
@@ -54,10 +60,9 @@ function DetalleCuenta({
     establecerDatos: setMovimientos,
   } = useMovimientosPeriodo({ periodo, version: movimientosVersion, cuentaId: cuenta.id })
 
-  const { totalIngresos, totalEgresos, neto, listaMovimientos } = calcularResumenCuenta(
-    movimientos,
-    cuenta.id,
-  )
+  const { totalIngresos, totalEgresos, neto } = calcularResumenCuenta(movimientos, cuenta.id)
+  const { entran, salen } = separarMovimientosCuenta(movimientos, cuenta.id)
+  const listaVisible = vistaLista === 'ingresos' ? entran : salen
 
   function irMesAnterior() {
     setPeriodo((actual) => {
@@ -188,6 +193,32 @@ function DetalleCuenta({
             </button>
           </div>
 
+          {/* Toggle Ingresos/Egresos: mismo segmentado en píldora que usa
+              HojaNuevoMovimiento para tipo/origen. Verde para "entra",
+              coral para "sale" -- mismos colores que los 3 totales de arriba. */}
+          <div className="grid grid-cols-2 gap-1 rounded-full bg-panel-2 p-1">
+            <button
+              type="button"
+              onClick={() => setVistaLista('ingresos')}
+              aria-pressed={vistaLista === 'ingresos'}
+              className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
+                vistaLista === 'ingresos' ? 'bg-mint text-bg' : 'text-text-dim'
+              }`}
+            >
+              {t('cuentas.detalle.ingresosTitulo')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVistaLista('egresos')}
+              aria-pressed={vistaLista === 'egresos'}
+              className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
+                vistaLista === 'egresos' ? 'bg-coral text-bg' : 'text-text-dim'
+              }`}
+            >
+              {t('cuentas.detalle.egresosTitulo')}
+            </button>
+          </div>
+
           {cargandoMovimientos && (
             <p className="px-2 text-sm text-text-dim">{t('home.cargandoMovimientos')}</p>
           )}
@@ -196,15 +227,17 @@ function DetalleCuenta({
 
           {errorEliminar && <MensajeError>{t('home.errorEliminarMovimiento')}</MensajeError>}
 
-          {!cargandoMovimientos && !errorMovimientos && listaMovimientos.length === 0 && (
+          {!cargandoMovimientos && !errorMovimientos && listaVisible.length === 0 && (
             <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">
-              {t('cuentas.detalle.sinMovimientosLista')}
+              {vistaLista === 'ingresos'
+                ? t('cuentas.detalle.sinIngresos')
+                : t('cuentas.detalle.sinEgresos')}
             </p>
           )}
 
-          {!cargandoMovimientos && !errorMovimientos && listaMovimientos.length > 0 && (
+          {!cargandoMovimientos && !errorMovimientos && listaVisible.length > 0 && (
             <div className="flex flex-col gap-2 rounded-2xl bg-panel shadow-card p-2">
-              {listaMovimientos.map((movimiento) => (
+              {listaVisible.map((movimiento) => (
                 <Movimiento
                   key={movimiento.id}
                   movimiento={movimiento}
