@@ -164,6 +164,57 @@ describe('agregarMovimiento', () => {
       agregarMovimiento(datosUsuario, [cuenta1], [], { tipo: 'gasto', monto: 10, cuentaId: 1 }),
     ).rejects.toThrow('boom')
   })
+
+  it('despacha a pagarTarjeta cuando el tipo es pago_tarjeta (asistente), resolviendo la tarjeta por id', async () => {
+    const insertarPropio = vi.fn(() => crearConstructor({ data: null, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+    const tarjetaConDeuda = { id: 10, deuda: 500 }
+
+    const resultado = await agregarMovimiento(datosUsuario, [cuenta1], [tarjetaConDeuda], {
+      tipo: 'pago_tarjeta',
+      monto: 200,
+      cuentaId: 1,
+      tarjetaId: 10,
+      descripcion: 'Pago Nu',
+      emoji: '💳',
+    })
+
+    expect(insertarPropio).toHaveBeenCalledWith(
+      'movimientos',
+      expect.objectContaining({ tipo: 'pago_tarjeta', monto: 200, cuenta_id: 1, tarjeta_id: 10, categoria_id: null }),
+    )
+    expect(resultado).toEqual({
+      actualizaciones: [{ id: 1, delta: -200 }],
+      actualizacionesTarjeta: [{ id: 10, delta: -200 }],
+    })
+  })
+
+  it('rechaza un pago_tarjeta si la tarjeta no está en la lista, sin llamar a Supabase', async () => {
+    const datosUsuario = crearDatosUsuarioMock()
+
+    await expect(
+      agregarMovimiento(datosUsuario, [cuenta1], [{ id: 10, deuda: 500 }], {
+        tipo: 'pago_tarjeta',
+        monto: 200,
+        cuentaId: 1,
+        tarjetaId: 99,
+      }),
+    ).rejects.toThrow('Selecciona una tarjeta válida')
+    expect(datosUsuario.insertarPropio).not.toHaveBeenCalled()
+  })
+
+  it('un pago_tarjeta parcial que excede la deuda se rechaza (mismo bloqueo que pagarTarjeta)', async () => {
+    const datosUsuario = crearDatosUsuarioMock()
+
+    await expect(
+      agregarMovimiento(datosUsuario, [cuenta1], [{ id: 10, deuda: 500 }], {
+        tipo: 'pago_tarjeta',
+        monto: 501,
+        cuentaId: 1,
+        tarjetaId: 10,
+      }),
+    ).rejects.toThrow('El pago no puede ser mayor que la deuda actual de la tarjeta')
+  })
 })
 
 describe('agregarGastoConTarjeta', () => {

@@ -77,6 +77,20 @@ export async function agregarMovimiento(datosUsuario, cuentas, tarjetas, datos) 
     return agregarGastoConTarjeta(datosUsuario, tarjetas, datos)
   }
 
+  // "Pagar tarjeta" desde el asistente de movimiento: mismo pago que la hoja
+  // del detalle de tarjeta, así que se delega tal cual a pagarTarjeta (no se
+  // reimplementa). Solo hace falta resolver el objeto `tarjeta` a partir de
+  // datos.tarjetaId -- pagarTarjeta necesita su `deuda` para bloquear el
+  // sobrepago -- y ya devuelve los dos hints ({ actualizaciones,
+  // actualizacionesTarjeta }) que App.jsx -> agregarMovimiento aplica.
+  if (datos.tipo === 'pago_tarjeta') {
+    const tarjeta = tarjetas.find((t) => t.id === datos.tarjetaId)
+    if (!tarjeta) {
+      throw new Error('Selecciona una tarjeta válida')
+    }
+    return pagarTarjeta(datosUsuario, cuentas, tarjeta, datos)
+  }
+
   const cuenta = cuentas.find((c) => c.id === datos.cuentaId)
   if (!cuenta) {
     throw new Error('Selecciona una cuenta válida')

@@ -1,4 +1,4 @@
-import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Banknote } from 'lucide-react'
+import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Banknote, CreditCard } from 'lucide-react'
 import { useIdioma } from '../../../context/IdiomaContext'
 import AyudaContextual from '../../AyudaContextual'
 
@@ -39,9 +39,15 @@ const TIPOS = [
   },
 ]
 
-function PasoTipo({ cuentas, onElegir }) {
+function PasoTipo({ cuentas, tarjetas = [], onElegir }) {
   const { t } = useIdioma()
   const hayMenosDeDosCuentas = cuentas.length < 2
+
+  // "Pagar tarjeta" solo se ofrece si hay algo que pagar: al menos una
+  // tarjeta con deuda > 0. Sin deuda pendiente la opción NO aparece (a
+  // diferencia de "Traslado", que sí se muestra pero deshabilitado con < 2
+  // cuentas) -- no tendría ninguna tarjeta que listar en el paso siguiente.
+  const hayTarjetasConDeuda = tarjetas.some((tarjeta) => (tarjeta.deuda ?? 0) > 0)
 
   return (
     <div className="flex flex-col gap-5 pt-1">
@@ -75,6 +81,17 @@ function PasoTipo({ cuentas, onElegir }) {
             </div>
           )
         })}
+
+        {hayTarjetasConDeuda && (
+          <button
+            type="button"
+            onClick={() => onElegir('pago_tarjeta')}
+            className="col-span-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-line bg-panel-2 px-3 py-3.5 text-sm font-semibold text-text transition-all duration-150 hover:border-mint/40 active:scale-[0.98]"
+          >
+            <CreditCard className="h-5 w-5 text-mint" strokeWidth={2} aria-hidden="true" />
+            {t('movimientos.asistente.pagoTarjeta.tipoLabel')}
+          </button>
+        )}
       </div>
     </div>
   )

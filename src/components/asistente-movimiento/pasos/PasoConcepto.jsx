@@ -42,7 +42,9 @@ function PasoConcepto({
       ? 'movimientos.formulario.descripcionPlaceholderTraslado'
       : borrador.tipo === 'retiro'
         ? 'movimientos.formulario.descripcionPlaceholderRetiro'
-        : 'movimientos.formulario.descripcionPlaceholderGasto'
+        : borrador.tipo === 'pago_tarjeta'
+          ? 'movimientos.asistente.pagoTarjeta.conceptoPlaceholder'
+          : 'movimientos.formulario.descripcionPlaceholderGasto'
 
   function manejarEnvio(evento) {
     evento.preventDefault()

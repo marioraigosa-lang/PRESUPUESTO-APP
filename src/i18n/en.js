@@ -535,6 +535,25 @@ export default {
       sinTarjetasParaElegir: "You don't have any cards registered yet.",
       sinCategoriasParaElegir: "You don't have any categories yet. You can create one from Manage categories.",
       continuarSinCategoria: 'Continue without a category',
+      // "Pay card" as the wizard's 5th type (only shows when at least one
+      // card has debt > 0). Saving reuses the same logic as the card-detail
+      // payment sheet (tarjetas.pago.*).
+      pagoTarjeta: {
+        tipoLabel: 'Pay card',
+        preguntaTarjeta: 'Which card do you want to pay?',
+        deudaSufijo: 'You owe {{monto}}',
+        sinTarjetasConDeuda: 'None of your cards have outstanding debt.',
+        preguntaMonto: 'How much will you pay?',
+        deudaActual: 'Current debt: {{monto}}',
+        opcionTotal: 'Full payment',
+        opcionTotalNota: 'Clears the whole debt',
+        opcionParcial: 'Partial payment',
+        opcionParcialNota: 'You choose how much',
+        montoLabel: 'Amount to pay',
+        errorSobrepago: "You can't pay more than the debt ({{monto}}).",
+        preguntaCuenta: 'Which account does the payment come from?',
+        conceptoPlaceholder: 'E.g. Mid-month payment',
+      },
     },
   },
 

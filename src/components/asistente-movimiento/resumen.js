@@ -9,6 +9,7 @@ const CLAVE_TIPO = {
   gasto: 'movimientos.formulario.tipoGasto',
   traslado: 'movimientos.formulario.tipoTraslado',
   retiro: 'movimientos.formulario.tipoRetiro',
+  pago_tarjeta: 'movimientos.asistente.pagoTarjeta.tipoLabel',
 }
 
 export function chipsResumen(borrador, { cuentas = [], tarjetas = [], categorias = [], t, montoFormateado }) {
@@ -33,6 +34,11 @@ export function chipsResumen(borrador, { cuentas = [], tarjetas = [], categorias
     const destino = cuentas.find((cuenta) => cuenta.id === borrador.cuentaDestinoId)
     if (origen) chips.push({ paso: 'cuentaOrigen', texto: origen.nombre })
     if (destino) chips.push({ paso: 'cuentaDestino', texto: destino.nombre })
+  } else if (borrador.tipo === 'pago_tarjeta') {
+    const tarjeta = tarjetas.find((tarjeta) => tarjeta.id === borrador.tarjetaId)
+    const cuenta = cuentas.find((cuenta) => cuenta.id === borrador.cuentaId)
+    if (tarjeta) chips.push({ paso: 'tarjetaPago', texto: tarjeta.nombre })
+    if (cuenta) chips.push({ paso: 'cuentaPago', texto: cuenta.nombre })
   } else {
     // ingreso / retiro
     const cuenta = cuentas.find((cuenta) => cuenta.id === borrador.cuentaId)
@@ -43,7 +49,9 @@ export function chipsResumen(borrador, { cuentas = [], tarjetas = [], categorias
   // monto ya formateado en la moneda activa quede en el mismo orden que el
   // resto -- el llamador decide si lo pasa (PasoConcepto sí, PasoMonto no,
   // porque ahí el monto es justamente lo que se está por decidir).
-  if (montoFormateado) chips.push({ paso: 'monto', texto: montoFormateado })
+  if (montoFormateado) {
+    chips.push({ paso: borrador.tipo === 'pago_tarjeta' ? 'montoPago' : 'monto', texto: montoFormateado })
+  }
 
   return chips
 }

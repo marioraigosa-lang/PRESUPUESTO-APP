@@ -7,7 +7,10 @@
 //
 // Nombres de paso posibles: 'tipo', 'origen', 'cuenta', 'cuentaGasto',
 // 'tarjeta', 'cuentaOrigen', 'cuentaDestino', 'categoria', 'monto',
-// 'concepto'.
+// 'concepto', y los propios de "pagar tarjeta": 'tarjetaPago', 'montoPago',
+// 'cuentaPago' (nombres distintos a 'tarjeta'/'monto'/'cuenta' a propósito,
+// para que sus componentes -- PasoTarjetaPago/PasoMontoPago -- y las reglas
+// de salto no se pisen con los de los otros 4 tipos).
 const PASOS_POR_TIPO = {
   ingreso: () => ['tipo', 'cuenta', 'monto', 'concepto'],
 
@@ -30,6 +33,17 @@ const PASOS_POR_TIPO = {
   traslado: () => ['tipo', 'cuentaOrigen', 'cuentaDestino', 'monto', 'concepto'],
 
   retiro: () => ['tipo', 'cuenta', 'monto', 'concepto'],
+
+  // "Pagar tarjeta": elegir cuál tarjeta pagar, cuánto (total/parcial dentro
+  // de montoPago), y de qué cuenta sale la plata. Termina en 'concepto' como
+  // los otros 4 (paso opcional + botón "Guardar"). La opción solo aparece en
+  // PasoTipo si hay al menos una tarjeta con deuda > 0 -- una vez elegido el
+  // tipo, este flujo es siempre el mismo (sin reglas de salto: 'tarjetaPago'
+  // y 'cuentaPago' se preguntan siempre, aunque haya una sola opción, igual
+  // que un traslado siempre pide sus 2 cuentas). El guardado reutiliza
+  // services/movimientos.js -> pagarTarjeta (ver agregarMovimiento y
+  // construirDatosMovimiento.js).
+  pago_tarjeta: () => ['tipo', 'tarjetaPago', 'montoPago', 'cuentaPago', 'concepto'],
 }
 
 // Pasos que se saltan según el borrador y el contexto. Devuelve un Set de

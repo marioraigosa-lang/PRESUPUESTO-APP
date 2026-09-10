@@ -19,6 +19,7 @@ const PREGUNTAS = {
   cuentaGasto: 'movimientos.asistente.preguntaCuentaGasto',
   cuentaOrigen: 'movimientos.asistente.preguntaCuentaOrigenTraslado',
   cuentaDestino: 'movimientos.asistente.preguntaCuentaDestinoTraslado',
+  cuentaPago: 'movimientos.asistente.pagoTarjeta.preguntaCuenta',
   tarjeta: 'movimientos.asistente.preguntaTarjeta',
   origen: 'movimientos.formulario.origenLabel',
 }

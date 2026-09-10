@@ -565,6 +565,25 @@ export default {
       sinTarjetasParaElegir: 'No tienes tarjetas registradas todavía.',
       sinCategoriasParaElegir: 'No tienes categorías propias todavía. Puedes crear una desde Gestionar categorías.',
       continuarSinCategoria: 'Continuar sin categoría',
+      // "Pagar tarjeta" como 5º tipo del asistente (solo aparece si hay al
+      // menos una tarjeta con deuda > 0). El guardado reutiliza la misma
+      // lógica que la hoja de pago del detalle de tarjeta (tarjetas.pago.*).
+      pagoTarjeta: {
+        tipoLabel: 'Pagar tarjeta',
+        preguntaTarjeta: '¿Qué tarjeta quieres pagar?',
+        deudaSufijo: 'Debes {{monto}}',
+        sinTarjetasConDeuda: 'Ninguna de tus tarjetas tiene deuda pendiente.',
+        preguntaMonto: '¿Cuánto vas a pagar?',
+        deudaActual: 'Deuda actual: {{monto}}',
+        opcionTotal: 'Pago total',
+        opcionTotalNota: 'Salda toda la deuda',
+        opcionParcial: 'Pago parcial',
+        opcionParcialNota: 'Eliges cuánto abonar',
+        montoLabel: 'Monto a pagar',
+        errorSobrepago: 'No puedes pagar más que la deuda ({{monto}}).',
+        preguntaCuenta: '¿De qué cuenta sale el pago?',
+        conceptoPlaceholder: 'Ej: Pago quincena',
+      },
     },
   },
 

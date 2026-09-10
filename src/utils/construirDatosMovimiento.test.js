@@ -11,7 +11,12 @@ const TEXTOS = {
   'movimientos.formulario.tipoGasto': 'Gasto',
   'movimientos.formulario.cuentaGenerica': 'Cuenta',
 }
-const t = (clave) => TEXTOS[clave] ?? clave
+// `t` de mentira: para las claves con interpolación ('tarjetas.pago.descripcion')
+// devuelve un texto reconocible con el parámetro incrustado, igual que el real.
+const t = (clave, params) => {
+  if (clave === 'tarjetas.pago.descripcion') return `Pago ${params?.tarjeta ?? ''}`
+  return TEXTOS[clave] ?? clave
+}
 
 const cuentas = [
   { id: 'c1', nombre: 'Nómina' },
@@ -21,7 +26,11 @@ const categorias = [
   { id: 'cat1', nombre: 'Comida', emoji: '🍔' },
   { id: 'cat2', nombre: 'Transporte', emoji: '🚌' },
 ]
-const contexto = { cuentas, categorias, t }
+const tarjetas = [
+  { id: 't1', nombre: 'Nu' },
+  { id: 't2', nombre: 'Rappi' },
+]
+const contexto = { cuentas, categorias, tarjetas, t }
 
 describe('construirDatosMovimiento', () => {
   describe('ingreso', () => {
@@ -224,6 +233,41 @@ describe('construirDatosMovimiento', () => {
         contexto,
       )
       expect(datos.descripcion).toBe('Efectivo cajero')
+    })
+  })
+
+  describe('pago_tarjeta', () => {
+    it('arma el objeto que espera pagarTarjeta: cuenta_id Y tarjeta_id, categoría null, emoji 💳', () => {
+      const datos = construirDatosMovimiento(
+        { tipo: 'pago_tarjeta', monto: '150', cuentaId: 'c2', tarjetaId: 't1', descripcion: '' },
+        contexto,
+      )
+      expect(datos).toEqual({
+        tipo: 'pago_tarjeta',
+        monto: 150,
+        cuentaId: 'c2',
+        tarjetaId: 't1',
+        cuentaDestinoId: null,
+        categoriaId: null,
+        emoji: '💳',
+        descripcion: 'Pago Nu',
+      })
+    })
+
+    it('respeta la descripción del usuario (recortada)', () => {
+      const datos = construirDatosMovimiento(
+        { tipo: 'pago_tarjeta', monto: '150', cuentaId: 'c2', tarjetaId: 't1', descripcion: '  Pago quincena  ' },
+        contexto,
+      )
+      expect(datos.descripcion).toBe('Pago quincena')
+    })
+
+    it('cae a "Cuenta" genérica en la descripción si la tarjeta no está en la lista', () => {
+      const datos = construirDatosMovimiento(
+        { tipo: 'pago_tarjeta', monto: '150', cuentaId: 'c2', tarjetaId: 'inexistente', descripcion: '' },
+        contexto,
+      )
+      expect(datos.descripcion).toBe('Pago Cuenta')
     })
   })
 

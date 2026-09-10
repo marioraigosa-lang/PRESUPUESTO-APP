@@ -11,7 +11,7 @@
 // duplicar esta lógica.
 //
 // `borrador`:
-//   - tipo: 'ingreso' | 'gasto' | 'traslado' | 'retiro'
+//   - tipo: 'ingreso' | 'gasto' | 'traslado' | 'retiro' | 'pago_tarjeta'
 //   - monto: string canónico ya normalizado por limpiarEntradaMonto
 //     ("1000000", "1000.5") -- se pasa por Number() igual que hoy; el
 //     formulario garantiza que sea > 0 antes de llamar aquí.
@@ -20,7 +20,8 @@
 //   - descripcion: texto del usuario (puede venir vacío o solo espacios)
 //
 // `contexto`:
-//   - cuentas, categorias: listas actuales, para resolver nombre/emoji
+//   - cuentas, categorias, tarjetas: listas actuales, para resolver
+//     nombre/emoji (tarjetas solo se usa para el respaldo de "pago_tarjeta")
 //   - t: función de traducción para los textos de respaldo
 //
 // Devuelve: { tipo, monto, cuentaId, tarjetaId, cuentaDestinoId,
@@ -38,7 +39,31 @@ export function construirDatosMovimiento(borrador, contexto) {
     categoriaId = '',
     descripcion = '',
   } = borrador
-  const { cuentas = [], categorias = [], t } = contexto
+  const { cuentas = [], categorias = [], tarjetas = [], t } = contexto
+
+  // "Pagar tarjeta" (asistente): produce el objeto que espera
+  // services/movimientos.js -> pagarTarjeta (cuenta_id Y tarjeta_id a la vez,
+  // categoria_id null, emoji 💳 y la descripción de respaldo "Pago {tarjeta}"
+  // -- las mismas que arma HojaPagoTarjeta.jsx). agregarMovimiento despacha a
+  // pagarTarjeta al ver este tipo, así que los hints de saldo Y deuda salen
+  // de esa función existente sin duplicar nada.
+  if (tipo === 'pago_tarjeta') {
+    const tarjetaSeleccionada = tarjetas.find((tarjeta) => tarjeta.id === tarjetaId)
+    return {
+      tipo: 'pago_tarjeta',
+      monto: Number(monto),
+      cuentaId,
+      tarjetaId,
+      cuentaDestinoId: null,
+      categoriaId: null,
+      emoji: '💳',
+      descripcion:
+        descripcion.trim() ||
+        t('tarjetas.pago.descripcion', {
+          tarjeta: tarjetaSeleccionada?.nombre ?? t('movimientos.formulario.cuentaGenerica'),
+        }),
+    }
+  }
 
   // Solo un gasto puede salir de una tarjeta (ver constraint
   // movimientos_traslado_forma_check): ingreso/traslado/retiro siempre usan

@@ -8,8 +8,10 @@ import { leerUltimaCuenta, leerUltimaCategoria, guardarUltimaCuenta, guardarUlti
 import { idValidoEnLista } from './preselecciones'
 import PasoTipo from './pasos/PasoTipo'
 import PasoCuenta from './pasos/PasoCuenta'
+import PasoTarjetaPago from './pasos/PasoTarjetaPago'
 import PasoCategoria from './pasos/PasoCategoria'
 import PasoMonto from './pasos/PasoMonto'
+import PasoMontoPago from './pasos/PasoMontoPago'
 import PasoConcepto from './pasos/PasoConcepto'
 
 // Contenedor del asistente paso a paso. A diferencia de HojaNuevoMovimiento
@@ -204,7 +206,7 @@ function AsistenteMovimiento({
     // partir del borrador -- borrador.descripcion ya está al día (PasoConcepto
     // la despacha con ACTUALIZAR en cada tecla, ver actualizarCampo arriba),
     // así que ni siquiera hace falta pasarla aparte.
-    const datos = construirDatosMovimiento(borrador, { cuentas, categorias, t })
+    const datos = construirDatosMovimiento(borrador, { cuentas, categorias, tarjetas, t })
 
     setErrorGuardado(false)
     setGuardando(true)
@@ -308,12 +310,13 @@ function AsistenteMovimiento({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
           <div key={indiceSeguro} ref={contenedorPasoRef} tabIndex={-1} className={`h-full outline-none ${claseAnimacion}`}>
-            {pasoActual === 'tipo' && <PasoTipo cuentas={cuentas} onElegir={elegirTipo} />}
+            {pasoActual === 'tipo' && <PasoTipo cuentas={cuentas} tarjetas={tarjetas} onElegir={elegirTipo} />}
 
             {(pasoActual === 'cuenta' ||
               pasoActual === 'cuentaGasto' ||
               pasoActual === 'cuentaOrigen' ||
               pasoActual === 'cuentaDestino' ||
+              pasoActual === 'cuentaPago' ||
               pasoActual === 'tarjeta' ||
               pasoActual === 'origen') && (
               <PasoCuenta
@@ -323,6 +326,21 @@ function AsistenteMovimiento({
                 cuentas={cuentas}
                 tarjetas={tarjetas}
                 onElegir={elegir}
+              />
+            )}
+
+            {pasoActual === 'tarjetaPago' && (
+              <PasoTarjetaPago borrador={borrador} tarjetas={tarjetas} onElegir={elegir} />
+            )}
+
+            {pasoActual === 'montoPago' && (
+              <PasoMontoPago
+                borrador={borrador}
+                cuentas={cuentas}
+                tarjetas={tarjetas}
+                categorias={categorias}
+                pasos={pasos}
+                onAvanzar={(monto) => elegir({ monto })}
               />
             )}
 

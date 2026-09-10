@@ -138,6 +138,28 @@ describe('flujos', () => {
     })
   })
 
+  describe('pago_tarjeta', () => {
+    it('flujo fijo: tarjeta -> monto -> cuenta -> concepto', () => {
+      expect(flujos(borrador({ tipo: 'pago_tarjeta' }), { cuentas: dosCuentas, tarjetas })).toEqual([
+        'tipo',
+        'tarjetaPago',
+        'montoPago',
+        'cuentaPago',
+        'concepto',
+      ])
+    })
+
+    it('no aplica las reglas de salto de cuenta: pide cuentaPago aunque haya una sola cuenta', () => {
+      expect(flujos(borrador({ tipo: 'pago_tarjeta' }), { cuentas: unaCuenta, tarjetas })).toEqual([
+        'tipo',
+        'tarjetaPago',
+        'montoPago',
+        'cuentaPago',
+        'concepto',
+      ])
+    })
+  })
+
   it('tipoPreseleccionado salta el paso "tipo" (ej. "+ Nuevo gasto" desde DetalleCategoria.jsx)', () => {
     const datos = flujos(borrador({ tipo: 'retiro', tipoPreseleccionado: true }), {
       cuentas: unaCuenta,
