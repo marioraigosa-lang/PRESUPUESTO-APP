@@ -13,26 +13,27 @@ function ResumenBorrador({ borrador, pasos, cuentas, tarjetas, categorias, monto
   if (chips.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-text-dim">
-      {chips.map((chip, indice) => {
+    <div className="flex flex-wrap items-center gap-1.5">
+      {chips.map((chip) => {
         const indicePaso = pasos.indexOf(chip.paso)
         const esTocable = tocable && indicePaso !== -1
 
-        return (
-          <span key={chip.paso} className="flex items-center gap-1.5">
-            {indice > 0 && <span aria-hidden="true">·</span>}
-            {esTocable ? (
-              <button
-                type="button"
-                onClick={() => onSaltar(indicePaso)}
-                aria-label={t('movimientos.asistente.editarAria', { campo: chip.texto })}
-                className="underline decoration-dotted underline-offset-2 hover:text-text"
-              >
-                {chip.texto}
-              </button>
-            ) : (
-              <span>{chip.texto}</span>
-            )}
+        return esTocable ? (
+          <button
+            key={chip.paso}
+            type="button"
+            onClick={() => onSaltar(indicePaso)}
+            aria-label={t('movimientos.asistente.editarAria', { campo: chip.texto })}
+            className="rounded-full border border-line/60 bg-panel-2 px-3 py-1 text-xs font-medium text-text-dim transition-colors hover:border-mint/40 hover:text-text"
+          >
+            {chip.texto}
+          </button>
+        ) : (
+          <span
+            key={chip.paso}
+            className="rounded-full border border-line/60 bg-panel-2 px-3 py-1 text-xs font-medium text-text-dim"
+          >
+            {chip.texto}
           </span>
         )
       })}

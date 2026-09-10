@@ -12,10 +12,16 @@ import PasoCategoria from './pasos/PasoCategoria'
 import PasoMonto from './pasos/PasoMonto'
 import PasoConcepto from './pasos/PasoConcepto'
 
-// Contenedor del asistente paso a paso. Reutiliza el mismo shell de
-// bottom-sheet que HojaNuevoMovimiento (overlay + panel + animación
-// "hoja-subir") para que la transición entre ambos no cambie la sensación
-// general de la hoja.
+// Contenedor del asistente paso a paso. A diferencia de HojaNuevoMovimiento
+// (una hoja chica que sube desde abajo), este es un PANEL MEDIANO centrado
+// (vertical y horizontalmente) que flota sobre la app: ancho acotado
+// (max-w-[400px]), alto que se ajusta al contenido con un tope (nunca
+// pantalla completa), fondo difuminado + oscurecido para que el panel sea el
+// protagonista, esquinas redondeadas y sombra de elevación. Entra como un
+// diálogo (fade + escala sutil, ver .asistente-entrar en index.css).
+// Rediseño puramente visual: la lógica de abajo (reducer, flujos, guardado,
+// navegación) no cambió -- ver el historial para los shells anteriores
+// (bottom-sheet -> casi pantalla completa -> este panel centrado).
 //
 // Fase 4: reemplaza a HojaNuevoMovimiento para CREAR (nunca para editar) en
 // los 3 orígenes de creación, detrás de USAR_ASISTENTE_MOVIMIENTO (ver
@@ -233,27 +239,41 @@ function AsistenteMovimiento({
   const claseAnimacion = direccion === 'adelante' ? 'paso-entrar-derecha' : 'paso-entrar-izquierda'
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center">
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center"
+      style={{
+        paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right))',
+      }}
+    >
+      {/* Fondo: la app detrás queda oscurecida y difuminada (blur sutil) para
+          que el panel sea el protagonista. El botón cubre el viewport
+          completo con inset-0 para que tocar cualquier punto fuera del panel
+          cierre la hoja. */}
       <button
         type="button"
         aria-label={t('movimientos.asistente.cerrarAria')}
         onClick={manejarCerrar}
-        className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
+        className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60 backdrop-blur-sm"
       />
 
-      <div className="relative z-10 flex w-full max-w-[460px] animate-[hoja-subir_0.2s_ease-out] flex-col gap-4 rounded-t-3xl border-t border-line bg-panel shadow-elevated p-5 pb-6">
-        <div className="mx-auto h-1 w-10 rounded-full bg-line" />
-
-        <div className="flex items-center justify-between">
+      {/* Panel mediano centrado que flota sobre la app: ancho acotado, alto
+          que se ajusta al contenido con un tope (max-h-full dentro del
+          contenedor con padding de safe-area), y el cuerpo hace scroll
+          interno si un paso es largo (muchas cuentas/categorías). */}
+      <div className="relative z-10 flex max-h-full w-full max-w-[400px] flex-col overflow-hidden rounded-[24px] border border-line bg-panel shadow-elevated asistente-entrar">
+        <div className="flex shrink-0 items-center justify-between px-4 pb-2 pt-4">
           {indiceSeguro > 0 ? (
             <button
               type="button"
               onClick={volver}
               disabled={guardando}
               aria-label={t('movimientos.asistente.volverAria')}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text disabled:opacity-40"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-text-dim transition-colors hover:bg-panel-2 hover:text-text active:scale-95 disabled:opacity-40"
             >
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden="true" />
             </button>
           ) : (
             <span className="h-9 w-9" />
@@ -268,8 +288,8 @@ function AsistenteMovimiento({
               <span
                 key={indice}
                 aria-hidden="true"
-                className={`h-1.5 rounded-full transition-all ${
-                  indice === indiceSeguro ? 'w-4 bg-mint' : 'w-1.5 bg-panel-2'
+                className={`h-1.5 rounded-full transition-all duration-200 ${
+                  indice === indiceSeguro ? 'w-5 bg-mint' : 'w-1.5 bg-panel-2'
                 }`}
               />
             ))}
@@ -280,60 +300,62 @@ function AsistenteMovimiento({
             onClick={manejarCerrar}
             disabled={guardando}
             aria-label={t('movimientos.asistente.cerrarAria')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-text-dim transition-colors hover:bg-panel-2 hover:text-text active:scale-95 disabled:opacity-40"
           >
-            <X className="h-5 w-5" aria-hidden="true" />
+            <X className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
-        <div key={indiceSeguro} ref={contenedorPasoRef} tabIndex={-1} className={`outline-none ${claseAnimacion}`}>
-          {pasoActual === 'tipo' && <PasoTipo cuentas={cuentas} onElegir={elegirTipo} />}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
+          <div key={indiceSeguro} ref={contenedorPasoRef} tabIndex={-1} className={`h-full outline-none ${claseAnimacion}`}>
+            {pasoActual === 'tipo' && <PasoTipo cuentas={cuentas} onElegir={elegirTipo} />}
 
-          {(pasoActual === 'cuenta' ||
-            pasoActual === 'cuentaGasto' ||
-            pasoActual === 'cuentaOrigen' ||
-            pasoActual === 'cuentaDestino' ||
-            pasoActual === 'tarjeta' ||
-            pasoActual === 'origen') && (
-            <PasoCuenta
-              paso={pasoActual}
-              tipo={borrador.tipo}
-              borrador={borrador}
-              cuentas={cuentas}
-              tarjetas={tarjetas}
-              onElegir={elegir}
-            />
-          )}
+            {(pasoActual === 'cuenta' ||
+              pasoActual === 'cuentaGasto' ||
+              pasoActual === 'cuentaOrigen' ||
+              pasoActual === 'cuentaDestino' ||
+              pasoActual === 'tarjeta' ||
+              pasoActual === 'origen') && (
+              <PasoCuenta
+                paso={pasoActual}
+                tipo={borrador.tipo}
+                borrador={borrador}
+                cuentas={cuentas}
+                tarjetas={tarjetas}
+                onElegir={elegir}
+              />
+            )}
 
-          {pasoActual === 'categoria' && (
-            <PasoCategoria borrador={borrador} categorias={categorias} onElegir={(categoriaId) => elegir({ categoriaId })} />
-          )}
+            {pasoActual === 'categoria' && (
+              <PasoCategoria borrador={borrador} categorias={categorias} onElegir={(categoriaId) => elegir({ categoriaId })} />
+            )}
 
-          {pasoActual === 'monto' && (
-            <PasoMonto
-              borrador={borrador}
-              cuentas={cuentas}
-              tarjetas={tarjetas}
-              categorias={categorias}
-              pasos={pasos}
-              onAvanzar={(monto) => elegir({ monto })}
-            />
-          )}
+            {pasoActual === 'monto' && (
+              <PasoMonto
+                borrador={borrador}
+                cuentas={cuentas}
+                tarjetas={tarjetas}
+                categorias={categorias}
+                pasos={pasos}
+                onAvanzar={(monto) => elegir({ monto })}
+              />
+            )}
 
-          {pasoActual === 'concepto' && (
-            <PasoConcepto
-              borrador={borrador}
-              cuentas={cuentas}
-              tarjetas={tarjetas}
-              categorias={categorias}
-              pasos={pasos}
-              guardando={guardando}
-              errorGuardado={errorGuardado}
-              onCambiar={(descripcion) => actualizarCampo({ descripcion })}
-              onSaltar={saltarAPaso}
-              onFinalizar={manejarFinalizar}
-            />
-          )}
+            {pasoActual === 'concepto' && (
+              <PasoConcepto
+                borrador={borrador}
+                cuentas={cuentas}
+                tarjetas={tarjetas}
+                categorias={categorias}
+                pasos={pasos}
+                guardando={guardando}
+                errorGuardado={errorGuardado}
+                onCambiar={(descripcion) => actualizarCampo({ descripcion })}
+                onSaltar={saltarAPaso}
+                onFinalizar={manejarFinalizar}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

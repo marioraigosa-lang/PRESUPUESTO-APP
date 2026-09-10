@@ -33,32 +33,45 @@ function PasoMonto({ borrador, cuentas, tarjetas, categorias, pasos, onAvanzar }
   }
 
   return (
-    <form onSubmit={manejarEnvio} className="flex flex-col gap-3">
-      <ResumenBorrador borrador={borrador} pasos={pasos} cuentas={cuentas} tarjetas={tarjetas} categorias={categorias} />
+    <form onSubmit={manejarEnvio} className="flex h-full flex-col">
+      <div className="flex flex-1 flex-col gap-5 pt-1">
+        <ResumenBorrador borrador={borrador} pasos={pasos} cuentas={cuentas} tarjetas={tarjetas} categorias={categorias} />
 
-      <p className="text-sm text-text-dim">{t('movimientos.formulario.montoLabel')}</p>
-      <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
-        <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode={decimales > 0 ? 'decimal' : 'numeric'}
-          placeholder="0"
-          value={formatearEntradaMonto(monto, moneda)}
-          onChange={(evento) => setMonto(limpiarEntradaMonto(evento.target.value, moneda))}
-          className="w-full bg-transparent text-3xl font-semibold text-text outline-none placeholder:text-text-dim"
-        />
+        <h2 className="text-xl font-bold leading-tight text-text">
+          {t('movimientos.formulario.montoLabel')}
+        </h2>
+
+        <div className="flex items-center gap-3 rounded-2xl border border-line/60 bg-panel-2 px-4 py-4 transition-colors focus-within:border-mint/50">
+          <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode={decimales > 0 ? 'decimal' : 'numeric'}
+            placeholder="0"
+            value={formatearEntradaMonto(monto, moneda)}
+            onChange={(evento) => setMonto(limpiarEntradaMonto(evento.target.value, moneda))}
+            className="w-full bg-transparent text-3xl font-bold text-text outline-none placeholder:text-text-dim"
+          />
+        </div>
+
+        {montoExcedeCupo && <p className="text-sm text-coral">{t('movimientos.formulario.avisoCupoExcedido')}</p>}
       </div>
 
-      {montoExcedeCupo && <p className="text-xs text-coral">{t('movimientos.formulario.avisoCupoExcedido')}</p>}
-
-      <button
-        type="submit"
-        disabled={!puedeAvanzar}
-        className="mt-1 rounded-2xl bg-mint py-3.5 text-sm font-semibold text-bg disabled:opacity-40"
-      >
-        {t('movimientos.asistente.siguiente')}
-      </button>
+      {/* Footer "fijo" vía sticky (no position:fixed): se queda pegado al
+          fondo del área con scroll del asistente sin salirse del panel
+          redondeado. El -mx-5/px-5 cancela el padding del contenedor para
+          que el fondo del footer cubra todo el ancho, con un filo superior
+          que lo separa del contenido cuando hay scroll debajo. La safe-area
+          inferior ya la reserva el contenedor del panel. */}
+      <div className="sticky bottom-0 -mx-5 mt-5 border-t border-line/60 bg-panel px-5 pb-4 pt-3">
+        <button
+          type="submit"
+          disabled={!puedeAvanzar}
+          className="w-full rounded-xl bg-mint py-3.5 text-sm font-semibold text-bg transition-transform active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
+        >
+          {t('movimientos.asistente.siguiente')}
+        </button>
+      </div>
     </form>
   )
 }

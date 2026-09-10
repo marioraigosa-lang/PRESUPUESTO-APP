@@ -120,16 +120,41 @@ body {
   }
 }
 
+/* Entrada del panel del asistente de movimiento (AsistenteMovimiento.jsx):
+ * ahora es un panel MEDIANO centrado que flota sobre la app (no pantalla
+ * completa), así que entra como un diálogo: un fade + una escala sutil desde
+ * 0.96 + un empujoncito hacia arriba, con una curva "ease-out" suave
+ * (cubic-bezier de salida rápida y frenado largo) para que se sienta que
+ * "aparece y se asienta", nunca brusco.
+ */
+@keyframes asistente-entrar {
+  from {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .asistente-entrar {
+    animation: asistente-entrar 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
 /* Transición entre pasos del asistente de movimiento (AsistenteMovimiento.jsx):
- * avanzar entra desde la derecha, volver desde la izquierda -- misma
- * distancia (16px) y curva (ease-out) que hoja-subir, para que se sienta
- * parte de la misma familia de movimiento. Son clases (no animate-[...]
- * inline) porque, a diferencia de hoja-subir/fondo-aparecer, necesitan la
- * excepción de abajo para prefers-reduced-motion.
+ * avanzar entra desde la derecha, volver desde la izquierda -- un
+ * deslizamiento corto (10px) combinado con fade, a 0.24s y con una curva
+ * "ease-out" suave (cubic-bezier de salida rápida y frenado largo) para que
+ * el cambio de paso se sienta fluido y no un salto seco. Son clases (no
+ * animate-[...] inline) porque, a diferencia de hoja-subir/fondo-aparecer,
+ * necesitan la excepción de abajo para prefers-reduced-motion.
  */
 @keyframes paso-entrar-derecha {
   from {
-    transform: translateX(16px);
+    transform: translateX(10px);
     opacity: 0;
   }
   to {
@@ -140,7 +165,7 @@ body {
 
 @keyframes paso-entrar-izquierda {
   from {
-    transform: translateX(-16px);
+    transform: translateX(-10px);
     opacity: 0;
   }
   to {
@@ -151,22 +176,23 @@ body {
 
 @layer utilities {
   .paso-entrar-derecha {
-    animation: paso-entrar-derecha 0.2s ease-out;
+    animation: paso-entrar-derecha 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .paso-entrar-izquierda {
-    animation: paso-entrar-izquierda 0.2s ease-out;
+    animation: paso-entrar-izquierda 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
 /* Quien pide "reduce motion" en su sistema no debería ver NINGÚN
- * deslizamiento entre pasos (a diferencia de hoja-subir/fondo-aparecer, que
- * son sutiles y de una sola vez, este se repararía en cada toque durante
- * todo el recorrido del asistente). El contenido sigue apareciendo, solo sin
- * el movimiento.
+ * deslizamiento entre pasos ni el escalado de entrada del panel (a
+ * diferencia de hoja-subir/fondo-aparecer, que son sutiles y de una sola
+ * vez, el de pasos se repetiría en cada toque durante todo el recorrido del
+ * asistente). El contenido sigue apareciendo, solo sin el movimiento.
  */
 @media (prefers-reduced-motion: reduce) {
   .paso-entrar-derecha,
-  .paso-entrar-izquierda {
+  .paso-entrar-izquierda,
+  .asistente-entrar {
     animation: none;
   }
 }

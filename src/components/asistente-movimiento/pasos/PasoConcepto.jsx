@@ -50,44 +50,51 @@ function PasoConcepto({
   }
 
   return (
-    <form onSubmit={manejarEnvio} className="flex flex-col gap-3">
-      <ResumenBorrador
-        borrador={borrador}
-        pasos={pasos}
-        cuentas={cuentas}
-        tarjetas={tarjetas}
-        categorias={categorias}
-        montoFormateado={formatear(Number(borrador.monto))}
-        tocable={!guardando}
-        onSaltar={onSaltar}
-      />
-
-      <div>
-        <p className="text-sm text-text-dim">{t('movimientos.asistente.preguntaConcepto')}</p>
-        <input
-          type="text"
-          value={borrador.descripcion}
-          onChange={(evento) => onCambiar(evento.target.value)}
-          placeholder={t(clavePlaceholder)}
-          disabled={guardando}
-          className="mt-2 w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none placeholder:text-text-dim disabled:opacity-60"
+    <form onSubmit={manejarEnvio} className="flex h-full flex-col">
+      <div className="flex flex-1 flex-col gap-5 pt-1">
+        <ResumenBorrador
+          borrador={borrador}
+          pasos={pasos}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias}
+          montoFormateado={formatear(Number(borrador.monto))}
+          tocable={!guardando}
+          onSaltar={onSaltar}
         />
-        <p className="mt-1 text-xs text-text-dim">{t('movimientos.asistente.conceptoOpcionalNota')}</p>
+
+        <div>
+          <h2 className="text-xl font-bold leading-tight text-text">
+            {t('movimientos.asistente.preguntaConcepto')}
+          </h2>
+          <input
+            type="text"
+            value={borrador.descripcion}
+            onChange={(evento) => onCambiar(evento.target.value)}
+            placeholder={t(clavePlaceholder)}
+            disabled={guardando}
+            className="mt-3 w-full rounded-xl border border-line/60 bg-panel-2 px-4 py-3 text-sm text-text outline-none transition-colors placeholder:text-text-dim focus:border-mint/50 disabled:opacity-60"
+          />
+          <p className="mt-2 text-xs text-text-dim">{t('movimientos.asistente.conceptoOpcionalNota')}</p>
+        </div>
+
+        {errorGuardado && <MensajeError>{t('movimientos.formulario.errorGuardar')}</MensajeError>}
       </div>
 
-      {errorGuardado && <MensajeError>{t('movimientos.formulario.errorGuardar')}</MensajeError>}
-
-      <button
-        type="submit"
-        disabled={guardando}
-        className="mt-1 rounded-2xl bg-mint py-3.5 text-sm font-semibold text-bg disabled:opacity-60"
-      >
-        {guardando
-          ? t('movimientos.formulario.guardando')
-          : errorGuardado
-            ? t('movimientos.asistente.reintentar')
-            : t('movimientos.asistente.guardarBoton')}
-      </button>
+      {/* Mismo footer "fijo" vía sticky que PasoMonto -- ver comentario ahí. */}
+      <div className="sticky bottom-0 -mx-5 mt-5 border-t border-line/60 bg-panel px-5 pb-4 pt-3">
+        <button
+          type="submit"
+          disabled={guardando}
+          className="w-full rounded-xl bg-mint py-3.5 text-sm font-semibold text-bg transition-transform active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+        >
+          {guardando
+            ? t('movimientos.formulario.guardando')
+            : errorGuardado
+              ? t('movimientos.asistente.reintentar')
+              : t('movimientos.asistente.guardarBoton')}
+        </button>
+      </div>
     </form>
   )
 }

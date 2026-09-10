@@ -22,15 +22,17 @@ function PasoCategoria({ borrador, categorias, onElegir }) {
   // bloquear el flujo.
   if (categorias.length === 0) {
     return (
-      <div className="flex flex-col gap-3">
-        <p className="text-sm text-text-dim">{t('movimientos.asistente.preguntaCategoria')}</p>
-        <p className="rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text-dim">
+      <div className="flex flex-col gap-5 pt-1">
+        <h2 className="text-xl font-bold leading-tight text-text">
+          {t('movimientos.asistente.preguntaCategoria')}
+        </h2>
+        <p className="rounded-xl bg-panel-2 px-4 py-3 text-sm text-text-dim">
           {t('movimientos.asistente.sinCategoriasParaElegir')}
         </p>
         <button
           type="button"
           onClick={() => onElegir('')}
-          className="rounded-2xl bg-mint py-3.5 text-sm font-semibold text-bg"
+          className="rounded-xl bg-mint py-3.5 text-sm font-semibold text-bg transition-transform active:scale-[0.98]"
         >
           {t('movimientos.asistente.continuarSinCategoria')}
         </button>
@@ -39,20 +41,26 @@ function PasoCategoria({ borrador, categorias, onElegir }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm text-text-dim">{t('movimientos.asistente.preguntaCategoria')}</p>
+    <div className="flex flex-col gap-5 pt-1">
+      <h2 className="text-xl font-bold leading-tight text-text">
+        {t('movimientos.asistente.preguntaCategoria')}
+      </h2>
       <div className="grid grid-cols-3 gap-2">
         {categorias.map((categoria) => (
           <button
             key={categoria.id}
             type="button"
             onClick={() => onElegir(categoria.id)}
-            className={`flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-medium text-text-dim transition-transform active:scale-[0.97] ${
-              categoria.id === sugeridaId ? 'bg-panel-2 ring-1 ring-mint/60' : 'bg-panel-2'
+            className={`flex min-h-[72px] flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-center text-[11px] font-medium text-text-dim transition-all duration-150 active:scale-[0.96] ${
+              categoria.id === sugeridaId
+                ? 'border-transparent bg-panel-2 text-text ring-2 ring-mint/60'
+                : 'border-line/60 bg-panel-2 hover:border-line hover:bg-panel-2/70'
             }`}
           >
-            <span className="text-lg">{categoria.emoji}</span>
-            {categoria.nombre}
+            <span className="text-xl" aria-hidden="true">
+              {categoria.emoji}
+            </span>
+            <span className="line-clamp-2 leading-tight">{categoria.nombre}</span>
           </button>
         ))}
       </div>
