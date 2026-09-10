@@ -10,6 +10,13 @@ export default {
     mas: 'Account',
   },
 
+  actualizacion: {
+    titulo: 'New version available',
+    descripcion: 'Improvements are ready. Update whenever you like.',
+    actualizar: 'Update',
+    descartar: 'Not now',
+  },
+
   comun: {
     meses: [
       'january',
@@ -846,6 +853,7 @@ export default {
     reiniciarDatosDescripcion: 'Delete your transactions to start fresh',
     eliminarCuentaTitulo: 'Delete account',
     eliminarCuentaDescripcion: 'Permanently delete your account and all your data',
+    version: 'Seed v{{version}} · {{commit}}',
   },
 
   // "Reset data" screen (ReiniciarDatos.jsx), reachable from Profile ->

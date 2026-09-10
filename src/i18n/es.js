@@ -17,6 +17,14 @@ export default {
     mas: 'Cuenta',
   },
 
+  // Aviso de nueva versión de la PWA (src/components/AvisoActualizacion.jsx).
+  actualizacion: {
+    titulo: 'Nueva versión disponible',
+    descripcion: 'Hay mejoras listas. Actualiza cuando quieras.',
+    actualizar: 'Actualizar',
+    descartar: 'Ahora no',
+  },
+
   // Textos compartidos por varias pantallas (nombres de meses, quincenas,
   // el menú de cuenta que aparece en el encabezado de Inicio/Emergencia/
   // Resumen). Los nombres de mes van en minúscula a propósito: cada sitio
@@ -895,6 +903,9 @@ export default {
     reiniciarDatosDescripcion: 'Borra tus movimientos para empezar de cero',
     eliminarCuentaTitulo: 'Eliminar cuenta',
     eliminarCuentaDescripcion: 'Borra tu cuenta y todos tus datos de forma permanente',
+    // Pie discreto de la pantalla "Cuenta". {{version}} viene de package.json
+    // y {{commit}} del hash corto del deploy (ver define en vite.config.js).
+    version: 'Seed v{{version}} · {{commit}}',
   },
 
   // Pantalla "Reiniciar datos" (ReiniciarDatos.jsx), accesible desde Perfil

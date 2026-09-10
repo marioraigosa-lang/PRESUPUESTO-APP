@@ -119,3 +119,54 @@ body {
     opacity: 1;
   }
 }
+
+/* Transición entre pasos del asistente de movimiento (AsistenteMovimiento.jsx):
+ * avanzar entra desde la derecha, volver desde la izquierda -- misma
+ * distancia (16px) y curva (ease-out) que hoja-subir, para que se sienta
+ * parte de la misma familia de movimiento. Son clases (no animate-[...]
+ * inline) porque, a diferencia de hoja-subir/fondo-aparecer, necesitan la
+ * excepción de abajo para prefers-reduced-motion.
+ */
+@keyframes paso-entrar-derecha {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes paso-entrar-izquierda {
+  from {
+    transform: translateX(-16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .paso-entrar-derecha {
+    animation: paso-entrar-derecha 0.2s ease-out;
+  }
+  .paso-entrar-izquierda {
+    animation: paso-entrar-izquierda 0.2s ease-out;
+  }
+}
+
+/* Quien pide "reduce motion" en su sistema no debería ver NINGÚN
+ * deslizamiento entre pasos (a diferencia de hoja-subir/fondo-aparecer, que
+ * son sutiles y de una sola vez, este se repararía en cada toque durante
+ * todo el recorrido del asistente). El contenido sigue apareciendo, solo sin
+ * el movimiento.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .paso-entrar-derecha,
+  .paso-entrar-izquierda {
+    animation: none;
+  }
+}

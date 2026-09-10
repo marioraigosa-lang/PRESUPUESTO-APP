@@ -328,6 +328,13 @@ function Perfil({ abrirSeguridadInicial = false, onSeguridadInicialConsumida, on
             </button>
           </div>
         </section>
+
+        {/* Versión de la app. __APP_VERSION__ / __BUILD_COMMIT__ se inyectan
+            en build (ver define en vite.config.js); en `vite dev` valen
+            '1.0.0' / 'dev'. Discreto a propósito: sirve para soporte. */}
+        <p className="pt-1 pb-4 text-center text-[11px] text-text-dim">
+          {t('perfil.version', { version: __APP_VERSION__, commit: __BUILD_COMMIT__ })}
+        </p>
       </div>
     </main>
   )
