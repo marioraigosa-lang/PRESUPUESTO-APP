@@ -14,6 +14,7 @@ import OnboardingCuenta from './views/OnboardingCuenta'
 import NavegacionInferior from './components/NavegacionInferior'
 import BotonAgregar from './components/BotonAgregar'
 import HojaNuevoMovimiento from './components/HojaNuevoMovimiento'
+import AsistenteMovimiento from './components/asistente-movimiento/AsistenteMovimiento'
 import GuiaBienvenida from './components/GuiaBienvenida'
 import Resumen from './views/Resumen'
 import Viajes from './views/Viajes'
@@ -28,6 +29,7 @@ import * as tarjetasService from './services/tarjetas'
 import * as movimientosService from './services/movimientos'
 import * as gastosFijosService from './services/gastosFijos'
 import * as reinicioService from './services/reinicio'
+import { USAR_ASISTENTE_MOVIMIENTO } from './utils/flags'
 
 // Pantalla de carga mínima compartida por los gates de App.jsx (sesión y,
 // más abajo, cuentas): mismo look en ambos casos, sin duplicar el markup.
@@ -736,16 +738,33 @@ function App() {
 
       {vista === 'inicio' && <BotonAgregar onClick={abrirNuevoMovimiento} />}
 
-      <HojaNuevoMovimiento
-        abierta={hojaAbierta}
-        onCerrar={cerrarHojaMovimiento}
-        cuentas={cuentas}
-        tarjetas={tarjetas}
-        categorias={categorias.filter((categoria) => !categoria.es_sistema)}
-        onGuardar={agregarMovimiento}
-        onActualizar={(datos) => actualizarMovimiento(movimientoEditando, datos)}
-        movimientoEditando={movimientoEditando}
-      />
+      {/* Crear (movimientoEditando null) pasa por el asistente cuando el flag
+          está activo; editar sigue SIEMPRE por HojaNuevoMovimiento, con o sin
+          flag -- el asistente todavía no soporta edición. Este botón "+" de
+          Home solo crea (abrirNuevoMovimiento pone movimientoEditando en
+          null), pero el guard se mantiene igual que en DetalleCuenta.jsx y
+          DetalleCategoria.jsx por si alguna vez se conecta una edición acá. */}
+      {USAR_ASISTENTE_MOVIMIENTO && !movimientoEditando ? (
+        <AsistenteMovimiento
+          abierta={hojaAbierta}
+          onCerrar={cerrarHojaMovimiento}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias.filter((categoria) => !categoria.es_sistema)}
+          onGuardar={agregarMovimiento}
+        />
+      ) : (
+        <HojaNuevoMovimiento
+          abierta={hojaAbierta}
+          onCerrar={cerrarHojaMovimiento}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias.filter((categoria) => !categoria.es_sistema)}
+          onGuardar={agregarMovimiento}
+          onActualizar={(datos) => actualizarMovimiento(movimientoEditando, datos)}
+          movimientoEditando={movimientoEditando}
+        />
+      )}
 
       <NavegacionInferior vistaActiva={vista} onCambiarVista={setVista} />
     </>

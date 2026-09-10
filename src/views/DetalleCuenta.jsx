@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Movimiento from '../components/Movimiento'
 import SelectorPeriodo from '../components/SelectorPeriodo'
 import HojaNuevoMovimiento from '../components/HojaNuevoMovimiento'
+import AsistenteMovimiento from '../components/asistente-movimiento/AsistenteMovimiento'
 import FilaTotales from '../components/FilaTotales'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -9,6 +10,7 @@ import { useMovimientosPeriodo } from '../hooks/useMovimientosPeriodo'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 import { calcularResumenCuenta, separarMovimientosCuenta, descripcionEnContexto } from '../utils/movimientosCuenta'
+import { USAR_ASISTENTE_MOVIMIENTO } from '../utils/flags'
 
 const hoy = new Date()
 
@@ -252,17 +254,35 @@ function DetalleCuenta({
         </section>
       </div>
 
-      <HojaNuevoMovimiento
-        abierta={hojaAbierta}
-        onCerrar={cerrarHoja}
-        cuentas={cuentas}
-        tarjetas={tarjetas}
-        categorias={categorias}
-        cuentaPreseleccionadaId={cuenta.id}
-        onGuardar={onAgregarMovimiento}
-        onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
-        movimientoEditando={movimientoEditando}
-      />
+      {/* Crear (movimientoEditando null) pasa por el asistente cuando el flag
+          está activo; editar sigue SIEMPRE por HojaNuevoMovimiento, con o sin
+          flag -- el asistente todavía no soporta edición (Fase 5 extrae
+          HojaEditarMovimiento). abrirNuevoMovimiento/abrirEditarMovimiento
+          arriba ponen movimientoEditando y hojaAbierta en el mismo evento
+          (batched), así que este `if` nunca ve un estado intermedio raro. */}
+      {USAR_ASISTENTE_MOVIMIENTO && !movimientoEditando ? (
+        <AsistenteMovimiento
+          abierta={hojaAbierta}
+          onCerrar={cerrarHoja}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias}
+          cuentaPreseleccionadaId={cuenta.id}
+          onGuardar={onAgregarMovimiento}
+        />
+      ) : (
+        <HojaNuevoMovimiento
+          abierta={hojaAbierta}
+          onCerrar={cerrarHoja}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias}
+          cuentaPreseleccionadaId={cuenta.id}
+          onGuardar={onAgregarMovimiento}
+          onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
+          movimientoEditando={movimientoEditando}
+        />
+      )}
     </main>
   )
 }

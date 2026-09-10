@@ -4,6 +4,7 @@ import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda, useFormatoMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import { construirDatosMovimiento } from '../utils/construirDatosMovimiento'
 import AyudaContextual from './AyudaContextual'
 import MensajeError from './ui/MensajeError'
 
@@ -164,39 +165,18 @@ function HojaNuevoMovimiento({
       return
     }
 
-    const cuentaOrigenSeleccionada = cuentas.find((cuenta) => cuenta.id === cuentaId)
-    const cuentaDestinoSeleccionada = cuentas.find((cuenta) => cuenta.id === cuentaDestinoId)
-
     setGuardando(true)
     setErrorGuardado('')
 
-    const datos = {
-      tipo,
-      monto: Number(monto),
-      cuentaId: usaTarjeta ? null : cuentaId,
-      tarjetaId: usaTarjeta ? tarjetaId : null,
-      cuentaDestinoId: tipo === 'traslado' ? cuentaDestinoId : null,
-      categoriaId: tipo === 'gasto' ? categoriaId : null,
-      emoji:
-        tipo === 'ingreso'
-          ? '💰'
-          : tipo === 'traslado'
-            ? '🔄'
-            : tipo === 'retiro'
-              ? '🏧'
-              : (categoriaSeleccionada?.emoji ?? '✨'),
-      descripcion:
-        descripcion.trim() ||
-        (tipo === 'ingreso'
-          ? t('movimientos.formulario.tipoIngreso')
-          : tipo === 'traslado'
-            ? `${cuentaOrigenSeleccionada?.nombre ?? t('movimientos.formulario.cuentaGenerica')} → ${
-                cuentaDestinoSeleccionada?.nombre ?? t('movimientos.formulario.cuentaGenerica')
-              }`
-            : tipo === 'retiro'
-              ? t('movimientos.formulario.tipoRetiro')
-              : (categoriaSeleccionada?.nombre ?? t('movimientos.formulario.tipoGasto'))),
-    }
+    // Armar `datos` (emoji por tipo/categoría, descripción de respaldo
+    // cuando el usuario no puso ninguna, y los `null` según la forma que
+    // exige movimientos_traslado_forma_check) vive ahora en un helper puro,
+    // para que el asistente paso a paso produzca EXACTAMENTE el mismo
+    // objeto sin duplicar esta lógica.
+    const datos = construirDatosMovimiento(
+      { tipo, monto, origen, cuentaId, tarjetaId, cuentaDestinoId, categoriaId, descripcion },
+      { cuentas, categorias, t },
+    )
 
     try {
       if (editando) {
