@@ -1,5 +1,6 @@
 import { useIdioma } from '../../context/IdiomaContext'
 import { chipsResumen } from './resumen'
+import IconoCategoria from '../IconoCategoria'
 
 // Tira de chips ("Gasto · 🍔 Comida · Nómina") que PasoMonto y PasoConcepto
 // muestran arriba para dar contexto de lo que ya se decidió. Con
@@ -18,22 +19,31 @@ function ResumenBorrador({ borrador, pasos, cuentas, tarjetas, categorias, monto
         const indicePaso = pasos.indexOf(chip.paso)
         const esTocable = tocable && indicePaso !== -1
 
+        // El chip de categoría trae `icono`/`color` (ver chipsResumen) --
+        // el resto de chips son solo texto, igual que antes.
+        const contenido = (
+          <>
+            {chip.icono && <IconoCategoria nombre={chip.icono} color={chip.color} size={14} className="shrink-0" />}
+            {chip.texto}
+          </>
+        )
+
         return esTocable ? (
           <button
             key={chip.paso}
             type="button"
             onClick={() => onSaltar(indicePaso)}
             aria-label={t('movimientos.asistente.editarAria', { campo: chip.texto })}
-            className="rounded-full border border-line/60 bg-panel-2 px-3 py-1 text-xs font-medium text-text-dim transition-colors hover:border-mint/40 hover:text-text"
+            className="flex items-center gap-1 rounded-full border border-line/60 bg-panel-2 px-3 py-1 text-xs font-medium text-text-dim transition-colors hover:border-mint/40 hover:text-text"
           >
-            {chip.texto}
+            {contenido}
           </button>
         ) : (
           <span
             key={chip.paso}
-            className="rounded-full border border-line/60 bg-panel-2 px-3 py-1 text-xs font-medium text-text-dim"
+            className="flex items-center gap-1 rounded-full border border-line/60 bg-panel-2 px-3 py-1 text-xs font-medium text-text-dim"
           >
-            {chip.texto}
+            {contenido}
           </span>
         )
       })}

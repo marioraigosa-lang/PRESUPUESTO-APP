@@ -1,6 +1,7 @@
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import AyudaContextual from './AyudaContextual'
+import IconoCategoria from './IconoCategoria'
 
 function DesgloseCategoriasResumen({ items }) {
   const formatear = useFormatoMoneda()
@@ -21,10 +22,10 @@ function DesgloseCategoriasResumen({ items }) {
             className="flex items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3"
           >
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
               style={{ backgroundColor: `${item.color}26` }}
             >
-              {item.emoji}
+              <IconoCategoria nombre={item.icono} color={item.color} size="md" />
             </div>
 
             <div className="min-w-0 flex-1">

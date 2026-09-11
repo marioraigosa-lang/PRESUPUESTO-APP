@@ -1,8 +1,12 @@
 import { parsearFechaISO } from './formatoFecha'
+import { resolverIconoCategoria } from './resolverIconoCategoria'
 
 // Valores de respaldo para un gasto sin categoría (o cuya categoría fue
 // eliminada): mismos que usaba Resumen.jsx antes de esta extracción.
-const EMOJI_SIN_CATEGORIA = '✨'
+// ICONO_SIN_CATEGORIA = 'sparkles' (decisión del PLAN-iconos.md): un ítem
+// "sin categoría" no es lo mismo que un icono sin mapeo -- ese caso usa el
+// fallback general 'tag' (ver resolverIconoCategoria / catalogoIconos.js).
+const ICONO_SIN_CATEGORIA = 'sparkles'
 const COLOR_SIN_CATEGORIA = '#9db0a6'
 const MESES_POR_ANIO = 12
 
@@ -56,7 +60,7 @@ export function agruparGastosPorCategoria(movimientos, totalGastos, textoSinCate
       const actual = mapaCategorias.get(id) ?? {
         id,
         nombre: categoria?.nombre ?? textoSinCategoria,
-        emoji: categoria?.emoji ?? EMOJI_SIN_CATEGORIA,
+        icono: categoria ? resolverIconoCategoria(categoria) : ICONO_SIN_CATEGORIA,
         color: categoria?.color ?? COLOR_SIN_CATEGORIA,
         monto: 0,
       }

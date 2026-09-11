@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Lock } from 'lucide-react'
 import HojaCategoria from '../components/HojaCategoria'
 import HojaReasignarCategoria from '../components/HojaReasignarCategoria'
 import AyudaContextual from '../components/AyudaContextual'
+import IconoCategoria from '../components/IconoCategoria'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 
@@ -123,10 +125,10 @@ function GestionCategorias({
           {categoriasGestionables.map((categoria) => (
             <div key={categoria.id} className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4">
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
                 style={{ backgroundColor: `${categoria.color}26` }}
               >
-                {categoria.emoji}
+                <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={categoria.color} size="md" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-text">{categoria.nombre}</p>
@@ -164,15 +166,20 @@ function GestionCategorias({
           {categoriaSistema && (
             <div className="flex items-center gap-3 rounded-2xl bg-panel-2 p-4">
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
                 style={{ backgroundColor: `${categoriaSistema.color}26` }}
               >
-                {categoriaSistema.emoji}
+                <IconoCategoria
+                  nombre={resolverIconoCategoria(categoriaSistema)}
+                  color={categoriaSistema.color}
+                  size="md"
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="truncate text-sm font-medium text-text">{categoriaSistema.nombre}</p>
-                  <span className="shrink-0 rounded-full bg-line px-2 py-0.5 text-[10px] font-semibold text-text-dim">
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-line px-2 py-0.5 text-[10px] font-semibold text-text-dim">
+                    <Lock className="h-3 w-3" aria-hidden="true" />
                     {t('categorias.gestion.sistemaEtiqueta')}
                   </span>
                   <AyudaContextual

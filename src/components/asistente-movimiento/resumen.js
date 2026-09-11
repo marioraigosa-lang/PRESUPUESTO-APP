@@ -1,9 +1,15 @@
+import { resolverIconoCategoria } from '../../utils/resolverIconoCategoria'
+
 // Arma los "chips" del mini-resumen que PasoMonto y PasoConcepto muestran
-// arriba de la pantalla ("Gasto · 🍔 Comida · Nómina"). Función PURA: decide
-// solo QUÉ mostrar y a qué nombre de paso saltaría cada chip si se toca --
-// ResumenBorrador.jsx es quien decide si de verdad se puede tocar (un chip
-// solo es tocable si ese paso sigue existiendo en `pasos`, ver flujos.js;
-// si se saltó -- ej. una sola cuenta -- no hay nada que corregir).
+// arriba de la pantalla ("Gasto · [icono] Comida · Nómina"). Función PURA:
+// decide solo QUÉ mostrar y a qué nombre de paso saltaría cada chip si se
+// toca -- ResumenBorrador.jsx es quien decide si de verdad se puede tocar (un
+// chip solo es tocable si ese paso sigue existiendo en `pasos`, ver
+// flujos.js; si se saltó -- ej. una sola cuenta -- no hay nada que corregir).
+//
+// El chip de categoría lleva además `icono`/`color` (en vez de concatenar el
+// emoji dentro de `texto`, como antes) para que ResumenBorrador.jsx renderice
+// <IconoCategoria> junto al nombre.
 const CLAVE_TIPO = {
   ingreso: 'movimientos.formulario.tipoIngreso',
   gasto: 'movimientos.formulario.tipoGasto',
@@ -20,7 +26,14 @@ export function chipsResumen(borrador, { cuentas = [], tarjetas = [], categorias
 
   if (borrador.tipo === 'gasto') {
     const categoria = categorias.find((categoria) => categoria.id === borrador.categoriaId)
-    if (categoria) chips.push({ paso: 'categoria', texto: `${categoria.emoji} ${categoria.nombre}` })
+    if (categoria) {
+      chips.push({
+        paso: 'categoria',
+        texto: categoria.nombre,
+        icono: resolverIconoCategoria(categoria),
+        color: categoria.color,
+      })
+    }
 
     if (borrador.origen === 'tarjeta') {
       const tarjeta = tarjetas.find((tarjeta) => tarjeta.id === borrador.tarjetaId)

@@ -14,7 +14,7 @@ const cuentas = [
   { id: 'c2', nombre: 'Ahorros' },
 ]
 const tarjetas = [{ id: 't1', nombre: 'Visa' }]
-const categorias = [{ id: 'cat1', nombre: 'Comida', emoji: '🍔' }]
+const categorias = [{ id: 'cat1', nombre: 'Comida', emoji: '🍔', color: '#e07ba0' }]
 
 describe('chipsResumen', () => {
   it('sin tipo elegido, no hay nada que resumir', () => {
@@ -36,7 +36,7 @@ describe('chipsResumen', () => {
     )
     expect(chips).toEqual([
       { paso: 'tipo', texto: 'Gasto' },
-      { paso: 'categoria', texto: '🍔 Comida' },
+      { paso: 'categoria', texto: 'Comida', icono: 'utensils', color: '#e07ba0' },
       { paso: 'cuentaGasto', texto: 'Nómina' },
     ])
   })

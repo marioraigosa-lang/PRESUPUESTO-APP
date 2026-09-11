@@ -2,6 +2,8 @@ import { ChevronRight } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { calcularProgresoPresupuesto } from '../utils/progresoPresupuesto'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import IconoCategoria from './IconoCategoria'
 
 // Desde la Fase 2 de "categorías navegables" (ver DetalleCategoria.jsx),
 // tocar una categoría abre sus gastos del mes -- por eso ahora es un
@@ -10,7 +12,7 @@ import { calcularProgresoPresupuesto } from '../utils/progresoPresupuesto'
 function CategoriaGasto({ categoria, onClick }) {
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
-  const { nombre, emoji, color, presupuesto, gastado } = categoria
+  const { nombre, color, presupuesto, gastado } = categoria
 
   const { tieneTope, excedido, porcentaje } = calcularProgresoPresupuesto(presupuesto, gastado)
   const colorBarra = excedido ? '#f2795b' : color
@@ -23,10 +25,10 @@ function CategoriaGasto({ categoria, onClick }) {
       className="flex w-full items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3 text-left transition-colors hover:bg-panel active:scale-[0.99]"
     >
       <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
         style={{ backgroundColor: `${color}26` }}
       >
-        {emoji}
+        <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={color} size="md" />
       </div>
 
       <div className="min-w-0 flex-1">

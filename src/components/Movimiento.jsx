@@ -2,6 +2,8 @@ import { Pencil, Trash2, Pin, CreditCard } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { descripcionEnContexto } from '../utils/movimientosCuenta'
+import { resolverIconoMovimiento } from '../utils/resolverIconoCategoria'
+import IconoCategoria from './IconoCategoria'
 
 function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminando, onEditar, onEliminar }) {
   const formatear = useFormatoMoneda()
@@ -12,7 +14,6 @@ function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminand
     cuentaDestino,
     cuenta_id: cuentaIdOrigen,
     fecha,
-    emoji,
     monto,
     gasto_fijo_id: gastoFijoId,
   } = movimiento
@@ -80,6 +81,29 @@ function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminand
             ? 'border-transparent bg-coral/15'
             : 'border-line bg-panel-2'
 
+  // Color del SVG del icono líder (Fase B2 del PLAN-iconos.md), a juego con
+  // el tinte de fondo de arriba. Un 'gasto' no trae el color de SU categoría
+  // acá (movimiento.color no existe en esta consulta -- ver
+  // useMovimientosPeriodo -- traerlo en vivo es la Fase B-EXTRA, opcional):
+  // por ahora usa el color de texto normal, igual que ya hacía el monto.
+  const colorIconoCategoria = enContextoTarjeta
+    ? esPagoTarjeta
+      ? 'text-mint'
+      : 'text-coral'
+    : esTrasladoEnContexto
+      ? esOrigenEnContexto
+        ? 'text-coral'
+        : 'text-mint'
+      : esIngreso
+        ? 'text-mint'
+        : esTraslado
+          ? 'text-azul'
+          : esRetiro
+            ? 'text-coral'
+            : esPagoTarjeta
+              ? 'text-gold'
+              : 'text-text'
+
   // Para un traslado visto "desde afuera", la segunda línea muestra el
   // recorrido del dinero (origen → destino) en vez de solo la cuenta. Si la
   // cuenta destino ya no existe (fue eliminada después), lo avisamos en vez
@@ -121,10 +145,8 @@ function Movimiento({ movimiento, cuentaContextoId, tarjetaContextoId, eliminand
 
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-panel-2 px-4 py-3">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg ${colorIcono}`}
-      >
-        {emoji}
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${colorIcono}`}>
+        <IconoCategoria nombre={resolverIconoMovimiento(movimiento)} size="md" className={colorIconoCategoria} />
       </div>
 
       <div className="min-w-0 flex-1">

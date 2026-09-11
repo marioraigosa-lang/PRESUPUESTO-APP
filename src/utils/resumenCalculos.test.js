@@ -7,6 +7,16 @@ import { calcularTotalesResumen, agruparGastosPorCategoria, agruparPorMes } from
 const CATEGORIA_FIJA = { id: 'cat-arriendo', nombre: 'Arriendo', emoji: '🏠', color: '#111111', es_sistema: true }
 const CATEGORIA_VARIABLE = { id: 'cat-comida', nombre: 'Comida', emoji: '🍔', color: '#222222', es_sistema: false }
 const CATEGORIA_VARIABLE_2 = { id: 'cat-ocio', nombre: 'Ocio', emoji: '🎬', color: '#333333', es_sistema: false }
+// icono ya asignado (post-backfill B3): resolverIconoCategoria debe preferirlo
+// sobre derivar del emoji.
+const CATEGORIA_CON_ICONO = {
+  id: 'cat-salud',
+  nombre: 'Salud',
+  emoji: '💊',
+  icono: 'heart-pulse',
+  color: '#444444',
+  es_sistema: false,
+}
 
 describe('calcularTotalesResumen', () => {
   it('suma ingresos, separa gastos fijos de variables y calcula un balance positivo', () => {
@@ -100,7 +110,7 @@ describe('agruparGastosPorCategoria', () => {
       {
         id: 'cat-comida',
         nombre: 'Comida',
-        emoji: '🍔',
+        icono: 'utensils', // derivado de '🍔' (sin "icono" propio todavía)
         color: '#222222',
         monto: 50000,
         porcentaje: 100,
@@ -117,7 +127,7 @@ describe('agruparGastosPorCategoria', () => {
       {
         id: 'cat-arriendo',
         nombre: 'Arriendo',
-        emoji: '🏠',
+        icono: 'house', // derivado de '🏠'
         color: '#111111',
         monto: 800000,
         porcentaje: 100,
@@ -125,7 +135,15 @@ describe('agruparGastosPorCategoria', () => {
     ])
   })
 
-  it('agrupa los gastos sin categoría bajo un ítem "sin-categoria" con nombre/emoji/color de respaldo', () => {
+  it('si la categoría ya tiene "icono" propio (post-backfill), lo usa en vez de derivar del emoji', () => {
+    const movimientos = [{ tipo: 'gasto', monto: 40000, categoria: CATEGORIA_CON_ICONO }]
+
+    const resultado = agruparGastosPorCategoria(movimientos, 40000, 'Sin categoría')
+
+    expect(resultado[0].icono).toBe('heart-pulse')
+  })
+
+  it('agrupa los gastos sin categoría bajo un ítem "sin-categoria" con nombre/icono/color de respaldo', () => {
     const movimientos = [
       { tipo: 'gasto', monto: 10000, categoria: null },
       { tipo: 'gasto', monto: 5000, categoria: undefined },
@@ -137,7 +155,7 @@ describe('agruparGastosPorCategoria', () => {
       {
         id: 'sin-categoria',
         nombre: 'Sin categoría',
-        emoji: '✨',
+        icono: 'sparkles',
         color: '#9db0a6',
         monto: 15000,
         porcentaje: 100,

@@ -1,4 +1,6 @@
 import { useIdioma } from '../../../context/IdiomaContext'
+import { resolverIconoCategoria } from '../../../utils/resolverIconoCategoria'
+import IconoCategoria from '../../IconoCategoria'
 
 // Mismo grid de categorías que HojaNuevoMovimiento, pero en su propia
 // pantalla y con AUTO-AVANCE: tocar una categoría la elige y pasa al
@@ -57,9 +59,7 @@ function PasoCategoria({ borrador, categorias, onElegir }) {
                 : 'border-line/60 bg-panel-2 hover:border-line hover:bg-panel-2/70'
             }`}
           >
-            <span className="text-xl" aria-hidden="true">
-              {categoria.emoji}
-            </span>
+            <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={categoria.color} size="md" />
             <span className="line-clamp-2 leading-tight">{categoria.nombre}</span>
           </button>
         ))}

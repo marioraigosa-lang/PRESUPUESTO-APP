@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { X, ArrowLeftRight } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useMoneda, useFormatoMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import { construirDatosMovimiento } from '../utils/construirDatosMovimiento'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
 import AyudaContextual from './AyudaContextual'
+import IconoCategoria from './IconoCategoria'
 import MensajeError from './ui/MensajeError'
 
 function HojaNuevoMovimiento({
@@ -240,6 +242,7 @@ function HojaNuevoMovimiento({
 
         {editandoTraslado ? (
           <div className="flex items-center justify-center gap-2 rounded-full bg-azul/10 py-2 text-sm font-semibold text-azul">
+            <ArrowLeftRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t('movimientos.formulario.trasladoBadge')}</span>
           </div>
         ) : (
@@ -456,7 +459,14 @@ function HojaNuevoMovimiento({
                       activo ? 'bg-mint text-bg' : 'bg-panel-2 text-text-dim'
                     }`}
                   >
-                    <span className="text-lg">{categoria.emoji}</span>
+                    {/* Sin `color`: el botón activo va a fondo sólido mint
+                        (bg-mint text-bg) -- un icono con el color propio de
+                        la categoría podría perder contraste ahí (ej. una
+                        categoría con tono verde/mint). El icono hereda
+                        `currentColor` y sigue al texto del botón, igual que
+                        antes con el emoji. El grid completo se rediseña en
+                        la Fase B4 (SelectorIcono). */}
+                    <IconoCategoria nombre={resolverIconoCategoria(categoria)} size="md" />
                     {categoria.nombre}
                   </button>
                 )

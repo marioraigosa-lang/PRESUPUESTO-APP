@@ -4,10 +4,12 @@ import SelectorPeriodo from '../components/SelectorPeriodo'
 import HojaNuevoMovimiento from '../components/HojaNuevoMovimiento'
 import AsistenteMovimiento from '../components/asistente-movimiento/AsistenteMovimiento'
 import FilaTotales from '../components/FilaTotales'
+import IconoCategoria from '../components/IconoCategoria'
 import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useMovimientosPeriodo } from '../hooks/useMovimientosPeriodo'
 import { calcularProgresoPresupuesto } from '../utils/progresoPresupuesto'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 import { USAR_ASISTENTE_MOVIMIENTO } from '../utils/flags'
@@ -154,10 +156,10 @@ function DetalleCategoria({
         <section className="superficie-hero flex flex-col gap-4 rounded-2xl p-5 shadow-elevated">
           <div className="flex items-center gap-3">
             <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
               style={{ backgroundColor: `${categoria.color}26` }}
             >
-              {categoria.emoji}
+              <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={categoria.color} size="lg" />
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold text-text">{categoria.nombre}</h1>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import IconoCategoria from './IconoCategoria'
 import MensajeError from './ui/MensajeError'
 
 function HojaReasignarCategoria({
@@ -111,10 +113,10 @@ function HojaReasignarCategoria({
                     }`}
                   >
                     <div
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
                       style={{ backgroundColor: `${opcion.color}26` }}
                     >
-                      {opcion.emoji}
+                      <IconoCategoria nombre={resolverIconoCategoria(opcion)} color={opcion.color} size="md" />
                     </div>
                     <p className="min-w-0 flex-1 truncate text-sm font-medium text-text">
                       {opcion.nombre}

@@ -15,8 +15,12 @@ import { construirConsultaMovimientosPeriodo } from '../utils/consultaMovimiento
 // crédito): un gasto con tarjeta tiene cuenta_id null, así que sin esta
 // unión mapearMovimiento no tendría de dónde sacar un nombre que mostrar
 // para ese movimiento -- ver mapearMovimiento.js.
+// "icono" (Fase B2 del PLAN-iconos.md): columna nueva, hoy NULL en toda la
+// BD hasta el backfill (Fase B3). Se trae igual porque no cuesta nada y ya
+// deja la consulta lista -- resolverIconoMovimiento() la usa si viene, y si
+// no (NULL), deriva del "emoji" de siempre.
 const COLUMNAS =
-  'id, tipo, descripcion, monto, emoji, fecha, cuenta_id, cuenta_destino_id, categoria_id, tarjeta_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre), tarjeta:tarjetas!tarjeta_id(nombre)'
+  'id, tipo, descripcion, monto, emoji, icono, fecha, cuenta_id, cuenta_destino_id, categoria_id, tarjeta_id, gasto_fijo_id, cuenta:cuentas!cuenta_id(nombre), cuenta_destino:cuentas!cuenta_destino_id(nombre), tarjeta:tarjetas!tarjeta_id(nombre)'
 
 // Motor de datos compartido para "movimientos de un periodo": la misma
 // consulta que antes vivía solo dentro de MovimientosRecientes.jsx (Home),

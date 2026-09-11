@@ -36,7 +36,7 @@ function Resumen() {
 
     const { data, error } = await seleccionarPropio(
       'movimientos',
-      'id, tipo, monto, fecha, categoria:categorias(id, nombre, emoji, color, es_sistema)',
+      'id, tipo, monto, fecha, categoria:categorias(id, nombre, emoji, icono, color, es_sistema)',
     )
       .gte('fecha', desde)
       .lte('fecha', hasta)
