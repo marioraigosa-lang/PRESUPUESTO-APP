@@ -194,7 +194,7 @@ function AsistenteMovimiento({
   }
 
   async function manejarFinalizar() {
-    // Guarda contra doble envío: un segundo toque en "Guardar ✓" mientras la
+    // Guarda contra doble envío: un segundo toque en "Guardar" mientras la
     // promesa anterior sigue en vuelo (doble tap, o el toque que alcanzó a
     // salir antes de que el botón se deshabilitara) no debe disparar un
     // segundo movimiento.

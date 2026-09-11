@@ -210,7 +210,7 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-text-dim">
                   {viaje.origen && <span className="truncate">{viaje.origen}</span>}
                   {viaje.origen && viaje.destino && (
-                    <ArrowRight className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   )}
                   {viaje.destino && <span className="truncate">{viaje.destino}</span>}
                 </p>

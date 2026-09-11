@@ -171,7 +171,7 @@ function Viajes() {
           {!cargando && !error && viajes.length === 0 && (
             <div className="flex flex-col items-center gap-4 rounded-2xl bg-panel p-8 text-center shadow-card">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/10 text-mint">
-                <Plane className="h-8 w-8" aria-hidden="true" />
+                <Plane className="h-7 w-7" aria-hidden="true" />
               </span>
               <div>
                 <p className="text-sm font-semibold text-text">{t('viajes.vacio.titulo')}</p>

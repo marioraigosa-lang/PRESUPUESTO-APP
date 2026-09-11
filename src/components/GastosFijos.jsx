@@ -197,7 +197,7 @@ function GastosFijos({ cuentas, tarjetas = [], periodo, onMarcarPagado, onDesmar
     !cargando && !conError && gastosConEstado.length > 0 ? (
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-xs">
-          <Check className="h-3 w-3 text-mint" aria-hidden="true" />
+          <Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />
           <span className="font-semibold text-text">
             {pagadosCantidad}/{cantidadTotal}
           </span>
