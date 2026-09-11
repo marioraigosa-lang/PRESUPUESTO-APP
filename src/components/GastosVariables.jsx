@@ -26,7 +26,7 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
     // (no el histórico completo).
     const [{ data: categoriasData, error: errorCategoriasData }, { data: gastosData, error: errorGastosData }] =
       await Promise.all([
-        seleccionarPropio('categorias', 'id, nombre, emoji, color, presupuesto, descripcion').eq(
+        seleccionarPropio('categorias', 'id, nombre, emoji, icono, color, presupuesto, descripcion').eq(
           'es_sistema',
           false,
         ),

@@ -1,3 +1,5 @@
+import { resolverIconoCategoria } from './resolverIconoCategoria'
+
 // Arma el objeto `datos` que espera services/movimientos.js a partir del
 // estado de captura de un movimiento (el "borrador"). Función PURA: sin
 // React, sin estado. Recibe `t` (la función de traducción del idioma
@@ -25,9 +27,18 @@
 //   - t: función de traducción para los textos de respaldo
 //
 // Devuelve: { tipo, monto, cuentaId, tarjetaId, cuentaDestinoId,
-//   categoriaId, emoji, descripcion } con los `null` que exige el
+//   categoriaId, emoji, icono, descripcion } con los `null` que exige el
 //   constraint movimientos_traslado_forma_check (ver
 //   sql/supabase_tarjetas_movimientos.sql).
+//
+// "icono" (Fase B4 del PLAN-iconos.md): snapshot del icono de linea del
+// movimiento al crearse, mismo criterio que "emoji" (que se conserva sin
+// tocar durante la transicion) pero resuelto con resolverIconoCategoria()
+// para que una categoria creada con el selector de iconos nuevo (que puede
+// no tener "emoji", ver services/categorias.js) tambien snapshottee el
+// icono correcto -- si solo se copiara "emoji" (posiblemente null) el
+// movimiento caeria al fallback generico en vez de mostrar el icono real de
+// la categoria.
 export function construirDatosMovimiento(borrador, contexto) {
   const {
     tipo,
@@ -57,6 +68,7 @@ export function construirDatosMovimiento(borrador, contexto) {
       cuentaDestinoId: null,
       categoriaId: null,
       emoji: '💳',
+      icono: 'credit-card',
       descripcion:
         descripcion.trim() ||
         t('tarjetas.pago.descripcion', {
@@ -82,6 +94,19 @@ export function construirDatosMovimiento(borrador, contexto) {
         : tipo === 'retiro'
           ? '🏧'
           : (categoriaSeleccionada?.emoji ?? '✨')
+
+  // 'sparkles' = mismo fallback de "sin categoría" que ICONO_SIN_CATEGORIA
+  // en src/utils/resumenCalculos.js.
+  const icono =
+    tipo === 'ingreso'
+      ? 'arrow-down-left'
+      : tipo === 'traslado'
+        ? 'arrow-left-right'
+        : tipo === 'retiro'
+          ? 'banknote'
+          : categoriaSeleccionada
+            ? resolverIconoCategoria(categoriaSeleccionada)
+            : 'sparkles'
 
   const descripcionFinal =
     descripcion.trim() ||
@@ -110,6 +135,7 @@ export function construirDatosMovimiento(borrador, contexto) {
     // sql/supabase_tarjetas_movimientos.sql).
     categoriaId: tipo === 'gasto' && categoriaId ? categoriaId : null,
     emoji,
+    icono,
     descripcion: descripcionFinal,
   }
 }

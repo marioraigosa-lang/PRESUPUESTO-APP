@@ -47,6 +47,7 @@ describe('construirDatosMovimiento', () => {
         cuentaDestinoId: null,
         categoriaId: null,
         emoji: '💰',
+        icono: 'arrow-down-left',
         descripcion: 'Ingreso',
       })
     })
@@ -81,11 +82,12 @@ describe('construirDatosMovimiento', () => {
         cuentaDestinoId: null,
         categoriaId: 'cat1',
         emoji: '🍔',
+        icono: 'utensils',
         descripcion: 'Comida',
       })
     })
 
-    it('cae a emoji ✨ y descripción "Gasto" si la categoría no está en la lista', () => {
+    it('cae a emoji ✨ e icono sparkles, y descripción "Gasto", si la categoría no está en la lista', () => {
       const datos = construirDatosMovimiento(
         {
           tipo: 'gasto',
@@ -98,6 +100,7 @@ describe('construirDatosMovimiento', () => {
         contexto,
       )
       expect(datos.emoji).toBe('✨')
+      expect(datos.icono).toBe('sparkles')
       expect(datos.descripcion).toBe('Gasto')
     })
 
@@ -130,6 +133,7 @@ describe('construirDatosMovimiento', () => {
       )
       expect(datos.categoriaId).toBeNull()
       expect(datos.emoji).toBe('✨')
+      expect(datos.icono).toBe('sparkles')
       expect(datos.descripcion).toBe('Gasto')
     })
   })
@@ -156,6 +160,7 @@ describe('construirDatosMovimiento', () => {
         cuentaDestinoId: null,
         categoriaId: 'cat2',
         emoji: '🚌',
+        icono: 'bus',
         descripcion: 'Transporte',
       })
     })
@@ -182,6 +187,7 @@ describe('construirDatosMovimiento', () => {
         cuentaDestinoId: 'c2',
         categoriaId: null,
         emoji: '🔄',
+        icono: 'arrow-left-right',
         descripcion: 'Nómina → Ahorros',
       })
     })
@@ -223,6 +229,7 @@ describe('construirDatosMovimiento', () => {
         cuentaDestinoId: null,
         categoriaId: null,
         emoji: '🏧',
+        icono: 'banknote',
         descripcion: 'Retiro',
       })
     })
@@ -250,6 +257,7 @@ describe('construirDatosMovimiento', () => {
         cuentaDestinoId: null,
         categoriaId: null,
         emoji: '💳',
+        icono: 'credit-card',
         descripcion: 'Pago Nu',
       })
     })

@@ -23,14 +23,27 @@ export function asegurarNombreDisponible(nombre) {
   }
 }
 
-export async function agregarCategoria(datosUsuario, { nombre, emoji, color, presupuesto, descripcion }) {
+// Fase B4 del PLAN-iconos.md: el formulario ya no maneja "emoji" (lo
+// reemplazó el selector de iconos), así que estas funciones dejaron de
+// aceptarlo y enviarlo. "emoji" NUNCA se toca desde acá:
+//   - Categoría nueva: nace con emoji = NULL (la columna es nullable, sin
+//     default -- ver sql/supabase_setup.sql). No se inventa un emoji
+//     derivado del icono para "rellenarla": sería un dato falso (no es lo
+//     que el usuario habría escrito) y no hace falta -- la app entera lee
+//     "icono" primero (resolverIconoCategoria) y ya no mira "emoji" salvo
+//     como respaldo de categorías viejas.
+//   - Categoría existente: el UPDATE ya no incluye "emoji" en el payload,
+//     así que Supabase deja la columna intacta pase lo que pase -- cumple
+//     la garantía de reversibilidad del plan ("emoji nunca se toca ni se
+//     borra").
+export async function agregarCategoria(datosUsuario, { nombre, icono, color, presupuesto, descripcion }) {
   const nombreLimpio = nombre.trim()
   asegurarNombreDisponible(nombreLimpio)
 
   const { data, error } = await datosUsuario
     .insertarPropio('categorias', {
       nombre: nombreLimpio,
-      emoji,
+      icono,
       color,
       presupuesto,
       descripcion: descripcion?.trim() || null,
@@ -49,7 +62,7 @@ export async function agregarCategoria(datosUsuario, { nombre, emoji, color, pre
 export async function actualizarCategoria(
   datosUsuario,
   id,
-  { nombre, emoji, color, presupuesto, descripcion },
+  { nombre, icono, color, presupuesto, descripcion },
   categoriaActual,
 ) {
   if (categoriaActual?.es_sistema) {
@@ -62,7 +75,7 @@ export async function actualizarCategoria(
   const { data, error } = await datosUsuario
     .actualizarPropio('categorias', {
       nombre: nombreLimpio,
-      emoji,
+      icono,
       color,
       presupuesto,
       descripcion: descripcion?.trim() || null,

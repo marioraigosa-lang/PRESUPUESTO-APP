@@ -95,6 +95,7 @@ export async function marcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, cat
         descripcion: gasto.nombre,
         monto: gasto.monto,
         emoji: '📌',
+        icono: 'pin',
         cuenta_id: usaTarjeta ? null : cuenta.id,
         tarjeta_id: usaTarjeta ? tarjeta.id : null,
         categoria_id: categoriaGastosFijos.id,

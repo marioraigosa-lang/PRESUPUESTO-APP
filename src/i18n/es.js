@@ -394,9 +394,12 @@ export default {
       cerrarAria: 'Cerrar',
       nombreLabel: 'Nombre',
       nombrePlaceholder: 'Ej: Mercado',
-      emojiLabel: 'Emoji',
-      emojiAria: 'Emoji de la categoría',
-      emojiAyuda: 'Escribe uno o elige abajo',
+      iconoLabel: 'Icono',
+      iconoAria: 'Icono de la categoría',
+      iconoBuscarPlaceholder: 'Buscar icono...',
+      iconoBuscarAria: 'Buscar icono',
+      iconoOpcionAria: 'Icono {{nombre}}',
+      iconoSinResultados: 'No se encontraron iconos con ese nombre',
       colorLabel: 'Color',
       colorAria: 'Color {{color}}',
       presupuestoLabel: 'Tope mensual (opcional)',
@@ -407,7 +410,7 @@ export default {
       descripcionPlaceholder: 'Ej: Café, snacks, propinas...',
       descripcionAyuda: 'Un texto de ayuda corto que se muestra debajo del nombre de la categoría.',
       errorNombreVacio: 'Ingresa un nombre para la categoría',
-      errorEmojiVacio: 'Elige un emoji',
+      errorIconoVacio: 'Elige un icono',
       errorPresupuestoInvalido: 'El tope mensual no puede ser negativo',
       errorGuardar: 'No se pudo guardar la categoría. Intenta de nuevo.',
       guardando: 'Guardando...',
@@ -445,6 +448,27 @@ export default {
       gastosTitulo: 'Gastos',
       nuevoGasto: '+ Nuevo gasto',
       sinGastos: 'No hay gastos este mes en esta categoría.',
+    },
+  },
+
+  // Fase B4 del PLAN-iconos.md: encabezados de grupo del SelectorIcono
+  // (catalogoIconos.js -> GRUPOS_ICONOS). El orden de las claves acá no
+  // importa (son un diccionario, no una lista): el orden de presentación lo
+  // define GRUPOS_ICONOS en el código.
+  iconos: {
+    grupos: {
+      comida: 'Comida',
+      transporte: 'Transporte',
+      hogar: 'Hogar',
+      servicios: 'Servicios',
+      salud: 'Salud',
+      ocio: 'Ocio',
+      compras: 'Compras',
+      finanzas: 'Finanzas',
+      trabajo_educacion: 'Trabajo y educación',
+      personas_mascotas: 'Personas y mascotas',
+      viajes: 'Viajes',
+      otros: 'Otros',
     },
   },
 

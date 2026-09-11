@@ -84,6 +84,7 @@ function HojaPagoTarjeta({ abierta, onCerrar, tarjeta, cuentas, onConfirmar }) {
         monto: montoNumero,
         cuentaId,
         emoji: '💳',
+        icono: 'credit-card',
         descripcion: t('tarjetas.pago.descripcion', { tarjeta: tarjeta.nombre }),
       })
       cerrarYLimpiar()

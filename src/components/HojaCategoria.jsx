@@ -5,10 +5,11 @@ import { useMoneda } from '../context/MonedaContext'
 import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import IconoCategoria from './IconoCategoria'
+import SelectorIcono from './SelectorIcono'
 import MensajeError from './ui/MensajeError'
 import AyudaContextual from './AyudaContextual'
-
-const EMOJIS_SUGERIDOS = ['🛒', '⛽', '💊', '🎬', '✨', '🏠', '🍔', '👕', '📚', '🐾', '🎁', '☕']
 
 function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEditando }) {
   const editando = Boolean(categoriaEditando)
@@ -17,7 +18,10 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
   const { simbolo, decimales } = configMoneda(moneda)
 
   const [nombre, setNombre] = useState('')
-  const [emoji, setEmoji] = useState(EMOJIS_SUGERIDOS[0])
+  // '' = todavía no elige ninguno (Fase B4 del PLAN-iconos.md): a diferencia
+  // del emoji viejo, que siempre arrancaba con una sugerencia por defecto,
+  // acá se fuerza una elección explícita -- ver errorIconoVacio más abajo.
+  const [icono, setIcono] = useState('')
   const [color, setColor] = useState(COLORES_CUENTA[0])
   const [presupuesto, setPresupuesto] = useState('')
   const [descripcion, setDescripcion] = useState('')
@@ -30,13 +34,16 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
     if (categoriaEditando) {
       setNombre(categoriaEditando.nombre)
-      setEmoji(categoriaEditando.emoji || EMOJIS_SUGERIDOS[0])
+      // categoria.icono si ya lo tiene; si no (categoría vieja, todavía sin
+      // backfill o creada antes de esta fase), lo deriva de "emoji" con la
+      // misma cascada que usa toda la app para mostrarlo (resolverIconoCategoria).
+      setIcono(resolverIconoCategoria(categoriaEditando))
       setColor(categoriaEditando.color || COLORES_CUENTA[0])
       setPresupuesto(categoriaEditando.presupuesto ? String(categoriaEditando.presupuesto) : '')
       setDescripcion(categoriaEditando.descripcion || '')
     } else {
       setNombre('')
-      setEmoji(EMOJIS_SUGERIDOS[0])
+      setIcono('')
       setColor(COLORES_CUENTA[0])
       setPresupuesto('')
       setDescripcion('')
@@ -58,8 +65,8 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
     setError('')
   }
 
-  function manejarCambioEmoji(evento) {
-    setEmoji(evento.target.value)
+  function manejarCambioIcono(nombre) {
+    setIcono(nombre)
     setError('')
   }
 
@@ -75,8 +82,8 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
       setError(t('categorias.formulario.errorNombreVacio'))
       return
     }
-    if (!emoji.trim()) {
-      setError(t('categorias.formulario.errorEmojiVacio'))
+    if (!icono) {
+      setError(t('categorias.formulario.errorIconoVacio'))
       return
     }
     if (presupuesto !== '' && Number(presupuesto) < 0) {
@@ -89,7 +96,7 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
 
     const datos = {
       nombre: nombre.trim(),
-      emoji: emoji.trim(),
+      icono,
       color,
       presupuesto: presupuesto === '' ? 0 : Number(presupuesto),
       descripcion: descripcion.trim() || null,
@@ -157,32 +164,17 @@ function HojaCategoria({ abierta, onCerrar, onGuardar, onActualizar, categoriaEd
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-text-dim">{t('categorias.formulario.emojiLabel')}</p>
-          <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
-            <input
-              type="text"
-              value={emoji}
-              onChange={manejarCambioEmoji}
-              maxLength={4}
-              aria-label={t('categorias.formulario.emojiAria')}
-              className="w-14 bg-transparent text-center text-2xl text-text outline-none"
-            />
-            <span className="text-xs text-text-dim">{t('categorias.formulario.emojiAyuda')}</span>
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-xs text-text-dim">{t('categorias.formulario.iconoLabel')}</p>
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${color}26` }}
+              aria-hidden="true"
+            >
+              <IconoCategoria nombre={icono || 'tag'} color={color} size="sm" />
+            </div>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {EMOJIS_SUGERIDOS.map((opcion) => (
-              <button
-                key={opcion}
-                type="button"
-                onClick={() => setEmoji(opcion)}
-                className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition-colors ${
-                  emoji === opcion ? 'bg-mint/20 ring-1 ring-mint' : 'bg-panel-2'
-                }`}
-              >
-                {opcion}
-              </button>
-            ))}
-          </div>
+          <SelectorIcono valor={icono} onCambiar={manejarCambioIcono} color={color} />
         </div>
 
         <div>

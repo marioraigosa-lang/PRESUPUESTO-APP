@@ -59,7 +59,7 @@ describe('agregarCategoria', () => {
 
     const resultado = await agregarCategoria(datosUsuario, {
       nombre: '  Comida  ',
-      emoji: '🍔',
+      icono: 'utensils',
       color: '#fff',
       presupuesto: 100,
       descripcion: '  Notas  ',
@@ -68,7 +68,7 @@ describe('agregarCategoria', () => {
     expect(resultado).toEqual(categoriaCreada)
     expect(insertarPropio).toHaveBeenCalledWith('categorias', {
       nombre: 'Comida',
-      emoji: '🍔',
+      icono: 'utensils',
       color: '#fff',
       presupuesto: 100,
       descripcion: 'Notas',
@@ -81,7 +81,7 @@ describe('agregarCategoria', () => {
 
     await agregarCategoria(datosUsuario, {
       nombre: 'Comida',
-      emoji: '🍔',
+      icono: 'utensils',
       color: '#fff',
       presupuesto: 100,
       descripcion: '   ',
@@ -98,7 +98,7 @@ describe('agregarCategoria', () => {
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     await expect(
-      agregarCategoria(datosUsuario, { nombre: 'Gastos fijos', emoji: '📌', color: '#000', presupuesto: 0 }),
+      agregarCategoria(datosUsuario, { nombre: 'Gastos fijos', icono: 'pin', color: '#000', presupuesto: 0 }),
     ).rejects.toThrow('Ese nombre está reservado para la categoría del sistema')
     expect(insertarPropio).not.toHaveBeenCalled()
   })
@@ -108,7 +108,7 @@ describe('agregarCategoria', () => {
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     await expect(
-      agregarCategoria(datosUsuario, { nombre: 'Comida', emoji: '🍔', color: '#fff', presupuesto: 100 }),
+      agregarCategoria(datosUsuario, { nombre: 'Comida', icono: 'utensils', color: '#fff', presupuesto: 100 }),
     ).rejects.toThrow('boom')
   })
 })
@@ -122,7 +122,7 @@ describe('actualizarCategoria', () => {
     const resultado = await actualizarCategoria(
       datosUsuario,
       1,
-      { nombre: '  Comida  ', emoji: '🍔', color: '#fff', presupuesto: 100, descripcion: null },
+      { nombre: '  Comida  ', icono: 'utensils', color: '#fff', presupuesto: 100, descripcion: null },
       { id: 1, es_sistema: false },
     )
 
@@ -141,7 +141,7 @@ describe('actualizarCategoria', () => {
       actualizarCategoria(
         datosUsuario,
         1,
-        { nombre: 'Otro', emoji: '🍔', color: '#fff', presupuesto: 100 },
+        { nombre: 'Otro', icono: 'utensils', color: '#fff', presupuesto: 100 },
         { id: 1, es_sistema: true },
       ),
     ).rejects.toThrow('La categoría del sistema no se puede editar')
@@ -156,7 +156,7 @@ describe('actualizarCategoria', () => {
       actualizarCategoria(
         datosUsuario,
         1,
-        { nombre: 'Fixed Expenses', emoji: '🍔', color: '#fff', presupuesto: 100 },
+        { nombre: 'Fixed Expenses', icono: 'utensils', color: '#fff', presupuesto: 100 },
         { id: 1, es_sistema: false },
       ),
     ).rejects.toThrow('Ese nombre está reservado para la categoría del sistema')
@@ -171,7 +171,7 @@ describe('actualizarCategoria', () => {
       actualizarCategoria(
         datosUsuario,
         1,
-        { nombre: 'Comida', emoji: '🍔', color: '#fff', presupuesto: 100 },
+        { nombre: 'Comida', icono: 'utensils', color: '#fff', presupuesto: 100 },
         { id: 1, es_sistema: false },
       ),
     ).rejects.toThrow('boom')
