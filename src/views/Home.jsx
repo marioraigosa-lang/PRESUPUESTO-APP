@@ -8,6 +8,7 @@ import GastosFijos from '../components/GastosFijos'
 import GastosVariables from '../components/GastosVariables'
 import TarjetaPromoMfa from '../components/TarjetaPromoMfa'
 import Acordeon from '../components/ui/Acordeon'
+import BarraProgreso from '../components/ui/BarraProgreso'
 import DetalleCuenta from './DetalleCuenta'
 import DetalleCategoria from './DetalleCategoria'
 import DetalleTarjeta from './DetalleTarjeta'
@@ -16,6 +17,7 @@ import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { textoPeriodo, rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import { colorSemaforoLlenado } from '../utils/colorSemaforo'
 import MensajeError from '../components/ui/MensajeError'
 
 const hoy = new Date()
@@ -97,11 +99,20 @@ function Home({
   const total = cuentas.reduce((suma, cuenta) => suma + cuenta.saldo, 0)
 
   // Totales de la sección "Tarjetas": deuda total (lo que se debe en TODAS
-  // las tarjetas) y cupo disponible total, para el mini-resumen colapsado y
-  // el resumen al pie de la lista -- mismo criterio que "Total disponible"
-  // en la sección de Cuentas.
+  // las tarjetas), cupo disponible total y cupo TOTAL (disponible + deuda),
+  // para el mini-resumen colapsado y el resumen al pie de la lista -- mismo
+  // criterio que "Total disponible" en la sección de Cuentas. `cupoTotalTarjetas`
+  // es nuevo: antes no hacía falta (el resumen colapsado solo mostraba la
+  // deuda en texto), ahora es el divisor de "% de cupo usado" -- mismo
+  // cálculo que ya hace cada <Tarjeta> individual (ver Tarjeta.jsx).
   const deudaTotalTarjetas = tarjetas.reduce((suma, tarjeta) => suma + tarjeta.deuda, 0)
   const cupoDisponibleTotalTarjetas = tarjetas.reduce((suma, tarjeta) => suma + tarjeta.cupo_disponible, 0)
+  const cupoTotalTarjetas = tarjetas.reduce((suma, tarjeta) => suma + tarjeta.cupo_total, 0)
+  // Semáforo "más lleno = peor" (ver colorSemaforo.js), igual que Gastos
+  // variables: <70% mint, 70-90% gold, >90% coral. null cuando no hay contra
+  // qué medir (sin tarjetas, o cupo_total 0 en todas) -- cae al texto simple
+  // de siempre en vez de dividir por cero.
+  const porcentajeCupoUsado = cupoTotalTarjetas > 0 ? Math.round((deudaTotalTarjetas / cupoTotalTarjetas) * 100) : null
 
   function irMesAnterior() {
     setPeriodo((actual) => {
@@ -288,16 +299,24 @@ function Home({
           titulo={t('home.misTarjetas')}
           resumenColapsado={
             !cargandoTarjetas && !errorTarjetas && tarjetas.length > 0 ? (
-              <p className="flex items-baseline gap-1.5">
-                <span className="text-xs text-text-dim">{t('home.deudaTarjetasEtiqueta')}</span>
-                <span
-                  className={`truncate text-sm font-semibold ${
-                    deudaTotalTarjetas > 0 ? 'text-coral' : 'text-mint'
-                  }`}
-                >
-                  {formatear(deudaTotalTarjetas)}
-                </span>
-              </p>
+              porcentajeCupoUsado !== null ? (
+                <BarraProgreso
+                  porcentaje={porcentajeCupoUsado}
+                  color={colorSemaforoLlenado(porcentajeCupoUsado)}
+                  etiquetaAria={t('home.cupoUsadoPorcentajeAria', { porcentaje: porcentajeCupoUsado })}
+                />
+              ) : (
+                <p className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-text-dim">{t('home.deudaTarjetasEtiqueta')}</span>
+                  <span
+                    className={`truncate text-sm font-semibold ${
+                      deudaTotalTarjetas > 0 ? 'text-coral' : 'text-mint'
+                    }`}
+                  >
+                    {formatear(deudaTotalTarjetas)}
+                  </span>
+                </p>
+              )
             ) : null
           }
         >

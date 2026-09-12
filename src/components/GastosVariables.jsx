@@ -5,8 +5,10 @@ import { useConsulta } from '../hooks/useConsulta'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import { colorSemaforoLlenado } from '../utils/colorSemaforo'
 import MensajeError from './ui/MensajeError'
 import Acordeon from './ui/Acordeon'
+import BarraProgreso from './ui/BarraProgreso'
 import { calcularResumenGastosVariables } from '../utils/resumenGastosVariables'
 
 function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCategoria }) {
@@ -58,24 +60,35 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
     error: errorCategorias,
   } = useConsulta(cargarCategorias, [version, periodo.anio, periodo.mes, periodo.quincena], [])
 
-  const { totalGastado, totalTope, excedidoTotal, cantidadConTope } =
-    calcularResumenGastosVariables(categorias)
+  const { totalGastado, totalTope, cantidadConTope } = calcularResumenGastosVariables(categorias)
+
+  // Porcentaje gastado sobre el presupuesto TOTAL (suma de todas las
+  // categorías con tope) -- sin capar en 100 a propósito: BarraProgreso topa
+  // el ANCHO visual solo, el número se muestra tal cual (para que se note
+  // cuánto se excedió, ej. "134%"). Semáforo "más lleno = peor" (ver
+  // colorSemaforo.js): <70% mint, 70-90% gold, >90% coral -- excedidoTotal
+  // (>100%) cae ahí mismo, ya no hace falta usarlo aparte para el color.
+  const porcentajeGastado = totalTope > 0 ? Math.round((totalGastado / totalTope) * 100) : null
 
   // El mini-resumen del header colapsado se oculta mientras carga, si falla,
   // o si no hay ninguna categoría -- mismo criterio que en GastosFijos.jsx.
-  // Si hay categorías pero ninguna tiene presupuesto asignado, no tiene
-  // sentido un "$Y / $0" -- se muestra solo lo gastado, sin el "/ $Z". El
-  // valor se pinta en coral solo si se excedió el presupuesto TOTAL (suma de
-  // todas las categorías con tope) -- no hay "excedido" que mostrar cuando no
-  // hay ningún presupuesto definido.
+  // Si hay categorías pero ninguna tiene presupuesto asignado (totalTope
+  // === 0), no hay contra qué medir un % -- se cae al texto simple de
+  // siempre (solo lo gastado, sin barra) en vez de dividir por cero.
   const resumenColapsado =
     !cargandoCategorias && !errorCategorias && categorias.length > 0 ? (
-      <p className="flex items-baseline gap-1.5">
-        <span className="text-xs text-text-dim">{t('home.gastadoEtiqueta')}</span>
-        <span className={`truncate text-sm font-semibold ${excedidoTotal ? 'text-coral' : 'text-mint'}`}>
-          {totalTope > 0 ? `${formatear(totalGastado)} / ${formatear(totalTope)}` : formatear(totalGastado)}
-        </span>
-      </p>
+      porcentajeGastado !== null ? (
+        <BarraProgreso
+          porcentaje={porcentajeGastado}
+          color={colorSemaforoLlenado(porcentajeGastado)}
+          etiquetaAria={t('home.gastadoPorcentajeAria', { porcentaje: porcentajeGastado })}
+        />
+      ) : (
+        <p className="flex items-baseline gap-1.5">
+          <span className="text-xs text-text-dim">{t('home.gastadoEtiqueta')}</span>
+          <span className="truncate text-sm font-semibold text-mint">{formatear(totalGastado)}</span>
+        </p>
+      )
     ) : null
 
   return (

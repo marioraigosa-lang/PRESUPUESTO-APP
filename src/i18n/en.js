@@ -68,6 +68,7 @@ export default {
     errorCargarTarjetas: "Couldn't load your cards. Please try again.",
     deudaTarjetasEtiqueta: 'Debt',
     cupoDisponibleTarjetasEtiqueta: 'Available credit',
+    cupoUsadoPorcentajeAria: '{{porcentaje}}% of credit limit used',
 
     ingresos: 'Income',
     gastos: 'Expenses',
@@ -95,6 +96,7 @@ export default {
     errorCargarCategorias: "Couldn't load categories. Please try again.",
     totalGastado: 'Total spent',
     gastadoEtiqueta: 'Spent',
+    gastadoPorcentajeAria: '{{porcentaje}}% of budget spent',
     topesResumen: '{{monto}} in budget caps set ({{conTope}} of {{total}} {{palabra}})',
     categoriaContador: { uno: 'category', otro: 'categories' },
     deMontoPresupuesto: 'of {{monto}}',

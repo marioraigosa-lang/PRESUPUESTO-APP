@@ -86,6 +86,7 @@ export default {
     errorCargarTarjetas: 'No se pudieron cargar las tarjetas. Intenta de nuevo.',
     deudaTarjetasEtiqueta: 'Deuda',
     cupoDisponibleTarjetasEtiqueta: 'Cupo disponible',
+    cupoUsadoPorcentajeAria: '{{porcentaje}}% del cupo usado',
 
     ingresos: 'Ingresos',
     gastos: 'Gastos',
@@ -113,6 +114,7 @@ export default {
     errorCargarCategorias: 'No se pudieron cargar las categorías. Intenta de nuevo.',
     totalGastado: 'Total gastado',
     gastadoEtiqueta: 'Gastado',
+    gastadoPorcentajeAria: '{{porcentaje}}% del presupuesto gastado',
     topesResumen: '{{monto}} en topes definidos ({{conTope}} de {{total}} {{palabra}})',
     categoriaContador: { uno: 'categoría', otro: 'categorías' },
     deMontoPresupuesto: 'de {{monto}}',

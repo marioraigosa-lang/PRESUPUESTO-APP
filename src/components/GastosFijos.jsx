@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
 import GastoFijo from './GastoFijo'
 import HojaElegirCuentaPago from './HojaElegirCuentaPago'
 import { useFormatoMoneda } from '../context/MonedaContext'
@@ -7,9 +6,11 @@ import { useIdioma } from '../context/IdiomaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
+import { colorSemaforoPagado } from '../utils/colorSemaforo'
 import AyudaContextual from './AyudaContextual'
 import MensajeError from './ui/MensajeError'
 import Acordeon from './ui/Acordeon'
+import BarraProgreso from './ui/BarraProgreso'
 import { calcularResumenGastosFijos } from '../utils/resumenGastosFijos'
 
 function GastosFijos({ cuentas, tarjetas = [], periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
@@ -182,34 +183,25 @@ function GastosFijos({ cuentas, tarjetas = [], periodo, onMarcarPagado, onDesmar
     }
   }
 
-  const { total, totalPagado, totalPendiente, porcentaje, pagadosCantidad, cantidadTotal } =
-    calcularResumenGastosFijos(gastosConEstado)
+  const { total, totalPagado, totalPendiente, porcentaje } = calcularResumenGastosFijos(gastosConEstado)
 
   const cargando = cargandoGastos || cargandoMovimientos
   const conError = errorGastos || errorMovimientos
 
   // El mini-resumen del header colapsado se oculta mientras carga, si falla,
-  // o si no hay ningún gasto fijo -- para no mostrar "0 de 0 pagados" ni un
-  // parpadeo entre el estado de carga y el resultado real. Se arma como dos
-  // chips separados (pagados / pendiente) en vez de una sola frase, para que
-  // se lea con aire en vez de amontonado.
+  // o si no hay ningún gasto fijo -- para no mostrar una barra al 0% vacía
+  // de sentido. `porcentaje` ya viene calculado por calcularResumenGastosFijos
+  // (con guarda contra división por cero cuando total === 0). Semáforo
+  // INVERTIDO respecto a Gastos variables/Tarjetas -- acá más lleno es mejor
+  // (ver colorSemaforo.js -> colorSemaforoPagado): <50% pagado coral (todavía
+  // falta la mayoría), 50-99% gold (a medio camino), 100% mint (todo al día).
   const resumenColapsado =
     !cargando && !conError && gastosConEstado.length > 0 ? (
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-xs">
-          <Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />
-          <span className="font-semibold text-text">
-            {pagadosCantidad}/{cantidadTotal}
-          </span>
-          <span className="text-text-dim">{t('home.gastosFijosPagadosEtiqueta')}</span>
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-xs">
-          <span className="text-text-dim">{t('home.pendienteEtiqueta')}</span>
-          <span className={`font-semibold ${totalPendiente > 0 ? 'text-gold' : 'text-mint'}`}>
-            {formatear(totalPendiente)}
-          </span>
-        </span>
-      </div>
+      <BarraProgreso
+        porcentaje={porcentaje}
+        color={colorSemaforoPagado(porcentaje)}
+        etiquetaAria={t('home.pagadoPorcentaje', { porcentaje })}
+      />
     ) : null
 
   return (
