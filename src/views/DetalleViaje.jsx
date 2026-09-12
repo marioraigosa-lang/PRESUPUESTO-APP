@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Plane, Calendar, Users, ArrowRight, Tag, ChevronRight } from 'lucide-react'
 import TarjetaCategoriaViaje from '../components/TarjetaCategoriaViaje'
 import HojaNuevaCategoriaViaje from '../components/HojaNuevaCategoriaViaje'
+import HojaNuevoGastoViaje from '../components/HojaNuevoGastoViaje'
+import AsistenteGastoViaje from '../components/asistente-gasto-viaje/AsistenteGastoViaje'
+import BotonAgregar from '../components/BotonAgregar'
 import DetalleCategoriaViaje from './DetalleCategoriaViaje'
 import AyudaContextual from '../components/AyudaContextual'
 import { textoFechas } from '../components/TarjetaViaje'
@@ -12,6 +15,7 @@ import * as categoriasViajeService from '../services/categoriasViaje'
 import * as gastosViajeService from '../services/gastosViaje'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { gastosSinCategoria, totalesPorMoneda } from '../utils/resumenViaje'
+import { USAR_ASISTENTE_GASTO_VIAJE } from '../utils/flags'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 import Tarjeta from '../components/ui/Tarjeta'
@@ -45,6 +49,14 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
   // detalle de una categoría real; { categoria: null } = mostrando los
   // gastos huérfanos ("sin categoría").
   const [detalleCategoria, setDetalleCategoria] = useState(null)
+
+  // FAB flotante (mismo estilo que el "+" de Home, ver BotonAgregar.jsx):
+  // registra un gasto SIN preseleccionar categoría -- a diferencia de
+  // "+ Agregar gasto" dentro de DetalleCategoriaViaje.jsx, que sí la
+  // preselecciona. Solo se muestra en esta pantalla (la lista de categorías
+  // del viaje), nunca dentro del detalle de una categoría -- ver el `return`
+  // anticipado de abajo.
+  const [gastoRapidoAbierto, setGastoRapidoAbierto] = useState(false)
 
   async function cargarDatosViaje() {
     const [categoriasResultado, gastosResultado] = await Promise.all([
@@ -340,6 +352,34 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
         onGuardar={agregarCategoria}
         onActualizar={actualizarCategoria}
       />
+
+      <BotonAgregar
+        onClick={() => setGastoRapidoAbierto(true)}
+        etiqueta={t('viajes.detalle.registrarGasto')}
+      />
+
+      {/* Mismo criterio que DetalleCategoriaViaje.jsx: crear pasa por el
+          asistente con el flag activo, editar (no aplica acá, el FAB nunca
+          edita) seguiría por HojaNuevoGastoViaje. Sin
+          categoriaPreseleccionadaId -- arranca en el paso de elegir
+          categoría (o la salta solo si el viaje tiene una única categoría,
+          ver AsistenteGastoViaje.jsx). */}
+      {USAR_ASISTENTE_GASTO_VIAJE ? (
+        <AsistenteGastoViaje
+          abierta={gastoRapidoAbierto}
+          onCerrar={() => setGastoRapidoAbierto(false)}
+          categorias={categorias}
+          onGuardar={agregarGasto}
+        />
+      ) : (
+        <HojaNuevoGastoViaje
+          abierta={gastoRapidoAbierto}
+          categorias={categorias}
+          onCerrar={() => setGastoRapidoAbierto(false)}
+          onGuardar={agregarGasto}
+          onActualizar={actualizarGasto}
+        />
+      )}
     </main>
   )
 }

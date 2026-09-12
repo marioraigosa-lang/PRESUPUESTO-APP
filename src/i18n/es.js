@@ -633,6 +633,33 @@ export default {
     sinFechas: 'Sin fechas definidas',
     adultosContador: { uno: '{{count}} adulto', otro: '{{count}} adultos' },
     ninosContador: { uno: '{{count}} niño', otro: '{{count}} niños' },
+    // Fase VIAJE-E del plan de viajes: asistente paso a paso para crear un
+    // viaje, detrás de USAR_ASISTENTE_VIAJE (ver utils/flags.js). Reutiliza
+    // etiquetas de "formulario" (origenLabel, adultosLabel...) donde son la
+    // misma; acá solo viven las preguntas/botones propios del asistente.
+    asistente: {
+      cerrarAria: 'Cerrar',
+      volverAria: 'Volver',
+      pasoContador: 'Paso {{actual}} de {{total}}',
+      confirmarDescartar: '¿Descartar este viaje? Se perderán los datos ingresados.',
+      siguiente: 'Siguiente',
+      crearViajeBoton: 'Crear viaje',
+      reintentar: 'Reintentar',
+      editarAria: 'Editar {{campo}}',
+      preguntaOrigenDestino: '¿De dónde a dónde?',
+      origenDestinoNota: 'Puedes dejarlo en blanco y completarlo después',
+      preguntaFechas: '¿Cuándo viajas?',
+      fechasNota: 'Puedes dejarlas en blanco y completarlas después',
+      preguntaPersonas: '¿Cuántos van?',
+      restarAria: 'Restar {{campo}}',
+      sumarAria: 'Sumar {{campo}}',
+      preguntaCategorias: '¿En qué vas a gastar?',
+      categoriasNota: 'Marca las categorías que apliquen y ponles un presupuesto -- puedes ajustarlo todo después.',
+      presupuestoCategoriaAria: 'Presupuesto para {{categoria}}',
+      nombrePorDefecto: 'Viaje a {{destino}}',
+      nombrePorDefectoOrigen: 'Viaje desde {{origen}}',
+      nombrePorDefectoGenerico: 'Nuevo viaje',
+    },
     formulario: {
       nuevoTitulo: 'Nuevo viaje',
       editarTitulo: 'Editar viaje',
@@ -685,6 +712,7 @@ export default {
         'No puedes eliminar una categoría que tiene gastos registrados. Elimina primero sus gastos.',
       gastosTitulo: 'Gastos del viaje',
       nuevoGasto: '+ Nuevo gasto',
+      registrarGasto: 'Registrar gasto',
       cargandoGastos: 'Cargando gastos...',
       errorCargarGastos: 'Error al cargar los gastos: ',
       sinGastos: 'Aún no hay gastos para este viaje.',
@@ -753,6 +781,25 @@ export default {
       guardarCambios: 'Guardar cambios',
       guardarGasto: 'Guardar gasto',
       cerrarAria: 'Cerrar',
+    },
+    // Fase VIAJE-D del plan de viajes: asistente paso a paso para registrar
+    // un gasto de viaje, detrás de USAR_ASISTENTE_GASTO_VIAJE (ver
+    // utils/flags.js). Mismo criterio que movimientos.asistente: algunas
+    // claves se reutilizan de gastoFormulario (montoLabel, fechaLabel,
+    // descripcionPlaceholder...) porque son la misma etiqueta; acá solo
+    // viven las preguntas/botones propios del asistente.
+    gastoAsistente: {
+      cerrarAria: 'Cerrar',
+      volverAria: 'Volver',
+      pasoContador: 'Paso {{actual}} de {{total}}',
+      confirmarDescartar: '¿Descartar este gasto? Se perderán los datos ingresados.',
+      siguiente: 'Siguiente',
+      guardarBoton: 'Guardar',
+      reintentar: 'Reintentar',
+      editarAria: 'Editar {{campo}}',
+      preguntaCategoria: '¿En qué categoría?',
+      preguntaConcepto: '¿Algo que quieras anotar?',
+      conceptoOpcionalNota: 'El concepto es opcional',
     },
   },
 
