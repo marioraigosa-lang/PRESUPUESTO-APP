@@ -6,9 +6,16 @@ import { textoFechas } from '../components/TarjetaViaje'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { fechaCortaDesdeISO } from '../utils/formatoFecha'
 import { resumenPorMonedaYCategoria } from '../utils/resumenViaje'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import IconoCategoria from '../components/IconoCategoria'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 import Tarjeta from '../components/ui/Tarjeta'
+
+// Mismo fallback que TarjetaCategoriaViaje.jsx/GastoViaje.jsx para una
+// categoría sin "color" propio todavía.
+const COLOR_FALLBACK = COLORES_CUENTA[0]
 
 const DATOS_INICIALES = { categorias: [], gastos: [] }
 
@@ -115,10 +122,19 @@ function ResumenViaje({ viaje, onVolver }) {
                           key={categoria?.id ?? 'sin-categoria'}
                           className="flex items-center justify-between gap-2 text-xs text-text-dim"
                         >
-                          <span className="truncate">
-                            {categoria
-                              ? `${categoria.emoji || '🧳'} ${categoria.nombre}`
-                              : t('viajes.detalle.gastoSinCategoria')}
+                          <span className="flex min-w-0 items-center gap-1 truncate">
+                            {categoria ? (
+                              <>
+                                <IconoCategoria
+                                  nombre={resolverIconoCategoria(categoria)}
+                                  color={categoria.color || COLOR_FALLBACK}
+                                  size="sm"
+                                />
+                                <span className="truncate">{categoria.nombre}</span>
+                              </>
+                            ) : (
+                              t('viajes.detalle.gastoSinCategoria')
+                            )}
                           </span>
                           <span className="shrink-0">{formatearMonto(totalCategoria, moneda)}</span>
                         </div>
@@ -137,16 +153,23 @@ function ResumenViaje({ viaje, onVolver }) {
 
               {gastos.map((gasto) => {
                 const categoria = categorias.find((c) => c.id === gasto.categoria_viaje_id)
-                const nombreCategoria = categoria
-                  ? `${categoria.emoji || '🧳'} ${categoria.nombre}`
-                  : t('viajes.detalle.gastoSinCategoria')
+                const nombreCategoria = categoria?.nombre ?? t('viajes.detalle.gastoSinCategoria')
 
                 return (
                   <Tarjeta key={gasto.id} className="flex items-center gap-3">
                     <div className="min-w-0 flex-1">
                       {gasto.descripcion && <p className="truncate text-sm text-text">{gasto.descripcion}</p>}
-                      <p className="truncate text-xs text-text-dim">
-                        {fechaCortaDesdeISO(gasto.fecha, idioma)} · {nombreCategoria}
+                      <p className="flex min-w-0 items-center gap-1 truncate text-xs text-text-dim">
+                        <span className="shrink-0">{fechaCortaDesdeISO(gasto.fecha, idioma)} ·</span>
+                        {categoria && (
+                          <IconoCategoria
+                            nombre={resolverIconoCategoria(categoria)}
+                            color={categoria.color || COLOR_FALLBACK}
+                            size="sm"
+                            className="shrink-0"
+                          />
+                        )}
+                        <span className="truncate">{nombreCategoria}</span>
                       </p>
                     </div>
                     <p className="shrink-0 text-sm font-semibold text-text">

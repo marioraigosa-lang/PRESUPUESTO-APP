@@ -4,7 +4,9 @@ import { useIdioma } from '../context/IdiomaContext'
 import { MONEDA_POR_DEFECTO, MONEDAS, configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import { fechaLocalISO } from '../utils/formatoFecha'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
 import AyudaContextual from './AyudaContextual'
+import IconoCategoria from './IconoCategoria'
 import MensajeError from './ui/MensajeError'
 
 // A diferencia de HojaNuevoMovimiento (gastos reales), cada gasto de viaje
@@ -13,7 +15,20 @@ import MensajeError from './ui/MensajeError'
 // en COP). La fecha es libre: no se restringe al rango del viaje (ver
 // HojaNuevoViaje), porque un gasto puede registrarse antes o después de esas
 // fechas (ej. la reserva del hotel, pagada con semanas de anticipación).
-function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gastoEditando, categorias }) {
+//
+// `categoriaPreseleccionadaId` (Fase VIAJE-C): al crear (nunca al editar, un
+// gasto existente ya trae su propia categoría) desde DetalleCategoriaViaje.jsx,
+// precarga la categoría de la que se entró en vez de la primera de la lista
+// -- el usuario igual puede cambiarla tocando otro tile del grid.
+function HojaNuevoGastoViaje({
+  abierta,
+  onCerrar,
+  onGuardar,
+  onActualizar,
+  gastoEditando,
+  categorias,
+  categoriaPreseleccionadaId,
+}) {
   const editando = Boolean(gastoEditando)
   const { t } = useIdioma()
 
@@ -36,7 +51,7 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
       setMoneda(gastoEditando.moneda || MONEDA_POR_DEFECTO)
       setDescripcion(gastoEditando.descripcion ?? '')
     } else {
-      setCategoriaId(categorias[0]?.id ?? '')
+      setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
       setFecha(fechaLocalISO())
       setMonto('')
       setMoneda(MONEDA_POR_DEFECTO)
@@ -165,7 +180,12 @@ function HojaNuevoGastoViaje({ abierta, onCerrar, onGuardar, onActualizar, gasto
                       activo ? 'bg-mint text-bg' : 'bg-panel-2 text-text-dim'
                     }`}
                   >
-                    <span className="text-lg">{categoria.emoji}</span>
+                    {/* Sin color propio de la categoría a propósito: el
+                        tile activo usa fondo sólido mint (bg-mint text-bg) --
+                        un icono con el color de la categoría podría perder
+                        contraste ahí. El icono hereda currentColor, igual
+                        que el grid de categorías de HojaNuevoMovimiento.jsx. */}
+                    <IconoCategoria nombre={resolverIconoCategoria(categoria)} size="md" />
                     <span className="truncate">{categoria.nombre}</span>
                   </button>
                 )

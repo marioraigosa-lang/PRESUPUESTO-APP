@@ -2,7 +2,14 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { fechaCortaDesdeISO } from '../utils/formatoFecha'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import IconoCategoria from './IconoCategoria'
 import Tarjeta from './ui/Tarjeta'
+
+// Mismo fallback que TarjetaCategoriaViaje.jsx para una categoría sin
+// "color" propio todavía (columna nullable, sin backfill).
+const COLOR_FALLBACK = COLORES_CUENTA[0]
 
 // El monto se formatea con formatearMonto(valor, moneda) --puro, sin
 // useFormatoMoneda-- porque cada gasto de viaje tiene SU PROPIA moneda, que
@@ -13,11 +20,18 @@ function GastoViaje({ gasto, categoria, eliminando, onEditar, onEliminar }) {
 
   const descripcion = gasto.descripcion?.trim() || t('viajes.detalle.gastoSinDescripcion')
   const nombreCategoria = categoria?.nombre ?? t('viajes.detalle.gastoSinCategoria')
+  // Un gasto sin categoría (huérfano, ver utils/resumenViaje.js) no tiene de
+  // dónde resolver un icono propio -- cae directo al fallback 'tag' de
+  // resolverIconoCategoria(undefined) con el color fijo de respaldo.
+  const colorCategoria = categoria?.color || COLOR_FALLBACK
 
   return (
     <Tarjeta className="flex items-center gap-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-xl">
-        {categoria?.emoji || '🧳'}
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+        style={{ backgroundColor: `${colorCategoria}26` }}
+      >
+        <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={colorCategoria} />
       </span>
 
       <div className="min-w-0 flex-1">

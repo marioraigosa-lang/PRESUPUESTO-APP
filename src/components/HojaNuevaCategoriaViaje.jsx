@@ -3,21 +3,31 @@ import { X } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { MONEDA_POR_DEFECTO, MONEDAS, configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
+import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import IconoCategoria from './IconoCategoria'
+import SelectorIcono from './SelectorIcono'
 import AyudaContextual from './AyudaContextual'
 import MensajeError from './ui/MensajeError'
 
-const EMOJIS_SUGERIDOS = ['🎟️', '🚗', '🛍️', '🏖️', '📷', '🎒', '⛱️', '🍹']
-
-// A diferencia de HojaCategoria (categorías reales de la app), cada
-// categoría de viaje tiene su PROPIA moneda -- no usa useMoneda() del
-// perfil -- porque un mismo viaje puede tener categorías en distintas
-// monedas (ej. tiquetes en USD, comida en COP).
+// Fase VIAJE-B del PLAN-iconos.md: reemplaza el input de emoji + 8
+// sugeridas por el mismo <SelectorIcono> + picker de color que ya usa
+// HojaCategoria.jsx (categorías reales) desde la Fase B4 -- mismo criterio:
+// estado "icono" vacío hasta elegir (nunca arranca con una sugerencia por
+// defecto), "color" sí arranca en el primero de la paleta.
+//
+// A diferencia de HojaCategoria, cada categoría de viaje tiene su PROPIA
+// moneda -- no usa useMoneda() del perfil -- porque un mismo viaje puede
+// tener categorías en distintas monedas (ej. tiquetes en USD, comida en
+// COP).
 function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, categoriaEditando }) {
   const editando = Boolean(categoriaEditando)
   const { t } = useIdioma()
 
   const [nombre, setNombre] = useState('')
-  const [emoji, setEmoji] = useState(EMOJIS_SUGERIDOS[0])
+  // '' = todavía no elige ninguno (mismo criterio que HojaCategoria.jsx).
+  const [icono, setIcono] = useState('')
+  const [color, setColor] = useState(COLORES_CUENTA[0])
   const [presupuesto, setPresupuesto] = useState('')
   const [moneda, setMoneda] = useState(MONEDA_POR_DEFECTO)
   const [error, setError] = useState('')
@@ -29,12 +39,17 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
 
     if (categoriaEditando) {
       setNombre(categoriaEditando.nombre)
-      setEmoji(categoriaEditando.emoji || EMOJIS_SUGERIDOS[0])
+      // categoria.icono si ya lo tiene; si no (categoría vieja, sin icono
+      // propio todavía), lo deriva de "emoji" con la misma cascada que usa
+      // toda la app para mostrarlo (resolverIconoCategoria).
+      setIcono(resolverIconoCategoria(categoriaEditando))
+      setColor(categoriaEditando.color || COLORES_CUENTA[0])
       setPresupuesto(categoriaEditando.presupuesto ? String(categoriaEditando.presupuesto) : '')
       setMoneda(categoriaEditando.moneda || MONEDA_POR_DEFECTO)
     } else {
       setNombre('')
-      setEmoji(EMOJIS_SUGERIDOS[0])
+      setIcono('')
+      setColor(COLORES_CUENTA[0])
       setPresupuesto('')
       setMoneda(MONEDA_POR_DEFECTO)
     }
@@ -57,8 +72,8 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
     setError('')
   }
 
-  function manejarCambioEmoji(evento) {
-    setEmoji(evento.target.value)
+  function manejarCambioIcono(nombreIcono) {
+    setIcono(nombreIcono)
     setError('')
   }
 
@@ -83,8 +98,8 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
       setError(t('viajes.categoriaFormulario.errorNombreVacio'))
       return
     }
-    if (!emoji.trim()) {
-      setError(t('viajes.categoriaFormulario.errorEmojiVacio'))
+    if (!icono) {
+      setError(t('viajes.categoriaFormulario.errorIconoVacio'))
       return
     }
     if (presupuesto !== '' && Number(presupuesto) < 0) {
@@ -97,7 +112,8 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
 
     const datos = {
       nombre: nombre.trim(),
-      emoji: emoji.trim(),
+      icono,
+      color,
       presupuesto: presupuesto === '' ? 0 : Number(presupuesto),
       moneda,
     }
@@ -164,29 +180,33 @@ function HojaNuevaCategoriaViaje({ abierta, onCerrar, onGuardar, onActualizar, c
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-text-dim">{t('viajes.categoriaFormulario.emojiLabel')}</p>
-          <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
-            <input
-              type="text"
-              value={emoji}
-              onChange={manejarCambioEmoji}
-              maxLength={4}
-              aria-label={t('viajes.categoriaFormulario.emojiLabel')}
-              className="w-14 bg-transparent text-center text-2xl text-text outline-none"
-            />
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-xs text-text-dim">{t('viajes.categoriaFormulario.iconoLabel')}</p>
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${color}26` }}
+              aria-hidden="true"
+            >
+              <IconoCategoria nombre={icono || 'tag'} color={color} size="sm" />
+            </div>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {EMOJIS_SUGERIDOS.map((opcion) => (
+          <SelectorIcono valor={icono} onCambiar={manejarCambioIcono} color={color} />
+        </div>
+
+        <div>
+          <p className="mb-1 text-xs text-text-dim">{t('viajes.categoriaFormulario.colorLabel')}</p>
+          <div className="flex flex-wrap gap-2">
+            {COLORES_CUENTA.map((opcion) => (
               <button
                 key={opcion}
                 type="button"
-                onClick={() => setEmoji(opcion)}
-                className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition-colors ${
-                  emoji === opcion ? 'bg-mint/20 ring-1 ring-mint' : 'bg-panel-2'
+                aria-label={t('viajes.categoriaFormulario.colorAria', { color: opcion })}
+                onClick={() => setColor(opcion)}
+                className={`h-8 w-8 rounded-full transition-shadow ${
+                  color === opcion ? 'ring-2 ring-text ring-offset-2 ring-offset-panel' : ''
                 }`}
-              >
-                {opcion}
-              </button>
+                style={{ backgroundColor: opcion }}
+              />
             ))}
           </div>
         </div>

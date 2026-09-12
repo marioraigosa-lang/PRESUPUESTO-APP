@@ -1,8 +1,17 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, ChevronRight } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { formatearMonto } from '../utils/formatoMoneda'
 import { resumenCategoriaViaje, colorBarraPresupuesto } from '../utils/resumenViaje'
+import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
+import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import IconoCategoria from './IconoCategoria'
 import Tarjeta from './ui/Tarjeta'
+
+// Color fijo para las categorías de viaje que todavía no tienen "color"
+// propio (creadas antes de la Fase VIAJE-B del PLAN-iconos.md, columna
+// nullable sin backfill -- ver sql/supabase_color_categorias_viaje.sql).
+// Mismo primer valor que ofrece el picker de HojaNuevaCategoriaViaje.jsx.
+const COLOR_FALLBACK = COLORES_CUENTA[0]
 
 const CLASE_BARRA = {
   mint: 'bg-mint',
@@ -21,7 +30,13 @@ const CLASE_TEXTO = {
 // tiene su PROPIA moneda, que no tiene por qué coincidir con la moneda del
 // perfil del usuario. El cálculo en sí (ejecutado, % y gastos en otra
 // moneda) vive en utils/resumenViaje.js para poder probarlo sin React.
-function TarjetaCategoriaViaje({ categoria, gastos, eliminando, onEditar, onEliminar }) {
+//
+// Fase VIAJE-C: la tarjeta pasa a ser navegable (mismo patrón "role=button +
+// stopPropagation en las acciones" que ya usa TarjetaViaje.jsx) -- tocarla
+// abre DetalleCategoriaViaje.jsx con sus gastos. `onAbrir` es opcional a
+// propósito: si algún llamador todavía no lo pasa, la tarjeta sigue
+// funcionando como antes (sin romper nada).
+function TarjetaCategoriaViaje({ categoria, gastos, eliminando, onAbrir, onEditar, onEliminar }) {
   const { t } = useIdioma()
 
   const { ejecutado, porcentaje, otrasMonedas } = resumenCategoriaViaje(categoria, gastos)
@@ -30,12 +45,41 @@ function TarjetaCategoriaViaje({ categoria, gastos, eliminando, onEditar, onElim
   const otrasMonedasTexto = Object.entries(otrasMonedas)
     .map(([moneda, monto]) => formatearMonto(monto, moneda))
     .join(' · ')
+  const colorCategoria = categoria.color || COLOR_FALLBACK
+
+  // Los botones de editar/eliminar detienen la propagación del click para
+  // que no disparen también onAbrir (abrir el detalle de la categoría), ya
+  // que están dentro de la misma tarjeta clickeable.
+  function manejarClicAccion(evento, accion) {
+    evento.stopPropagation()
+    accion()
+  }
 
   return (
-    <Tarjeta className="flex flex-col gap-3">
+    <Tarjeta
+      role={onAbrir ? 'button' : undefined}
+      tabIndex={onAbrir ? 0 : undefined}
+      onClick={onAbrir}
+      onKeyDown={
+        onAbrir
+          ? (evento) => {
+              if (evento.key === 'Enter' || evento.key === ' ') {
+                evento.preventDefault()
+                onAbrir()
+              }
+            }
+          : undefined
+      }
+      className={`flex flex-col gap-3 ${
+        onAbrir ? 'cursor-pointer text-left transition-all duration-150 hover:bg-panel-2 active:scale-[0.99]' : ''
+      }`}
+    >
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel-2 text-xl">
-          {categoria.emoji || '🧳'}
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: `${colorCategoria}26` }}
+        >
+          <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={colorCategoria} />
         </span>
 
         <div className="min-w-0 flex-1">
@@ -48,7 +92,7 @@ function TarjetaCategoriaViaje({ categoria, gastos, eliminando, onEditar, onElim
         <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
-            onClick={onEditar}
+            onClick={(evento) => manejarClicAccion(evento, onEditar)}
             aria-label={t('viajes.detalle.editarCategoriaAria', { nombre: categoria.nombre })}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-mint"
           >
@@ -56,13 +100,14 @@ function TarjetaCategoriaViaje({ categoria, gastos, eliminando, onEditar, onElim
           </button>
           <button
             type="button"
-            onClick={onEliminar}
+            onClick={(evento) => manejarClicAccion(evento, onEliminar)}
             disabled={eliminando}
             aria-label={t('viajes.detalle.eliminarCategoriaAria', { nombre: categoria.nombre })}
             className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
           </button>
+          {onAbrir && <ChevronRight className="h-4 w-4 shrink-0 text-text-dim" aria-hidden="true" />}
         </div>
       </div>
 

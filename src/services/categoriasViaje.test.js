@@ -40,7 +40,8 @@ describe('agregarCategoriaViaje', () => {
 
     const resultado = await agregarCategoriaViaje(datosUsuario, 'viaje-1', {
       nombre: '  Hotel  ',
-      emoji: '🏨',
+      icono: 'hotel',
+      color: '#9b8cf0',
       presupuesto: '500',
       moneda: 'USD',
     })
@@ -49,7 +50,8 @@ describe('agregarCategoriaViaje', () => {
     expect(insertarPropio).toHaveBeenCalledWith('categorias_viaje', {
       viaje_id: 'viaje-1',
       nombre: 'Hotel',
-      emoji: '🏨',
+      icono: 'hotel',
+      color: '#9b8cf0',
       presupuesto: 500,
       moneda: 'USD',
     })
@@ -61,7 +63,8 @@ describe('agregarCategoriaViaje', () => {
 
     await agregarCategoriaViaje(datosUsuario, 'viaje-1', {
       nombre: 'Otros',
-      emoji: '✨',
+      icono: 'sparkles',
+      color: '#94a3b8',
       presupuesto: '',
       moneda: 'COP',
     })
@@ -77,7 +80,13 @@ describe('agregarCategoriaViaje', () => {
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     await expect(
-      agregarCategoriaViaje(datosUsuario, 'viaje-1', { nombre: 'Hotel', emoji: '🏨', presupuesto: '0', moneda: 'COP' }),
+      agregarCategoriaViaje(datosUsuario, 'viaje-1', {
+        nombre: 'Hotel',
+        icono: 'hotel',
+        color: '#9b8cf0',
+        presupuesto: '0',
+        moneda: 'COP',
+      }),
     ).rejects.toThrow('boom')
   })
 })
@@ -90,7 +99,8 @@ describe('actualizarCategoriaViaje', () => {
 
     const resultado = await actualizarCategoriaViaje(datosUsuario, 1, {
       nombre: '  Hotel  ',
-      emoji: '🏨',
+      icono: 'hotel',
+      color: '#9b8cf0',
       presupuesto: '800',
       moneda: 'EUR',
     })
@@ -98,7 +108,7 @@ describe('actualizarCategoriaViaje', () => {
     expect(resultado).toEqual(categoriaActualizada)
     expect(actualizarPropio).toHaveBeenCalledWith(
       'categorias_viaje',
-      expect.objectContaining({ nombre: 'Hotel', presupuesto: 800, moneda: 'EUR' }),
+      expect.objectContaining({ nombre: 'Hotel', icono: 'hotel', color: '#9b8cf0', presupuesto: 800, moneda: 'EUR' }),
     )
   })
 
@@ -107,7 +117,13 @@ describe('actualizarCategoriaViaje', () => {
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
     await expect(
-      actualizarCategoriaViaje(datosUsuario, 1, { nombre: 'Hotel', emoji: '🏨', presupuesto: '0', moneda: 'COP' }),
+      actualizarCategoriaViaje(datosUsuario, 1, {
+        nombre: 'Hotel',
+        icono: 'hotel',
+        color: '#9b8cf0',
+        presupuesto: '0',
+        moneda: 'COP',
+      }),
     ).rejects.toThrow('boom')
   })
 })
@@ -188,7 +204,7 @@ describe('eliminarCategoriaViaje', () => {
 })
 
 describe('crearCategoriasPorDefecto', () => {
-  it('inserta las 6 categorías base traducidas, con presupuesto 0 y moneda COP', async () => {
+  it('inserta las 8 categorías base traducidas, con icono/color propios, presupuesto 0 y moneda COP', async () => {
     const categoriasCreadas = CATEGORIAS_POR_DEFECTO.map((c, i) => ({ id: i + 1, nombre: c.clave }))
     const insertarPropio = vi.fn(() => crearConstructor({ data: categoriasCreadas, error: null }))
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
@@ -201,17 +217,26 @@ describe('crearCategoriasPorDefecto', () => {
 
     const [tabla, filas] = insertarPropio.mock.calls[0]
     expect(tabla).toBe('categorias_viaje')
-    expect(filas).toHaveLength(6)
+    expect(filas).toHaveLength(8)
 
     filas.forEach((fila, i) => {
       expect(fila).toEqual({
         viaje_id: 'viaje-1',
         nombre: `traducido:viajes.categoriasDefecto.${CATEGORIAS_POR_DEFECTO[i].clave}`,
-        emoji: CATEGORIAS_POR_DEFECTO[i].emoji,
+        icono: CATEGORIAS_POR_DEFECTO[i].icono,
+        color: CATEGORIAS_POR_DEFECTO[i].color,
         presupuesto: 0,
         moneda: 'COP',
       })
     })
+  })
+
+  it('cada categoría por defecto tiene un icono y un color distinto (sin repetir)', () => {
+    const iconos = CATEGORIAS_POR_DEFECTO.map((c) => c.icono)
+    const colores = CATEGORIAS_POR_DEFECTO.map((c) => c.color)
+
+    expect(new Set(iconos).size).toBe(CATEGORIAS_POR_DEFECTO.length)
+    expect(new Set(colores).size).toBe(CATEGORIAS_POR_DEFECTO.length)
   })
 
   it('propaga el mensaje de error de Supabase', async () => {
