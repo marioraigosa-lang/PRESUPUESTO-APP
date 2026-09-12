@@ -54,6 +54,41 @@ export async function crearCategoriasPorDefecto(datosUsuario, viajeId, t) {
   return data
 }
 
+// Fase VIAJE-E: siembra SOLO las categorías que el usuario marcó en el paso
+// de categorías del asistente de crear viaje (PasoCategoriasViaje.jsx), cada
+// una con el presupuesto y la moneda que eligió ahí -- a diferencia de
+// crearCategoriasPorDefecto (arriba), que sigue sembrando las 8 completas
+// con presupuesto 0 para cuando un viaje se crea por HojaNuevoViaje.jsx (el
+// asistente reemplaza esa hoja solo para CREAR, detrás de
+// USAR_ASISTENTE_VIAJE -- ver utils/flags.js).
+//
+// `seleccion`: [{ clave, presupuesto, moneda }] -- `clave` debe existir en
+// CATEGORIAS_POR_DEFECTO (icono/color siempre salen de ahí, nunca del
+// llamador, mismo criterio que crearCategoriasPorDefecto). Un array vacío
+// (el usuario desmarcó las 8) no llama a Supabase: el viaje queda sin
+// categorías, tan válido como si se borraran todas después a mano.
+export async function crearCategoriasElegidas(datosUsuario, viajeId, seleccion, t) {
+  if (seleccion.length === 0) return []
+
+  const filas = seleccion.map(({ clave, presupuesto, moneda }) => {
+    const definicion = CATEGORIAS_POR_DEFECTO.find((categoria) => categoria.clave === clave)
+    return {
+      viaje_id: viajeId,
+      nombre: t(`viajes.categoriasDefecto.${clave}`),
+      icono: definicion?.icono,
+      color: definicion?.color,
+      presupuesto: Number(presupuesto) || 0,
+      moneda,
+    }
+  })
+
+  const { data, error } = await datosUsuario.insertarPropio('categorias_viaje', filas).select()
+
+  if (error) throw new Error(error.message)
+
+  return data
+}
+
 export async function agregarCategoriaViaje(datosUsuario, viajeId, { nombre, icono, color, presupuesto, moneda }) {
   const { data, error } = await datosUsuario
     .insertarPropio('categorias_viaje', {

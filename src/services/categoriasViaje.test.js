@@ -4,6 +4,7 @@ import {
   agregarCategoriaViaje,
   actualizarCategoriaViaje,
   crearCategoriasPorDefecto,
+  crearCategoriasElegidas,
   eliminarCategoriaViaje,
 } from './categoriasViaje'
 
@@ -244,5 +245,73 @@ describe('crearCategoriasPorDefecto', () => {
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
     await expect(crearCategoriasPorDefecto(datosUsuario, 'viaje-1', (clave) => clave)).rejects.toThrow('boom')
+  })
+})
+
+describe('crearCategoriasElegidas', () => {
+  it('inserta SOLO las categorías marcadas, con el presupuesto/moneda elegidos e icono/color de CATEGORIAS_POR_DEFECTO', async () => {
+    const categoriasCreadas = [{ id: 1 }, { id: 2 }]
+    const insertarPropio = vi.fn(() => crearConstructor({ data: categoriasCreadas, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+    const t = vi.fn((clave) => `traducido:${clave}`)
+
+    const resultado = await crearCategoriasElegidas(
+      datosUsuario,
+      'viaje-1',
+      [
+        { clave: 'hotel', presupuesto: '500', moneda: 'USD' },
+        { clave: 'tiquetes', presupuesto: '1200', moneda: 'USD' },
+      ],
+      t,
+    )
+
+    expect(resultado).toEqual(categoriasCreadas)
+    expect(insertarPropio).toHaveBeenCalledWith('categorias_viaje', [
+      {
+        viaje_id: 'viaje-1',
+        nombre: 'traducido:viajes.categoriasDefecto.hotel',
+        icono: 'hotel',
+        color: CATEGORIAS_POR_DEFECTO.find((c) => c.clave === 'hotel').color,
+        presupuesto: 500,
+        moneda: 'USD',
+      },
+      {
+        viaje_id: 'viaje-1',
+        nombre: 'traducido:viajes.categoriasDefecto.tiquetes',
+        icono: 'plane',
+        color: CATEGORIAS_POR_DEFECTO.find((c) => c.clave === 'tiquetes').color,
+        presupuesto: 1200,
+        moneda: 'USD',
+      },
+    ])
+  })
+
+  it('convierte un presupuesto vacío o inválido en 0', async () => {
+    const insertarPropio = vi.fn(() => crearConstructor({ data: [{ id: 1 }], error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+
+    await crearCategoriasElegidas(datosUsuario, 'viaje-1', [{ clave: 'otros', presupuesto: '', moneda: 'COP' }], (c) => c)
+
+    const [, filas] = insertarPropio.mock.calls[0]
+    expect(filas[0].presupuesto).toBe(0)
+  })
+
+  it('con una selección vacía, no llama a Supabase y devuelve un array vacío', async () => {
+    const insertarPropio = vi.fn()
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+
+    const resultado = await crearCategoriasElegidas(datosUsuario, 'viaje-1', [], (c) => c)
+
+    expect(resultado).toEqual([])
+    expect(insertarPropio).not.toHaveBeenCalled()
+  })
+
+  it('propaga el mensaje de error de Supabase', async () => {
+    const insertarPropio = vi.fn(() => crearConstructor({ data: null, error: { message: 'boom' } }))
+    const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
+
+    await expect(
+      crearCategoriasElegidas(datosUsuario, 'viaje-1', [{ clave: 'hotel', presupuesto: '0', moneda: 'COP' }], (c) => c),
+    ).rejects.toThrow('boom')
   })
 })

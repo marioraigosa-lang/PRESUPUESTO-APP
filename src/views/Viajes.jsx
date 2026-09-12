@@ -3,6 +3,7 @@ import { Plane } from 'lucide-react'
 import AvatarUsuario from '../components/AvatarUsuario'
 import TarjetaViaje from '../components/TarjetaViaje'
 import HojaNuevoViaje from '../components/HojaNuevoViaje'
+import AsistenteViaje from '../components/asistente-viaje/AsistenteViaje'
 import DetalleViaje from './DetalleViaje'
 import ResumenViaje from './ResumenViaje'
 import { useIdioma } from '../context/IdiomaContext'
@@ -10,6 +11,7 @@ import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
 import * as viajesService from '../services/viajes'
 import * as categoriasViajeService from '../services/categoriasViaje'
+import { USAR_ASISTENTE_VIAJE } from '../utils/flags'
 import MensajeError from '../components/ui/MensajeError'
 import BotonPrimario from '../components/ui/BotonPrimario'
 
@@ -96,6 +98,26 @@ function Viajes() {
     setErrorCategoriasDefecto(null)
     try {
       await categoriasViajeService.crearCategoriasPorDefecto(datosUsuario, data.id, t)
+    } catch (err) {
+      console.error(err)
+      setErrorCategoriasDefecto(t('viajes.detalle.errorCategoriasDefecto'))
+    }
+  }
+
+  // Fase VIAJE-E: crea el viaje y siembra SOLO las categorías que el usuario
+  // marcó en el paso 4 del asistente (AsistenteViaje.jsx), cada una con su
+  // presupuesto -- a diferencia de agregarViaje (arriba), que siembra las 8
+  // categorías completas con presupuesto 0 para cuando el viaje se crea por
+  // HojaNuevoViaje.jsx. Mismo criterio de error no bloqueante que
+  // agregarViaje: si falla sembrar las categorías, el viaje igual queda
+  // creado.
+  async function crearViajeConCategorias(datosViaje, categoriasElegidas) {
+    const data = await viajesService.agregarViaje(datosUsuario, datosViaje)
+    setViajes((actuales) => viajesService.ordenarPorCreacion([data, ...actuales]))
+
+    setErrorCategoriasDefecto(null)
+    try {
+      await categoriasViajeService.crearCategoriasElegidas(datosUsuario, data.id, categoriasElegidas, t)
     } catch (err) {
       console.error(err)
       setErrorCategoriasDefecto(t('viajes.detalle.errorCategoriasDefecto'))
@@ -196,13 +218,20 @@ function Viajes() {
         </section>
       </div>
 
-      <HojaNuevoViaje
-        abierta={hojaAbierta}
-        viajeEditando={viajeEditando}
-        onCerrar={cerrarHojaViaje}
-        onGuardar={agregarViaje}
-        onActualizar={(datos) => actualizarViaje(viajeEditando.id, datos)}
-      />
+      {/* Fase VIAJE-E: crear pasa por el asistente paso a paso con el flag
+          activo, editar siempre por HojaNuevoViaje -- mismo criterio que los
+          otros dos asistentes. */}
+      {USAR_ASISTENTE_VIAJE && !viajeEditando ? (
+        <AsistenteViaje abierta={hojaAbierta} onCerrar={cerrarHojaViaje} onGuardar={crearViajeConCategorias} />
+      ) : (
+        <HojaNuevoViaje
+          abierta={hojaAbierta}
+          viajeEditando={viajeEditando}
+          onCerrar={cerrarHojaViaje}
+          onGuardar={agregarViaje}
+          onActualizar={(datos) => actualizarViaje(viajeEditando.id, datos)}
+        />
+      )}
     </main>
   )
 }
