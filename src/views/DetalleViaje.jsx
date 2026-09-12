@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { Plane, Calendar, Users, ArrowRight, Tag, Receipt } from 'lucide-react'
+import { Plane, Calendar, Users, ArrowRight, Tag, ChevronRight } from 'lucide-react'
 import TarjetaCategoriaViaje from '../components/TarjetaCategoriaViaje'
 import HojaNuevaCategoriaViaje from '../components/HojaNuevaCategoriaViaje'
-import GastoViaje from '../components/GastoViaje'
-import HojaNuevoGastoViaje from '../components/HojaNuevoGastoViaje'
+import DetalleCategoriaViaje from './DetalleCategoriaViaje'
 import AyudaContextual from '../components/AyudaContextual'
 import { textoFechas } from '../components/TarjetaViaje'
 import { useIdioma } from '../context/IdiomaContext'
@@ -25,8 +24,13 @@ const DATOS_INICIALES = { categorias: [], gastos: [] }
 // el "viaje" y "onVolver" de Viajes.jsx, que es quien controla la
 // navegación lista/detalle (Fase 2 de "Planifica tus viajes").
 //
-// Solo muestra el presupuesto de cada categoría y el listado crudo de
-// gastos -- el dashboard presupuestado vs. ejecutado es la Fase 4.
+// Fase VIAJE-C: "categorías navegables" -- ya no hay una lista plana de
+// TODOS los gastos del viaje debajo de las categorías. Tocar una categoría
+// (o la tarjeta especial "sin categoría") abre DetalleCategoriaViaje.jsx con
+// SU subconjunto de gastos, mismo patrón "modo" que Viajes.jsx usa para
+// entrar/salir de esta misma pantalla. Como categorías + gastos ya están
+// completos en memoria (cargarDatosViaje, abajo), el subconjunto se arma
+// filtrando en cliente -- no hace falta una consulta nueva.
 function DetalleViaje({ viaje, onVolver, onVerResumen }) {
   const datosUsuario = useDatosUsuario()
   const { seleccionarPropio } = datosUsuario
@@ -37,10 +41,10 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
   const [eliminandoCategoriaId, setEliminandoCategoriaId] = useState(null)
   const [errorEliminarCategoria, setErrorEliminarCategoria] = useState(null)
 
-  const [hojaGastoAbierta, setHojaGastoAbierta] = useState(false)
-  const [gastoEditando, setGastoEditando] = useState(null)
-  const [eliminandoGastoId, setEliminandoGastoId] = useState(null)
-  const [errorEliminarGasto, setErrorEliminarGasto] = useState(null)
+  // null = mostrando la lista de categorías; { categoria } = mostrando el
+  // detalle de una categoría real; { categoria: null } = mostrando los
+  // gastos huérfanos ("sin categoría").
+  const [detalleCategoria, setDetalleCategoria] = useState(null)
 
   async function cargarDatosViaje() {
     const [categoriasResultado, gastosResultado] = await Promise.all([
@@ -131,21 +135,10 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
     }
   }
 
-  function abrirCrearGasto() {
-    setGastoEditando(null)
-    setHojaGastoAbierta(true)
-  }
-
-  function abrirEditarGasto(gasto) {
-    setGastoEditando(gasto)
-    setHojaGastoAbierta(true)
-  }
-
-  function cerrarHojaGasto() {
-    setHojaGastoAbierta(false)
-    setGastoEditando(null)
-  }
-
+  // Mutaciones puras (sin confirm() ni estado de error de UI): eso ahora
+  // vive en DetalleCategoriaViaje.jsx, que es quien pinta cada gasto y
+  // recibe estas tres funciones tal cual -- mismo criterio que
+  // agregarCategoria/actualizarCategoria de arriba, que tampoco manejan UI.
   async function agregarGasto(datos) {
     const nuevo = await gastosViajeService.agregarGastoViaje(datosUsuario, viaje.id, datos)
     actualizarGastos((actuales) => gastosViajeService.ordenarPorFecha([...actuales, nuevo]))
@@ -159,27 +152,43 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
   }
 
   async function eliminarGasto(gasto) {
-    const descripcion = gasto.descripcion?.trim() || t('viajes.detalle.gastoSinDescripcion')
-    const confirmado = window.confirm(t('viajes.detalle.confirmarEliminarGasto', { descripcion }))
-    if (!confirmado) return
+    await gastosViajeService.eliminarGastoViaje(datosUsuario, gasto)
+    actualizarGastos((actuales) => actuales.filter((g) => g.id !== gasto.id))
+  }
 
-    setErrorEliminarGasto(null)
-    setEliminandoGastoId(gasto.id)
+  function abrirCategoria(categoria) {
+    setDetalleCategoria({ categoria })
+  }
 
-    try {
-      await gastosViajeService.eliminarGastoViaje(datosUsuario, gasto)
-      actualizarGastos((actuales) => actuales.filter((g) => g.id !== gasto.id))
-    } catch (err) {
-      console.error(err)
-      setErrorEliminarGasto(t('viajes.detalle.errorEliminarGasto'))
-    } finally {
-      setEliminandoGastoId(null)
-    }
+  function abrirSinCategoria() {
+    setDetalleCategoria({ categoria: null })
+  }
+
+  function volverACategorias() {
+    setDetalleCategoria(null)
   }
 
   const gastosHuerfanos = gastosSinCategoria(gastos)
   const totalesHuerfanos = totalesPorMoneda(gastosHuerfanos)
   const totalesGenerales = totalesPorMoneda(gastos)
+
+  if (detalleCategoria) {
+    const gastosDeCategoria = detalleCategoria.categoria
+      ? gastos.filter((gasto) => gasto.categoria_viaje_id === detalleCategoria.categoria.id)
+      : gastosHuerfanos
+
+    return (
+      <DetalleCategoriaViaje
+        categoria={detalleCategoria.categoria}
+        gastos={gastosDeCategoria}
+        categoriasViaje={categorias}
+        onVolver={volverACategorias}
+        onAgregarGasto={agregarGasto}
+        onActualizarGasto={actualizarGasto}
+        onEliminarGasto={eliminarGasto}
+      />
+    )
+  }
 
   return (
     <main className="min-h-screen bg-bg px-4 py-6">
@@ -288,16 +297,30 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
                 categoria={categoria}
                 gastos={gastos}
                 eliminando={eliminandoCategoriaId === categoria.id}
+                onAbrir={() => abrirCategoria(categoria)}
                 onEditar={() => abrirEditarCategoria(categoria)}
                 onEliminar={() => eliminarCategoria(categoria)}
               />
             ))}
 
           {!cargando && !error && gastosHuerfanos.length > 0 && (
-            <Tarjeta className="flex flex-col gap-1">
+            <Tarjeta
+              role="button"
+              tabIndex={0}
+              onClick={abrirSinCategoria}
+              onKeyDown={(evento) => {
+                if (evento.key === 'Enter' || evento.key === ' ') {
+                  evento.preventDefault()
+                  abrirSinCategoria()
+                }
+              }}
+              aria-label={t('viajes.detalle.abrirSinCategoriaAria')}
+              className="flex cursor-pointer flex-col gap-1 text-left transition-all duration-150 hover:bg-panel-2 active:scale-[0.99]"
+            >
               <div className="flex items-center gap-1.5">
                 <Tag className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
                 <p className="text-sm font-medium text-text">{t('viajes.detalle.gastosSinCategoriaTitulo')}</p>
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-text-dim" aria-hidden="true" />
               </div>
               <p className="text-xs text-text-dim">{t('viajes.detalle.gastosSinCategoriaNota')}</p>
               <p className="text-xs text-text-dim">
@@ -308,43 +331,6 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
             </Tarjeta>
           )}
         </section>
-
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-text">{t('viajes.detalle.gastosTitulo')}</h2>
-            <button
-              type="button"
-              onClick={abrirCrearGasto}
-              className="rounded-full bg-panel-2 px-3 py-1.5 text-xs font-semibold text-mint"
-            >
-              {t('viajes.detalle.nuevoGasto')}
-            </button>
-          </div>
-
-          {cargando && <p className="px-2 text-sm text-text-dim">{t('viajes.detalle.cargandoGastos')}</p>}
-
-          <MensajeError>{errorEliminarGasto}</MensajeError>
-
-          {!cargando && !error && gastos.length === 0 && (
-            <Tarjeta className="flex flex-col items-center gap-2 p-6 text-center">
-              <Receipt className="h-6 w-6 text-text-dim" aria-hidden="true" />
-              <p className="text-sm text-text-dim">{t('viajes.detalle.sinGastos')}</p>
-            </Tarjeta>
-          )}
-
-          {!cargando &&
-            !error &&
-            gastos.map((gasto) => (
-              <GastoViaje
-                key={gasto.id}
-                gasto={gasto}
-                categoria={categorias.find((c) => c.id === gasto.categoria_viaje_id)}
-                eliminando={eliminandoGastoId === gasto.id}
-                onEditar={() => abrirEditarGasto(gasto)}
-                onEliminar={() => eliminarGasto(gasto)}
-              />
-            ))}
-        </section>
       </div>
 
       <HojaNuevaCategoriaViaje
@@ -353,15 +339,6 @@ function DetalleViaje({ viaje, onVolver, onVerResumen }) {
         onCerrar={cerrarHojaCategoria}
         onGuardar={agregarCategoria}
         onActualizar={actualizarCategoria}
-      />
-
-      <HojaNuevoGastoViaje
-        abierta={hojaGastoAbierta}
-        gastoEditando={gastoEditando}
-        categorias={categorias}
-        onCerrar={cerrarHojaGasto}
-        onGuardar={agregarGasto}
-        onActualizar={actualizarGasto}
       />
     </main>
   )
