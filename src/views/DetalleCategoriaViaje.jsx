@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Tag, Receipt } from 'lucide-react'
 import GastoViaje from '../components/GastoViaje'
 import HojaNuevoGastoViaje from '../components/HojaNuevoGastoViaje'
+import AsistenteGastoViaje from '../components/asistente-gasto-viaje/AsistenteGastoViaje'
 import IconoCategoria from '../components/IconoCategoria'
 import FilaTotales from '../components/FilaTotales'
 import { useIdioma } from '../context/IdiomaContext'
@@ -9,6 +10,7 @@ import { formatearMonto } from '../utils/formatoMoneda'
 import { resumenCategoriaViaje, totalesPorMoneda } from '../utils/resumenViaje'
 import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
 import { COLORES_CUENTA } from '../utils/coloresCuenta'
+import { USAR_ASISTENTE_GASTO_VIAJE } from '../utils/flags'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 import Tarjeta from '../components/ui/Tarjeta'
@@ -226,21 +228,33 @@ function DetalleCategoriaViaje({ categoria, gastos, categoriasViaje, onVolver, o
         </section>
       </div>
 
-      {/* Se monta también en modo "sin categoría" para poder EDITAR un gasto
-          huérfano (y asignarle una categoría real ahí mismo) -- solo el
-          botón "+ Agregar gasto" de arriba está oculto para ese modo, ya que
-          el formulario siempre exige elegir una categoría (ver
-          HojaNuevoGastoViaje.jsx), así que no tiene sentido "crear" un gasto
-          sin categoría desde acá. */}
-      <HojaNuevoGastoViaje
-        abierta={hojaGastoAbierta}
-        gastoEditando={gastoEditando}
-        categorias={categoriasViaje}
-        categoriaPreseleccionadaId={categoria?.id}
-        onCerrar={cerrarHojaGasto}
-        onGuardar={onAgregarGasto}
-        onActualizar={onActualizarGasto}
-      />
+      {/* Fase VIAJE-D: crear pasa por el asistente paso a paso con el flag
+          activo, editar siempre por HojaNuevoGastoViaje -- mismo criterio
+          que DetalleCategoria.jsx con el asistente de movimiento. Se monta
+          también en modo "sin categoría" para poder EDITAR un gasto huérfano
+          (y asignarle una categoría real ahí mismo) -- solo el botón
+          "+ Agregar gasto" de arriba está oculto para ese modo, ya que
+          ninguno de los dos permite elegir "sin categoría" al crear, así que
+          no tiene sentido "crear" un gasto sin categoría desde acá. */}
+      {USAR_ASISTENTE_GASTO_VIAJE && !gastoEditando ? (
+        <AsistenteGastoViaje
+          abierta={hojaGastoAbierta}
+          onCerrar={cerrarHojaGasto}
+          categorias={categoriasViaje}
+          categoriaPreseleccionadaId={categoria?.id}
+          onGuardar={onAgregarGasto}
+        />
+      ) : (
+        <HojaNuevoGastoViaje
+          abierta={hojaGastoAbierta}
+          gastoEditando={gastoEditando}
+          categorias={categoriasViaje}
+          categoriaPreseleccionadaId={categoria?.id}
+          onCerrar={cerrarHojaGasto}
+          onGuardar={onAgregarGasto}
+          onActualizar={onActualizarGasto}
+        />
+      )}
     </main>
   )
 }
