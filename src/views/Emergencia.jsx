@@ -18,6 +18,13 @@ const CLASES_TONO = {
   positivo: 'bg-mint/10 text-mint',
 }
 
+// Mismo límite en el cliente y en la base (sql/supabase_fondo_emergencia_60meses.sql,
+// constraint fondo_emergencia_meses_meta_rango_check): 5 años es un techo
+// razonable para una meta de "meses de gastos cubiertos" sin volverse
+// absurdo, y evita que un valor gigante se cuele antes de que el CHECK de
+// la base lo rechace con un error críptico.
+const LIMITE_MESES_META = 60
+
 function Emergencia() {
   const { seleccionarPropio, insertarPropio, actualizarPropio, eliminarPropio } = useDatosUsuario()
   const formatear = useFormatoMoneda()
@@ -74,12 +81,19 @@ function Emergencia() {
       .filter((movimiento) => movimiento.tipo === 'ingreso')
       .map((movimiento) => ({ monto: movimiento.monto, fecha: movimiento.fecha }))
 
-    // Movimientos tipo 'gasto': incluye tanto gastos fijos ya PAGADOS (se
-    // guardan como movimiento con gasto_fijo_id al marcarlos) como gastos
-    // variables manuales. Los 'traslado' no son gasto real y el 'ingreso'
-    // ya queda fuera con este filtro.
+    // Movimientos que cuentan como "gasto real" para el fondo de emergencia:
+    // 'gasto' (incluye tanto gastos fijos ya PAGADOS -- se guardan como
+    // movimiento con gasto_fijo_id al marcarlos -- como gastos variables
+    // manuales, sea con cuenta o con tarjeta de crédito) y 'retiro' (dinero
+    // que sale de una cuenta y sale del sistema -- sin categoría, pero es
+    // plata que el usuario efectivamente gastó, así que debe pesar acá
+    // igual que un gasto categorizado).
+    // Quedan afuera a propósito: 'ingreso' (no es gasto), 'traslado' (mueve
+    // plata entre cuentas propias, no sale del sistema) y 'pago_tarjeta'
+    // (el gasto original hecho con la tarjeta ya se contó como 'gasto' en
+    // el momento de la compra -- contar también el pago sería doble conteo).
     const gastos = movimientosResp.data
-      .filter((movimiento) => movimiento.tipo === 'gasto')
+      .filter((movimiento) => movimiento.tipo === 'gasto' || movimiento.tipo === 'retiro')
       .map((movimiento) => ({ monto: movimiento.monto, fecha: movimiento.fecha }))
 
     // Con un solo mes de actividad usamos ese mes tal cual; con dos o más,
@@ -143,17 +157,24 @@ function Emergencia() {
   // da 0, pero eso no significa lo mismo que un fondo insuficiente frente a
   // gastos reales, así que no reutilizamos mensajeFondo (que interpretaría
   // ese 0 como "cubre menos de un mes").
-  const { clave: claveMensaje, tono } =
+  const { clave: claveMensaje, tono, valores: valoresMensaje } =
     gastoMensual > 0
-      ? mensajeFondo(mesesCubiertos)
-      : { clave: 'emergencia.mensajeSinGastos', tono: 'neutral' }
+      ? mensajeFondo(mesesCubiertos, metaMeses)
+      : { clave: 'emergencia.mensajeSinGastos', tono: 'neutral', valores: undefined }
 
   async function manejarAjustarMeta() {
     const respuesta = window.prompt(t('emergencia.promptMeta'))
     if (respuesta === null) return
 
     const meses = Number(respuesta)
-    if (!Number.isFinite(meses) || meses < 1 || meses > 12) return
+    // Antes esto hacía "return" en silencio ante un valor fuera de rango --
+    // el usuario escribía 48 o 50, nada pasaba, y no había forma de saber
+    // por qué (bug reportado: "la meta no se guarda"). Ahora se avisa con el
+    // mismo mensaje de error que ya se pinta para un fallo de guardado real.
+    if (!Number.isFinite(meses) || meses < 1 || meses > LIMITE_MESES_META) {
+      setErrorGuardado(t('emergencia.metaErrorRango', { max: LIMITE_MESES_META }))
+      return
+    }
 
     const anterior = metaMeses
     const nuevaMeta = Math.round(meses)
@@ -304,7 +325,7 @@ function Emergencia() {
             </section>
 
             <p className={`rounded-2xl px-4 py-3 text-sm font-medium ${CLASES_TONO[tono]}`}>
-              {t(claveMensaje)}
+              {t(claveMensaje, valoresMensaje)}
             </p>
 
             <MensajeError>{errorGuardado}</MensajeError>

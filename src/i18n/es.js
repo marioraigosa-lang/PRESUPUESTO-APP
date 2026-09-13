@@ -165,15 +165,20 @@ export default {
     meta: 'Meta',
     metaMeses: { uno: '{{count}} mes', otro: '{{count}} meses' },
     ajustarMeta: 'Ajustar meta',
-    promptMeta: '¿Cuántos meses quieres como meta? (1 a 12)',
+    promptMeta: '¿Cuántos meses quieres como meta? (1 a 60)',
     metaErrorGuardar: 'No se pudo guardar la meta. Intenta de nuevo.',
+    metaErrorRango: 'La meta debe estar entre 1 y {{max}} meses.',
     explicacion:
-      'Tomamos tu gasto mensual promedio y lo dividimos en tu fondo actual. Eso te dice cuántos meses podrías sostenerte si te quedaras sin ingresos. Lo recomendado son entre 3 y 6 meses.',
-    mensajeSinGastos: 'Todavía no registras gastos, así que no podemos calcular cuánto cubre tu fondo.',
-    mensajeMenosDeUnMes: '⚠️ Tu fondo cubre menos de un mes. Es tu prioridad #1.',
-    mensajeMenosDeTresMeses: 'Vas por buen camino. La meta mínima recomendada son 3 meses.',
-    mensajeMenosDeSeisMeses: '¡Bien! Ya tienes un colchón sólido. Apunta a 6 meses.',
-    mensajeSeisMasMeses: '🎉 Excelente. Tienes 6+ meses cubiertos.',
+      'Tomamos tu gasto mensual promedio (gastos variables, fijos pagados y retiros) y lo dividimos en tu fondo actual. Eso te dice cuántos meses podrías sostenerte si te quedaras sin ingresos. Lo recomendado son entre 3 y 6 meses.',
+    mensajeSinGastos: 'Registra tus gastos para que podamos calcular cuántos meses cubre tu fondo.',
+    mensajeConstruyendoUrgente:
+      '⚠️ Con tu ahorro actual cubres {{meses}} meses de gastos, menos de uno. Es tu prioridad #1: cada peso que guardes hoy cuenta.',
+    mensajeConstruyendo:
+      'Con tu ahorro actual cubres {{meses}} meses de gastos. Vas por buen camino hacia tu meta de {{metaMeses}} meses — sigue construyendo tu colchón.',
+    mensajeMetaLograda:
+      '🎉 ¡Lograste tu meta! Con tu ahorro actual cubres {{meses}} meses de gastos, alcanzando tu objetivo de {{metaMeses}} meses.',
+    mensajeFinanzasSanas:
+      '🎉 ¡Excelente! Tienes finanzas sanas: cubres {{meses}} meses de gastos, más de 12. Estás en una posición sólida y podrías empezar a pensar en inversiones a largo plazo.',
     metasTitulo: 'Metas de ahorro',
     nuevaMeta: '+ Nueva meta',
     cargandoMetas: 'Cargando metas...',

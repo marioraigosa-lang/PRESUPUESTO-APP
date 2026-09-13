@@ -1,10 +1,15 @@
 // Calcula el "monto mensual típico" a partir de una lista de movimientos ya
-// filtrados por tipo (solo gastos, o solo ingresos — nunca traslados, que no
-// son ni lo uno ni lo otro), cada uno con `monto` y `fecha` en formato
-// 'YYYY-MM-DD'. El nombre quedó como "gasto" porque nació para ese caso,
-// pero la lógica no sabe ni le importa si son gastos o ingresos: por eso
-// también se reutiliza tal cual para calcular el ingreso mensual promedio
-// (ver Emergencia.jsx).
+// filtrados por tipo (solo gastos -- incluyendo retiros, ver más abajo --, o
+// solo ingresos — nunca traslados, que no son ni lo uno ni lo otro), cada
+// uno con `monto` y `fecha` en formato 'YYYY-MM-DD'. El nombre quedó como
+// "gasto" porque nació para ese caso, pero la lógica no sabe ni le importa
+// de qué tipo son los movimientos que recibe -- por eso también se reutiliza
+// tal cual para calcular el ingreso mensual promedio (ver Emergencia.jsx), y
+// para el gasto mensual del fondo de emergencia, que junta 'gasto' Y
+// 'retiro' en una sola lista antes de pasarla acá (un retiro es plata que
+// sale del sistema y se gasta, así que pesa igual que un gasto categorizado;
+// un 'pago_tarjeta' NO se incluye ahí porque el gasto original hecho con la
+// tarjeta ya se contó como 'gasto' -- sumarlo también sería doble conteo).
 //
 // Regla:
 // - Sin gastos -> 0 (sin dividir por cero).

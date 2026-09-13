@@ -147,15 +147,20 @@ export default {
     meta: 'Goal',
     metaMeses: { uno: '{{count}} month', otro: '{{count}} months' },
     ajustarMeta: 'Adjust goal',
-    promptMeta: 'How many months do you want as your goal? (1 to 12)',
+    promptMeta: 'How many months do you want as your goal? (1 to 60)',
     metaErrorGuardar: "Couldn't save the goal. Please try again.",
+    metaErrorRango: 'The goal must be between 1 and {{max}} months.',
     explicacion:
-      'We take your average monthly expenses and divide it into your current fund. That tells you how many months you could get by if your income stopped. The recommended range is 3 to 6 months.',
-    mensajeSinGastos: "You haven't logged any expenses yet, so we can't calculate your fund's coverage.",
-    mensajeMenosDeUnMes: '⚠️ Your fund covers less than a month. This is your #1 priority.',
-    mensajeMenosDeTresMeses: "You're on the right track. The minimum recommended goal is 3 months.",
-    mensajeMenosDeSeisMeses: 'Nice! You already have a solid cushion. Aim for 6 months.',
-    mensajeSeisMasMeses: '🎉 Excellent. You have 6+ months covered.',
+      'We take your average monthly expenses (variable, paid fixed expenses, and withdrawals) and divide it into your current fund. That tells you how many months you could get by if your income stopped. The recommended range is 3 to 6 months.',
+    mensajeSinGastos: "Log your expenses so we can calculate how many months your fund covers.",
+    mensajeConstruyendoUrgente:
+      "⚠️ With your current savings you can cover {{meses}} months of expenses — less than one. This is your #1 priority: every peso you save today counts.",
+    mensajeConstruyendo:
+      "With your current savings you can cover {{meses}} months of expenses. You're on the right track toward your {{metaMeses}}-month goal — keep building your cushion.",
+    mensajeMetaLograda:
+      '🎉 Goal reached! With your current savings you can cover {{meses}} months of expenses, hitting your {{metaMeses}}-month target.',
+    mensajeFinanzasSanas:
+      "🎉 Excellent! You have healthy finances: you can cover {{meses}} months of expenses, more than 12. You're in a solid position and could start thinking about long-term investments.",
     metasTitulo: 'Savings goals',
     nuevaMeta: '+ New goal',
     cargandoMetas: 'Loading goals...',

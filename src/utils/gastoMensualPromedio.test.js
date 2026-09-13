@@ -72,6 +72,38 @@ describe('gastoMensualPromedio reutilizada para ingresos', () => {
   })
 })
 
+// El gasto mensual del fondo de emergencia (Emergencia.jsx) junta 'gasto' Y
+// 'retiro' en una sola lista de {monto, fecha} ANTES de llamar a esta
+// función -- la función en sí no distingue de dónde viene cada monto, así
+// que estas pruebas solo confirman que un gasto y un retiro del mismo mes
+// se suman como cualquier otro par de montos (sin lógica especial que
+// separe por tipo), y que un retiro en un mes sin gastos categorizados
+// también cuenta.
+describe('gastoMensualPromedio reutilizada para gasto + retiro (fondo de emergencia)', () => {
+  it('un gasto y un retiro en el mismo mes se suman', () => {
+    const gastosYRetiros = [
+      { monto: 300000, fecha: '2026-07-05' }, // gasto
+      { monto: 100000, fecha: '2026-07-20' }, // retiro
+    ]
+    expect(gastoMensualPromedio(gastosYRetiros)).toBe(400000)
+  })
+
+  it('un mes solo con retiro (sin gastos categorizados) también cuenta', () => {
+    const gastosYRetiros = [{ monto: 250000, fecha: '2026-07-01' }]
+    expect(gastoMensualPromedio(gastosYRetiros)).toBe(250000)
+  })
+
+  it('gastos y retiros repartidos en varios meses se promedian igual que cualquier otro monto', () => {
+    const gastosYRetiros = [
+      { monto: 200000, fecha: '2026-06-10' }, // gasto de junio
+      { monto: 100000, fecha: '2026-07-05' }, // gasto de julio
+      { monto: 100000, fecha: '2026-07-20' }, // retiro de julio
+    ]
+    // junio: 200000, julio: 200000 -> total 400000 / 2 meses = 200000
+    expect(gastoMensualPromedio(gastosYRetiros)).toBe(200000)
+  })
+})
+
 // capacidadAhorroMensual (Emergencia.jsx) = ingresoMensualPromedio -
 // gastoMensualPromedio, ambos calculados con la MISMA función sobre listas
 // separadas de ingresos y gastos. Estas pruebas fijan ese contrato: los dos
