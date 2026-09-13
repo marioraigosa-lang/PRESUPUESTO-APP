@@ -14,34 +14,28 @@ import PasoMonto from './pasos/PasoMonto'
 import PasoMontoPago from './pasos/PasoMontoPago'
 import PasoConcepto from './pasos/PasoConcepto'
 
-// Contenedor del asistente paso a paso. A diferencia de HojaNuevoMovimiento
-// (una hoja chica que sube desde abajo), este es un PANEL MEDIANO centrado
+// Contenedor del asistente paso a paso. Es un PANEL MEDIANO centrado
 // (vertical y horizontalmente) que flota sobre la app: ancho acotado
 // (max-w-[400px]), alto que se ajusta al contenido con un tope (nunca
 // pantalla completa), fondo difuminado + oscurecido para que el panel sea el
 // protagonista, esquinas redondeadas y sombra de elevación. Entra como un
 // diálogo (fade + escala sutil, ver .asistente-entrar en index.css).
-// Rediseño puramente visual: la lógica de abajo (reducer, flujos, guardado,
-// navegación) no cambió -- ver el historial para los shells anteriores
-// (bottom-sheet -> casi pantalla completa -> este panel centrado).
 //
-// Fase 4: reemplaza a HojaNuevoMovimiento para CREAR (nunca para editar) en
-// los 3 orígenes de creación, detrás de USAR_ASISTENTE_MOVIMIENTO (ver
-// utils/flags.js): el botón "+" de Home (App.jsx), "+ Nuevo movimiento" en
-// DetalleCuenta.jsx (con cuentaPreseleccionadaId) y "+ Nuevo gasto" en
+// Único camino para CREAR un movimiento (nunca para editar) en los 3
+// orígenes de creación: el botón "+" de Home (App.jsx), "+ Nuevo movimiento"
+// en DetalleCuenta.jsx (con cuentaPreseleccionadaId) y "+ Nuevo gasto" en
 // DetalleCategoria.jsx (con categoriaPreseleccionadaId -- que además fija el
 // tipo en "gasto", ver estadoInicialAsistente en reductorAsistente.js).
-// Editar un movimiento existente sigue yendo SIEMPRE por HojaNuevoMovimiento
-// en esos 3 lugares, con o sin flag -- el asistente todavía no soporta
-// edición (la Fase 5 extrae HojaEditarMovimiento).
+// Editar un movimiento existente va SIEMPRE por HojaEditarMovimiento en esos
+// 3 lugares (y en DetalleTarjeta.jsx) -- este asistente no soporta edición.
 //
-// Mismas props que HojaNuevoMovimiento (menos onActualizar/movimientoEditando,
+// Mismas props que HojaEditarMovimiento (menos onActualizar/movimientoEditando,
 // que no aplican) para que cada llamador solo tenga que elegir cuál de los
 // dos montar, sin adaptar nada más. `onGuardar` es la MISMA función que
-// recibe HojaNuevoMovimiento en cada uno de esos 3 lugares (en App.jsx,
-// agregarMovimiento): el asistente arma el mismo objeto `datos` con
-// construirDatosMovimiento (Fase 0) y entra por la misma cadena de guardado,
-// así que los hints optimistas de saldo/deuda funcionan igual.
+// recibe agregarMovimiento en cada uno de esos 3 lugares: el asistente arma
+// el mismo objeto `datos` con construirDatosMovimiento (Fase 0) y entra por
+// la misma cadena de guardado, así que los hints optimistas de saldo/deuda
+// funcionan igual.
 function AsistenteMovimiento({
   abierta,
   onCerrar,

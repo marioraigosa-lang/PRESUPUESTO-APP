@@ -211,7 +211,7 @@ saldo-app/
     │   ├── ui/                   Primitivas de UI genéricas (Boton*, CampoTexto, Acordeon,
     │   │                         MedidorFortaleza, Icono, MensajeError, Tarjeta)
     │   ├── Hoja*.jsx              Formularios modales tipo "bottom sheet"
-    │   │                         (HojaNuevoMovimiento, HojaCuenta, HojaCategoria, ...)
+    │   │                         (HojaEditarMovimiento, HojaCuenta, HojaCategoria, ...)
     │   ├── Tarjeta*.jsx           Tarjetas de resumen (TarjetaSaldo, TarjetaMeta, ...)
     │   ├── FilaTotales.jsx       Fila de "chips" de totales (etiqueta + punto de
     │   │                         color + monto), usada por DetalleCuenta.jsx y

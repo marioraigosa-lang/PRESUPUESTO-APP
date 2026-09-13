@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Movimiento from '../components/Movimiento'
 import SelectorPeriodo from '../components/SelectorPeriodo'
-import HojaNuevoMovimiento from '../components/HojaNuevoMovimiento'
+import HojaEditarMovimiento from '../components/HojaEditarMovimiento'
 import AsistenteMovimiento from '../components/asistente-movimiento/AsistenteMovimiento'
 import FilaTotales from '../components/FilaTotales'
 import { useIdioma } from '../context/IdiomaContext'
@@ -10,7 +10,6 @@ import { useMovimientosPeriodo } from '../hooks/useMovimientosPeriodo'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 import { calcularResumenCuenta, separarMovimientosCuenta, descripcionEnContexto } from '../utils/movimientosCuenta'
-import { USAR_ASISTENTE_MOVIMIENTO } from '../utils/flags'
 
 const hoy = new Date()
 
@@ -254,13 +253,21 @@ function DetalleCuenta({
         </section>
       </div>
 
-      {/* Crear (movimientoEditando null) pasa por el asistente cuando el flag
-          está activo; editar sigue SIEMPRE por HojaNuevoMovimiento, con o sin
-          flag -- el asistente todavía no soporta edición (Fase 5 extrae
-          HojaEditarMovimiento). abrirNuevoMovimiento/abrirEditarMovimiento
+      {/* Crear (movimientoEditando null) pasa por el asistente; editar por
+          HojaEditarMovimiento. abrirNuevoMovimiento/abrirEditarMovimiento
           arriba ponen movimientoEditando y hojaAbierta en el mismo evento
           (batched), así que este `if` nunca ve un estado intermedio raro. */}
-      {USAR_ASISTENTE_MOVIMIENTO && !movimientoEditando ? (
+      {movimientoEditando ? (
+        <HojaEditarMovimiento
+          abierta={hojaAbierta}
+          onCerrar={cerrarHoja}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias}
+          onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
+          movimientoEditando={movimientoEditando}
+        />
+      ) : (
         <AsistenteMovimiento
           abierta={hojaAbierta}
           onCerrar={cerrarHoja}
@@ -269,18 +276,6 @@ function DetalleCuenta({
           categorias={categorias}
           cuentaPreseleccionadaId={cuenta.id}
           onGuardar={onAgregarMovimiento}
-        />
-      ) : (
-        <HojaNuevoMovimiento
-          abierta={hojaAbierta}
-          onCerrar={cerrarHoja}
-          cuentas={cuentas}
-          tarjetas={tarjetas}
-          categorias={categorias}
-          cuentaPreseleccionadaId={cuenta.id}
-          onGuardar={onAgregarMovimiento}
-          onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
-          movimientoEditando={movimientoEditando}
         />
       )}
     </main>

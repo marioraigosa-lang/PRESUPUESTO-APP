@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CreditCard } from 'lucide-react'
 import Movimiento from '../components/Movimiento'
 import SelectorPeriodo from '../components/SelectorPeriodo'
-import HojaNuevoMovimiento from '../components/HojaNuevoMovimiento'
+import HojaEditarMovimiento from '../components/HojaEditarMovimiento'
 import HojaPagoTarjeta from '../components/HojaPagoTarjeta'
 import FilaTotales from '../components/FilaTotales'
 import { useIdioma } from '../context/IdiomaContext'
@@ -22,12 +22,12 @@ const hoy = new Date()
 //     exactamente esos dos tipos, ninguno más (ver
 //     construirConsultaMovimientosPeriodo).
 //   - No hay botón "+ Nuevo movimiento": esta pantalla no crea gastos
-//     nuevos (eso sigue siendo el flujo de HojaNuevoMovimiento de siempre,
-//     con la tarjeta como una opción de origen -- Fase 4), solo permite
-//     editar/borrar un gasto existente y pagar la tarjeta. Por eso
-//     HojaNuevoMovimiento se abre acá SOLO en modo edición
-//     (movimientoEditando siempre viene seteado); `onGuardar` nunca llega a
-//     invocarse, así que se le pasa un no-op.
+//     nuevos (eso sigue siendo el flujo del asistente de movimiento, con la
+//     tarjeta como una opción de origen -- Fase 4), solo permite
+//     editar/borrar un gasto existente y pagar la tarjeta. Por eso acá se
+//     abre directamente HojaEditarMovimiento (Fase 5), que solo sabe editar
+//     -- movimientoEditando siempre viene seteado, no hace falta un onGuardar
+//     de creación.
 //
 // Se abre al tocar una tarjeta en Home.jsx, con el mismo patrón de "modo"
 // interno (no toca el `vista` de App.jsx) que ya usan DetalleCuenta/
@@ -238,13 +238,12 @@ function DetalleTarjeta({
         </section>
       </div>
 
-      <HojaNuevoMovimiento
+      <HojaEditarMovimiento
         abierta={hojaAbierta}
         onCerrar={cerrarHoja}
         cuentas={cuentas}
         tarjetas={tarjetas}
         categorias={categorias}
-        onGuardar={() => {}}
         onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
         movimientoEditando={movimientoEditando}
       />

@@ -275,7 +275,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 **Casos borde / variantes:**
 - Eliminar una cuenta marcada como "fondo de ahorro" → el fondo de emergencia debe recalcularse sin ella.
 - Eliminar la única cuenta que existe → el selector de cuenta en "Nuevo movimiento" debe manejarlo sin quedar en blanco/roto.
-- Eliminar una cuenta usada como origen o destino de un traslado ya registrado → revisar que `HojaNuevoMovimiento` no rompe al mostrar ese traslado para editar.
+- Eliminar una cuenta usada como origen o destino de un traslado ya registrado → revisar que `HojaEditarMovimiento` no rompe al mostrar ese traslado para editar.
 
 ## B4. Marcar una cuenta como fondo de ahorro
 
@@ -584,7 +584,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 - Los 3 totales consideran TODOS los movimientos del mes donde participa esta cuenta, incluidos los traslados en ambas direcciones: "Ingresos" = ingresos + traslados donde esta cuenta es el destino; "Egresos" = gastos + traslados donde esta cuenta es el origen; "Neto" = Ingresos − Egresos (en coral si es negativo).
 - La lista de abajo excluye los gastos normales — esos solo se ven desde el detalle de su categoría (ver [B34](#b34-detalle-de-categoría-de-gasto-variable-detallecategoriajsx)). Solo lista ingresos y traslados (de entrada y de salida) de esta cuenta.
 - Un traslado se muestra con perspectiva direccional: si esta cuenta es el origen, aparece como "Traslado a X" en coral con signo `−`; si es el destino, como "Traslado desde Y" en mint con signo `+` (distinto de cómo se ve un traslado "desde afuera", con flecha `origen → destino` en azul).
-- "+ Nuevo movimiento" abre `HojaNuevoMovimiento` con la cuenta ya preseleccionada (se puede cambiar antes de guardar).
+- "+ Nuevo movimiento" abre el asistente de movimiento (`AsistenteMovimiento`) con la cuenta ya preseleccionada (se puede cambiar antes de guardar).
 - Editar/eliminar actualiza el saldo de la(s) cuenta(s) igual que en [B18](#b18-editar-movimiento)/[B19](#b19-eliminar-movimiento); la lista y los 3 totales de esta pantalla se refrescan solos, sin recargar.
 - "Volver" regresa a "Inicio" sin pasar por `App.jsx`: es un estado interno de `Home.jsx` (el mismo patrón de "modo" que usa `Viajes.jsx` para `DetalleViaje.jsx`), así que el botón "+" flotante y la barra de navegación inferior siguen mostrándose igual mientras se navega dentro de una cuenta.
 
@@ -610,7 +610,7 @@ Se construyó leyendo el código real de la app (`src/App.jsx`, `src/views/`, `s
 - Si la categoría tiene presupuesto (>0): se muestran 3 totales — "Presupuesto", "Gastado", "Restante" (en coral si quedó negativo) — y la barra de progreso, calculados con la misma función (`calcularProgresoPresupuesto`) que usa la fila de "Gastos variables" en Inicio, así que ambas vistas siempre coinciden en si está "excedido" y en el % de la barra.
 - Si NO tiene presupuesto (0 o vacío): solo se muestra "Gastado" como un único bloque de ancho completo, sin barra de progreso ni grilla de 3 columnas.
 - La lista de abajo ("Gastos") son exclusivamente gastos de esta categoría en el mes seleccionado — nunca ingresos ni traslados, porque esos nunca tienen `categoria_id`.
-- "+ Nuevo gasto" abre `HojaNuevoMovimiento` con tipo "Gasto" y esta categoría ya preseleccionada.
+- "+ Nuevo gasto" abre el asistente de movimiento (`AsistenteMovimiento`) con tipo "Gasto" y esta categoría ya preseleccionada.
 - "Volver" regresa a "Inicio" con el mismo mecanismo de "modo" interno de [B33](#b33-detalle-de-cuenta-detallecuentajsx).
 
 **Casos borde / variantes:**

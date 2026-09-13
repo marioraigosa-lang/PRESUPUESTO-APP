@@ -6,137 +6,79 @@ import { configMoneda } from '../utils/monedas'
 import { limpiarEntradaMonto, formatearEntradaMonto } from '../utils/inputMoneda'
 import { construirDatosMovimiento } from '../utils/construirDatosMovimiento'
 import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
-import AyudaContextual from './AyudaContextual'
 import IconoCategoria from './IconoCategoria'
 import MensajeError from './ui/MensajeError'
 
-function HojaNuevoMovimiento({
-  abierta,
-  onCerrar,
-  cuentas,
-  tarjetas = [],
-  categorias,
-  onGuardar,
-  onActualizar,
-  movimientoEditando,
-  cuentaPreseleccionadaId,
-  categoriaPreseleccionadaId,
-}) {
-  const editando = Boolean(movimientoEditando)
-  // Un traslado ya existente solo permite editar monto y descripción: las
-  // cuentas de origen/destino quedan fijas (ver HojaNuevoMovimiento en el
-  // chat de diagnóstico). Si el usuario se equivocó de cuenta, la vía es
-  // borrar el traslado y crear uno nuevo.
-  const editandoTraslado = editando && movimientoEditando?.tipo === 'traslado'
+// Extraído de HojaNuevoMovimiento.jsx (Fase 5 del plan del asistente de
+// movimiento): esa hoja mezclaba crear y editar en un solo componente; esta
+// se queda SOLO con editar. El tipo del movimiento ya no es un `useState`
+// elegible por el usuario -- se toma fijo de `movimientoEditando.tipo` y no
+// cambia durante la edición. Esto además cierra un bug latente que tenía el
+// formulario viejo: como el selector de tipo quedaba visible mientras se
+// editaba un gasto/ingreso/retiro (todo menos traslado), era posible
+// cambiarle el tipo a "traslado" a mitad de una edición sin que
+// actualizarMovimiento (services/movimientos.js) supiera setear
+// cuenta_destino_id -- ver diagnóstico previo a esta fase.
+//
+// Reglas de edición que preserva, iguales a las de HojaNuevoMovimiento:
+//   - Traslado: solo se edita monto y descripción, cuentas bloqueadas
+//     (actualizarTraslado en services/movimientos.js no toca las cuentas).
+//   - pago_tarjeta y movimientos con gasto_fijo_id nunca llegan acá -- los
+//     bloquea `esEditable` en Movimiento.jsx antes de abrir esta hoja.
+function HojaEditarMovimiento({ abierta, onCerrar, cuentas, tarjetas = [], categorias, onActualizar, movimientoEditando }) {
+  const tipo = movimientoEditando?.tipo ?? ''
+  const editandoTraslado = tipo === 'traslado'
   const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
   const formatear = useFormatoMoneda()
 
-  const [tipo, setTipo] = useState('gasto')
   const [monto, setMonto] = useState('')
   const [origen, setOrigen] = useState('cuenta')
-  const [cuentaId, setCuentaId] = useState(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
+  const [cuentaId, setCuentaId] = useState('')
   const [tarjetaId, setTarjetaId] = useState('')
   const [cuentaDestinoId, setCuentaDestinoId] = useState('')
-  const [categoriaId, setCategoriaId] = useState(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
+  const [categoriaId, setCategoriaId] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [errorGuardado, setErrorGuardado] = useState('')
 
-  useEffect(() => {
-    if (!cuentaId && cuentas.length > 0) {
-      setCuentaId(cuentas[0].id)
-    }
-  }, [cuentas, cuentaId])
-
-  useEffect(() => {
-    if (!categoriaId && categorias.length > 0) {
-      setCategoriaId(categorias[0].id)
-    }
-  }, [categorias, categoriaId])
-
-  // Mismo criterio que el useEffect de cuentaId de arriba: si el origen
-  // elegido es "tarjeta" y todavía no hay ninguna seleccionada (recién se
-  // cambió de "cuenta" a "tarjeta", o la lista de tarjetas acaba de cargar),
-  // le asigna la primera por defecto.
+  // Mismo criterio que en HojaNuevoMovimiento: si el origen elegido es
+  // "tarjeta" y todavía no hay ninguna seleccionada (recién se cambió de
+  // "cuenta" a "tarjeta" mientras se edita un gasto), le asigna la primera
+  // por defecto.
   useEffect(() => {
     if (origen === 'tarjeta' && !tarjetaId && tarjetas.length > 0) {
       setTarjetaId(tarjetas[0].id)
     }
   }, [origen, tarjetas, tarjetaId])
 
-  // Mantiene la cuenta destino siempre válida mientras se arma un traslado
-  // nuevo: si todavía no hay destino elegido, o quedó igual a la cuenta
-  // origen (porque el usuario cambió el origen), le asigna automáticamente
-  // otra cuenta distinta. No pisa una elección válida que el usuario ya
-  // haya hecho.
+  // Precarga el formulario con el movimiento a editar. Depende solo de
+  // "abierta" y "movimientoEditando" (no de cuentas/categorias) para no
+  // resetear lo que el usuario está escribiendo cada vez que esas listas
+  // cambien de referencia.
   useEffect(() => {
-    if (editandoTraslado) return
-    if (tipo !== 'traslado') return
-    if (cuentaDestinoId && cuentaDestinoId !== cuentaId) return
+    if (!abierta || !movimientoEditando) return
 
-    const alternativa = cuentas.find((cuenta) => cuenta.id !== cuentaId)
-    setCuentaDestinoId(alternativa?.id ?? '')
-  }, [tipo, cuentaId, cuentaDestinoId, cuentas, editandoTraslado])
-
-  // Precarga el formulario cuando se abre para editar, o lo limpia cuando se
-  // abre para crear uno nuevo. Depende solo de "abierta" y "movimientoEditando"
-  // (no de cuentas/categorias) para no resetear lo que el usuario está
-  // escribiendo cada vez que esas listas cambien de referencia.
-  useEffect(() => {
-    if (!abierta) return
-
-    if (movimientoEditando) {
-      setTipo(movimientoEditando.tipo)
-      setMonto(String(movimientoEditando.monto))
-      if (movimientoEditando.tarjeta_id) {
-        setOrigen('tarjeta')
-        setTarjetaId(movimientoEditando.tarjeta_id)
-        setCuentaId('')
-      } else {
-        setOrigen('cuenta')
-        setCuentaId(movimientoEditando.cuenta_id ?? '')
-        setTarjetaId('')
-      }
-      setCuentaDestinoId(movimientoEditando.cuenta_destino_id ?? '')
-      setCategoriaId(movimientoEditando.categoria_id ?? '')
-      setDescripcion(movimientoEditando.descripcion ?? '')
+    setMonto(String(movimientoEditando.monto))
+    if (movimientoEditando.tarjeta_id) {
+      setOrigen('tarjeta')
+      setTarjetaId(movimientoEditando.tarjeta_id)
+      setCuentaId('')
     } else {
-      setTipo('gasto')
-      setMonto('')
       setOrigen('cuenta')
-      setCuentaId(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
+      setCuentaId(movimientoEditando.cuenta_id ?? '')
       setTarjetaId('')
-      setCuentaDestinoId('')
-      setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
-      setDescripcion('')
     }
+    setCuentaDestinoId(movimientoEditando.cuenta_destino_id ?? '')
+    setCategoriaId(movimientoEditando.categoria_id ?? '')
+    setDescripcion(movimientoEditando.descripcion ?? '')
     setError('')
     setErrorGuardado('')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierta, movimientoEditando, cuentaPreseleccionadaId, categoriaPreseleccionadaId])
+  }, [abierta, movimientoEditando])
 
-  if (!abierta) return null
-
-  function limpiarFormulario() {
-    setTipo('gasto')
-    setMonto('')
-    setOrigen('cuenta')
-    setCuentaId(cuentaPreseleccionadaId ?? cuentas[0]?.id ?? '')
-    setTarjetaId('')
-    setCuentaDestinoId('')
-    setCategoriaId(categoriaPreseleccionadaId ?? categorias[0]?.id ?? '')
-    setDescripcion('')
-    setError('')
-    setErrorGuardado('')
-  }
-
-  function cerrarYLimpiar() {
-    limpiarFormulario()
-    onCerrar()
-  }
+  if (!abierta || !movimientoEditando) return null
 
   function manejarCambioMonto(evento) {
     setMonto(limpiarEntradaMonto(evento.target.value, moneda))
@@ -151,17 +93,6 @@ function HojaNuevoMovimiento({
       return
     }
 
-    if (tipo === 'traslado' && !editandoTraslado) {
-      if (!cuentaId || !cuentaDestinoId) {
-        setError(t('movimientos.formulario.errorCuentasTraslado'))
-        return
-      }
-      if (cuentaId === cuentaDestinoId) {
-        setError(t('movimientos.formulario.errorCuentasIguales'))
-        return
-      }
-    }
-
     if (usaTarjeta && !tarjetaId) {
       setError(t('movimientos.formulario.errorTarjetaInvalida'))
       return
@@ -170,24 +101,17 @@ function HojaNuevoMovimiento({
     setGuardando(true)
     setErrorGuardado('')
 
-    // Armar `datos` (emoji por tipo/categoría, descripción de respaldo
-    // cuando el usuario no puso ninguna, y los `null` según la forma que
-    // exige movimientos_traslado_forma_check) vive ahora en un helper puro,
-    // para que el asistente paso a paso produzca EXACTAMENTE el mismo
-    // objeto sin duplicar esta lógica.
+    // Mismo helper puro que usa el asistente paso a paso (Fase 0): arma
+    // emoji/icono por tipo/categoría y la descripción de respaldo, para que
+    // editar produzca EXACTAMENTE el mismo objeto que crear.
     const datos = construirDatosMovimiento(
       { tipo, monto, origen, cuentaId, tarjetaId, cuentaDestinoId, categoriaId, descripcion },
       { cuentas, categorias, t },
     )
 
     try {
-      if (editando) {
-        await onActualizar(datos)
-      } else {
-        await onGuardar(datos)
-      }
-
-      cerrarYLimpiar()
+      await onActualizar(datos)
+      onCerrar()
     } catch (err) {
       console.error(err)
       setErrorGuardado(true)
@@ -198,9 +122,7 @@ function HojaNuevoMovimiento({
 
   const categoriaSeleccionada = categorias.find((categoria) => categoria.id === categoriaId)
   // Solo un gasto puede salir de una tarjeta (ver constraint
-  // movimientos_traslado_forma_check en sql/supabase_tarjetas_movimientos.sql):
-  // ingreso/traslado/retiro siempre usan cuenta, sin importar qué haya
-  // quedado guardado en `origen` de una vez anterior en que sí era gasto.
+  // movimientos_traslado_forma_check en sql/supabase_tarjetas_movimientos.sql).
   const usaTarjeta = tipo === 'gasto' && origen === 'tarjeta'
   const tarjetaSeleccionada = tarjetas.find((tarjeta) => tarjeta.id === tarjetaId)
   const montoExcedeCupo =
@@ -216,7 +138,7 @@ function HojaNuevoMovimiento({
       <button
         type="button"
         aria-label={t('movimientos.formulario.cerrarAria')}
-        onClick={cerrarYLimpiar}
+        onClick={onCerrar}
         className="absolute inset-0 animate-[fondo-aparecer_0.2s_ease-out] bg-black/60"
       />
 
@@ -227,12 +149,10 @@ function HojaNuevoMovimiento({
         <div className="mx-auto h-1 w-10 rounded-full bg-line" />
 
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text">
-            {editando ? t('movimientos.formulario.editarTitulo') : t('movimientos.formulario.nuevoTitulo')}
-          </h2>
+          <h2 className="text-base font-semibold text-text">{t('movimientos.formulario.editarTitulo')}</h2>
           <button
             type="button"
-            onClick={cerrarYLimpiar}
+            onClick={onCerrar}
             aria-label={t('movimientos.formulario.cerrarAria')}
             className="flex h-7 w-7 items-center justify-center rounded-full text-text-dim hover:bg-panel-2 hover:text-text"
           >
@@ -240,58 +160,10 @@ function HojaNuevoMovimiento({
           </button>
         </div>
 
-        {editandoTraslado ? (
+        {editandoTraslado && (
           <div className="flex items-center justify-center gap-2 rounded-full bg-azul/10 py-2 text-sm font-semibold text-azul">
             <ArrowLeftRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t('movimientos.formulario.trasladoBadge')}</span>
-          </div>
-        ) : (
-          <div>
-            <div className="mb-1 flex items-center gap-1.5">
-              <p className="text-xs text-text-dim">{t('movimientos.formulario.tipoLabel')}</p>
-              <AyudaContextual
-                clave="guia.ayuda.movimientoTipos"
-                etiqueta={t('guia.ayuda.movimientoTiposAria')}
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-1 rounded-full bg-panel-2 p-1">
-              <button
-                type="button"
-                onClick={() => setTipo('gasto')}
-                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
-                  tipo === 'gasto' ? 'bg-coral text-bg' : 'text-text-dim'
-                }`}
-              >
-                {t('movimientos.formulario.tipoGasto')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTipo('ingreso')}
-                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
-                  tipo === 'ingreso' ? 'bg-mint text-bg' : 'text-text-dim'
-                }`}
-              >
-                {t('movimientos.formulario.tipoIngreso')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTipo('traslado')}
-                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
-                  tipo === 'traslado' ? 'bg-azul text-bg' : 'text-text-dim'
-                }`}
-              >
-                {t('movimientos.formulario.tipoTraslado')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTipo('retiro')}
-                className={`rounded-full py-2 text-xs font-medium transition-colors sm:text-sm ${
-                  tipo === 'retiro' ? 'bg-gold text-bg' : 'text-text-dim'
-                }`}
-              >
-                {t('movimientos.formulario.tipoRetiro')}
-              </button>
-            </div>
           </div>
         )}
 
@@ -314,62 +186,14 @@ function HojaNuevoMovimiento({
           {error && <MensajeError className="mt-1 px-3 py-2 text-xs">{error}</MensajeError>}
         </div>
 
-        {tipo === 'traslado' ? (
-          editandoTraslado ? (
-            <div className="flex flex-col gap-1 rounded-2xl bg-panel-2 px-4 py-3">
-              <p className="text-xs text-text-dim">{t('movimientos.formulario.cuentasBloqueadasLabel')}</p>
-              <p className="text-sm font-medium text-text">
-                {nombreCuentaOrigen} → {nombreCuentaDestino}
-              </p>
-              <p className="text-xs text-text-dim">{t('movimientos.formulario.cuentasBloqueadasAyuda')}</p>
-            </div>
-          ) : (
-            <>
-              <div>
-                <div className="mb-1 flex items-center gap-1.5">
-                  <label htmlFor="cuentaOrigen" className="text-xs text-text-dim">
-                    {t('movimientos.formulario.cuentaOrigenLabel')}
-                  </label>
-                  <AyudaContextual clave="guia.ayuda.traslados" etiqueta={t('guia.ayuda.trasladosAria')} />
-                </div>
-                <select
-                  id="cuentaOrigen"
-                  value={cuentaId}
-                  onChange={(evento) => setCuentaId(evento.target.value)}
-                  className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none"
-                >
-                  {cuentas.map((cuenta) => (
-                    <option key={cuenta.id} value={cuenta.id}>
-                      {cuenta.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="cuentaDestino" className="mb-1 block text-xs text-text-dim">
-                  {t('movimientos.formulario.cuentaDestinoLabel')}
-                </label>
-                <select
-                  id="cuentaDestino"
-                  value={cuentaDestinoId}
-                  onChange={(evento) => setCuentaDestinoId(evento.target.value)}
-                  className="w-full rounded-2xl bg-panel-2 px-4 py-3 text-sm text-text outline-none"
-                >
-                  {cuentas.map((cuenta) => (
-                    <option key={cuenta.id} value={cuenta.id} disabled={cuenta.id === cuentaId}>
-                      {cuenta.nombre}
-                      {cuenta.id === cuentaId ? t('movimientos.formulario.sufijoOrigen') : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {cuentas.length < 2 && (
-                <p className="text-xs text-coral">{t('movimientos.formulario.minimoCuentasTraslado')}</p>
-              )}
-            </>
-          )
+        {editandoTraslado ? (
+          <div className="flex flex-col gap-1 rounded-2xl bg-panel-2 px-4 py-3">
+            <p className="text-xs text-text-dim">{t('movimientos.formulario.cuentasBloqueadasLabel')}</p>
+            <p className="text-sm font-medium text-text">
+              {nombreCuentaOrigen} → {nombreCuentaDestino}
+            </p>
+            <p className="text-xs text-text-dim">{t('movimientos.formulario.cuentasBloqueadasAyuda')}</p>
+          </div>
         ) : (
           <>
             {tipo === 'gasto' && tarjetas.length > 0 && (
@@ -459,13 +283,6 @@ function HojaNuevoMovimiento({
                       activo ? 'bg-mint text-bg' : 'bg-panel-2 text-text-dim'
                     }`}
                   >
-                    {/* Sin `color`: el botón activo va a fondo sólido mint
-                        (bg-mint text-bg) -- un icono con el color propio de
-                        la categoría podría perder contraste ahí (ej. una
-                        categoría con tono verde/mint). El icono hereda
-                        `currentColor` y sigue al texto del botón, igual que
-                        antes con el emoji. El grid completo se rediseña en
-                        la Fase B4 (SelectorIcono). */}
                     <IconoCategoria nombre={resolverIconoCategoria(categoria)} size="md" />
                     {categoria.nombre}
                   </button>
@@ -505,15 +322,11 @@ function HojaNuevoMovimiento({
           disabled={guardando}
           className="mt-1 w-full rounded-2xl bg-mint py-3 text-sm font-semibold text-bg disabled:opacity-60"
         >
-          {guardando
-            ? t('movimientos.formulario.guardando')
-            : editando
-              ? t('movimientos.formulario.guardarCambios')
-              : t('movimientos.formulario.guardarMovimiento')}
+          {guardando ? t('movimientos.formulario.guardando') : t('movimientos.formulario.guardarCambios')}
         </button>
       </form>
     </div>
   )
 }
 
-export default HojaNuevoMovimiento
+export default HojaEditarMovimiento

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Movimiento from '../components/Movimiento'
 import SelectorPeriodo from '../components/SelectorPeriodo'
-import HojaNuevoMovimiento from '../components/HojaNuevoMovimiento'
+import HojaEditarMovimiento from '../components/HojaEditarMovimiento'
 import AsistenteMovimiento from '../components/asistente-movimiento/AsistenteMovimiento'
 import FilaTotales from '../components/FilaTotales'
 import IconoCategoria from '../components/IconoCategoria'
@@ -12,7 +12,6 @@ import { calcularProgresoPresupuesto } from '../utils/progresoPresupuesto'
 import { resolverIconoCategoria } from '../utils/resolverIconoCategoria'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
-import { USAR_ASISTENTE_MOVIMIENTO } from '../utils/flags'
 
 const hoy = new Date()
 
@@ -234,13 +233,23 @@ function DetalleCategoria({
         </section>
       </div>
 
-      {/* Mismo criterio que DetalleCuenta.jsx: crear pasa por el asistente
-          con el flag activo, editar siempre por HojaNuevoMovimiento. Acá
-          categoriaPreseleccionadaId también fija el tipo en "gasto" dentro
-          del asistente (ver estadoInicialAsistente en reductorAsistente.js
-          -- una categoría solo existe para un gasto), así que el paso "tipo"
-          también se salta. */}
-      {USAR_ASISTENTE_MOVIMIENTO && !movimientoEditando ? (
+      {/* Mismo criterio que DetalleCuenta.jsx: crear pasa por el asistente,
+          editar por HojaEditarMovimiento. Acá categoriaPreseleccionadaId
+          también fija el tipo en "gasto" dentro del asistente (ver
+          estadoInicialAsistente en reductorAsistente.js -- una categoría
+          solo existe para un gasto), así que el paso "tipo" también se
+          salta. */}
+      {movimientoEditando ? (
+        <HojaEditarMovimiento
+          abierta={hojaAbierta}
+          onCerrar={cerrarHoja}
+          cuentas={cuentas}
+          tarjetas={tarjetas}
+          categorias={categorias}
+          onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
+          movimientoEditando={movimientoEditando}
+        />
+      ) : (
         <AsistenteMovimiento
           abierta={hojaAbierta}
           onCerrar={cerrarHoja}
@@ -249,18 +258,6 @@ function DetalleCategoria({
           categorias={categorias}
           categoriaPreseleccionadaId={categoria.id}
           onGuardar={onAgregarMovimiento}
-        />
-      ) : (
-        <HojaNuevoMovimiento
-          abierta={hojaAbierta}
-          onCerrar={cerrarHoja}
-          cuentas={cuentas}
-          tarjetas={tarjetas}
-          categorias={categorias}
-          categoriaPreseleccionadaId={categoria.id}
-          onGuardar={onAgregarMovimiento}
-          onActualizar={(datos) => onActualizarMovimiento(movimientoEditando, datos)}
-          movimientoEditando={movimientoEditando}
         />
       )}
     </main>
