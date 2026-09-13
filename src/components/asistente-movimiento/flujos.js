@@ -80,6 +80,26 @@ function pasosASaltar(borrador, { cuentas }) {
   return saltar
 }
 
+// Complementa pasosASaltar: cuando 'cuentaGasto'/'cuenta' se saltan porque
+// solo hay UNA cuenta (unaSolaCuenta más arriba), esa cuenta nunca se le
+// asigna a `cuentaId` -- el usuario no ve ningún paso donde elegirla, así
+// que sin esto el borrador se queda con '' y el guardado revenía más tarde
+// con "Selecciona una cuenta válida" (bug real, afectaba a TODO usuario con
+// una sola cuenta que todavía no tuviera una "última cuenta usada" guardada
+// -- ver ultimoUsado.js). AsistenteMovimiento.jsx la llama tanto al montar
+// el asistente (estadoInicialAsistente) como al elegir el tipo (ELEGIR_TIPO)
+// para que `cuentaId` quede bien puesto ANTES de llegar al paso de guardar,
+// sin importar si ese paso terminó saltándose o no.
+//
+// Genérica a propósito (no solo "cuentas"): mismo criterio serviría para
+// cualquier otro paso que algún día se salte por "una sola opción posible"
+// -- alcanza con llamarla con esa lista. Hoy el único caso real es
+// cuentas/cuentaId; tarjetas NUNCA se saltan (ver comentario de
+// PASOS_POR_TIPO.pago_tarjeta arriba), así que tarjetaId no lo necesita.
+export function opcionUnica(lista) {
+  return lista.length === 1 ? lista[0].id : ''
+}
+
 export function flujos(borrador, contexto) {
   const { cuentas = [], tarjetas = [] } = contexto
   const generador = PASOS_POR_TIPO[borrador.tipo]

@@ -45,6 +45,34 @@ describe('estadoInicialAsistente', () => {
     expect(estado.tipo).toBe('gasto')
     expect(estado.tipoPreseleccionado).toBe(true)
   })
+
+  // BUG CRÍTICO corregido: "+ Nuevo gasto" desde DetalleCategoria.jsx fija
+  // el tipo en 'gasto' de entrada (categoriaPreseleccionadaId arriba) sin
+  // pasar nunca por ELEGIR_TIPO -- así que si el usuario tiene una sola
+  // cuenta, esta es la ÚNICA oportunidad de asignarle esa cuenta a
+  // cuentaId (ver opcionUnica en flujos.js). Sin esto, cuentaId se quedaba
+  // en '' y el guardado fallaba siempre con "Selecciona una cuenta válida".
+  it('con categoriaPreseleccionadaId y cuentaAutoAsignadaId (una sola cuenta), precarga cuentaId con esa cuenta', () => {
+    const estado = estadoInicialAsistente({ categoriaPreseleccionadaId: 'cat1', cuentaAutoAsignadaId: 'c1' })
+    expect(estado.cuentaId).toBe('c1')
+    // A diferencia de cuentaPreseleccionadaId, cuentaAutoAsignadaId NO es una
+    // preselección real (no viene de props/navegación) -- no debe quedar
+    // marcada como tal, para no alterar otras reglas de salto que sí miran
+    // específicamente cuentaPreseleccionadaId (ver hayCuentaPreseleccionada
+    // en flujos.js, ej. el salto de 'cuentaOrigen' en un traslado).
+    expect(estado.cuentaPreseleccionadaId).toBe('')
+  })
+
+  it('cuentaPreseleccionadaId explícita gana sobre cuentaAutoAsignadaId', () => {
+    const estado = estadoInicialAsistente({ cuentaPreseleccionadaId: 'c1', cuentaAutoAsignadaId: 'c2' })
+    expect(estado.cuentaId).toBe('c1')
+  })
+
+  it('sin categoriaPreseleccionadaId, cuentaAutoAsignadaId igual precarga cuentaId (queda listo para cuando se elija el tipo)', () => {
+    const estado = estadoInicialAsistente({ cuentaAutoAsignadaId: 'c1' })
+    expect(estado.cuentaId).toBe('c1')
+    expect(estado.tipo).toBe('')
+  })
 })
 
 describe('reductorAsistente', () => {

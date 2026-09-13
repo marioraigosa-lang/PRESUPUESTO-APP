@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { flujos } from './flujos'
+import { flujos, opcionUnica } from './flujos'
 
 const dosCuentas = [{ id: 'c1' }, { id: 'c2' }]
 const unaCuenta = [{ id: 'c1' }]
@@ -166,5 +166,29 @@ describe('flujos', () => {
       tarjetas: [],
     })
     expect(datos).toEqual(['monto', 'concepto'])
+  })
+})
+
+// BUG CRÍTICO corregido: pasosASaltar salta 'cuentaGasto'/'cuenta' con una
+// sola cuenta (arriba), pero eso NO le asigna esa cuenta a `cuentaId` -- solo
+// decide qué paso mostrar. `opcionUnica` es la función que sí asigna el
+// valor (ver AsistenteMovimiento.jsx -> elegirTipo/estadoInicialAsistente);
+// debe usar la MISMA condición "length === 1" para no desincronizarse nunca
+// de pasosASaltar.
+describe('opcionUnica', () => {
+  it('con una sola cuenta, devuelve su id', () => {
+    expect(opcionUnica(unaCuenta)).toBe('c1')
+  })
+
+  it('con varias cuentas, no elige ninguna por el usuario', () => {
+    expect(opcionUnica(dosCuentas)).toBe('')
+  })
+
+  it('sin cuentas, no hay nada que asignar', () => {
+    expect(opcionUnica([])).toBe('')
+  })
+
+  it('sirve igual para tarjetas (aunque hoy el paso "tarjeta" nunca se salta, ver arriba)', () => {
+    expect(opcionUnica(tarjetas)).toBe('t1')
   })
 })

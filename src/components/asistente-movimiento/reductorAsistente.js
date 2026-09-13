@@ -4,20 +4,28 @@
 // flujos.js ni React -- AsistenteMovimiento.jsx es quien combina este estado
 // con flujos() para saber en qué paso está parado.
 
-export function estadoInicialAsistente({ cuentaPreseleccionadaId, categoriaPreseleccionadaId } = {}) {
+export function estadoInicialAsistente({
+  cuentaPreseleccionadaId,
+  categoriaPreseleccionadaId,
+  cuentaAutoAsignadaId,
+} = {}) {
   // Una categoría preseleccionada solo tiene sentido para un gasto (las
   // categorías no aplican a ingreso/traslado/retiro, ver
   // construirDatosMovimiento.js) -- así que entrar con una categoría ya
   // decidida (ej. "+ Nuevo gasto" desde DetalleCategoria.jsx) también fija
   // el tipo, y con eso el paso 'tipo' se salta igual que el de categoría
-  // (ver tipoPreseleccionado en flujos.js).
+  // (ver tipoPreseleccionado en flujos.js). Cuando esto pasa, ELEGIR_TIPO
+  // nunca se despacha (el tipo ya nace fijo) -- así que la única
+  // oportunidad de aplicar `cuentaAutoAsignadaId` (ver opcionUnica en
+  // flujos.js) es acá mismo, además de en ELEGIR_TIPO para el resto de los
+  // casos (ver AsistenteMovimiento.jsx -> elegirTipo).
   const tipoPreseleccionado = Boolean(categoriaPreseleccionadaId)
 
   return {
     tipo: tipoPreseleccionado ? 'gasto' : '',
     tipoPreseleccionado,
     origen: 'cuenta',
-    cuentaId: cuentaPreseleccionadaId ?? '',
+    cuentaId: cuentaPreseleccionadaId || cuentaAutoAsignadaId || '',
     cuentaDestinoId: '',
     tarjetaId: '',
     categoriaId: categoriaPreseleccionadaId ?? '',

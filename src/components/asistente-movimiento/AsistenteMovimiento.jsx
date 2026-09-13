@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { ChevronLeft, X } from 'lucide-react'
 import { useIdioma } from '../../context/IdiomaContext'
 import { construirDatosMovimiento } from '../../utils/construirDatosMovimiento'
-import { flujos } from './flujos'
+import { flujos, opcionUnica } from './flujos'
 import { reductorAsistente, estadoInicialAsistente } from './reductorAsistente'
 import { leerUltimaCuenta, leerUltimaCategoria, guardarUltimaCuenta, guardarUltimaCategoria } from './ultimoUsado'
 import { idValidoEnLista } from './preselecciones'
@@ -57,9 +57,20 @@ function AsistenteMovimiento({
   // preselecciones.js.
   const cuentaPreseleccionadaIdValida = idValidoEnLista(cuentaPreseleccionadaId, cuentas)
   const categoriaPreseleccionadaIdValida = idValidoEnLista(categoriaPreseleccionadaId, categorias)
+  // BUG CRÍTICO corregido: con una sola cuenta, flujos.js salta el paso
+  // donde se elegiría (unaSolaCuenta en pasosASaltar) pero nadie le asignaba
+  // esa cuenta a `cuentaId` -- se quedaba en '' y el guardado fallaba
+  // siempre con "Selecciona una cuenta válida" (services/movimientos.js),
+  // sin llegar siquiera a pedirle nada a Supabase. `opcionUnica` (flujos.js)
+  // es la MISMA condición "cuentas.length === 1" que decide el salto, así
+  // que esto no puede desincronizarse de esa regla. Se usa acá (entrada con
+  // categoría preseleccionada, que fija el tipo sin pasar por ELEGIR_TIPO) y
+  // en elegirTipo de abajo (el resto de los casos).
+  const cuentaAutoAsignadaId = opcionUnica(cuentas)
   const preselecciones = {
     cuentaPreseleccionadaId: cuentaPreseleccionadaIdValida,
     categoriaPreseleccionadaId: categoriaPreseleccionadaIdValida,
+    cuentaAutoAsignadaId,
   }
 
   const [borrador, dispatch] = useReducer(reductorAsistente, preselecciones, estadoInicialAsistente)
@@ -152,8 +163,15 @@ function AsistenteMovimiento({
     // categoría guardada ya no existe, no tiene sentido preseleccionar un id
     // fantasma -- se cae a "sin sugerencia" y el usuario elige a mano, como
     // si fuera la primera vez.
+    //
+    // `opcionUnica(cuentas)` va PRIMERO a propósito: con una sola cuenta no
+    // hay nada que "recordar" (es la única que pudo haberse usado alguna
+    // vez) y el paso donde se elegiría se salta (ver unaSolaCuenta en
+    // flujos.js) -- sin este fallback cuentaId se quedaba en '' para
+    // cualquier usuario de una sola cuenta que todavía no hubiera guardado
+    // un gasto con éxito, y el guardado fallaba siempre (bug corregido).
     const sugerencias = {
-      cuentaId: idValidoEnLista(leerUltimaCuenta(valor), cuentas),
+      cuentaId: opcionUnica(cuentas) || idValidoEnLista(leerUltimaCuenta(valor), cuentas),
       categoriaId: valor === 'gasto' ? idValidoEnLista(leerUltimaCategoria(), categorias) : '',
     }
     dispatch({ tipo: 'ELEGIR_TIPO', valor, sugerencias })
