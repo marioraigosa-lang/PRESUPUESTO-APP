@@ -1,25 +1,29 @@
 import { useState } from 'react'
-import { Sparkles, ArrowLeftRight, LifeBuoy, BookOpen } from 'lucide-react'
+import { Sparkles, PlusCircle, CreditCard, Tag, Compass, BookOpen } from 'lucide-react'
 import { useIdioma } from '../context/IdiomaContext'
 import { useGuia } from '../context/GuiaContext'
 
-// Carrusel corto (máximo 4 tarjetas, a propósito, para no abrumar) que
-// App.jsx muestra UNA sola vez, la primera vez que un usuario nuevo entra
-// (ver GuiaContext.jsx / perfiles.guia_vista). "Saltar" y terminar el
-// carrusel llaman a lo MISMO (marcarGuiaVista): cerrar de cualquier forma
-// marca la guía como vista, para que nunca vuelva a aparecer sola.
+// Carrusel corto (máximo 6 tarjetas, a propósito, para no abrumar -- es una
+// bienvenida, no un manual: para el detalle está la Guía de uso completa,
+// GuiaUso.jsx) que App.jsx muestra UNA sola vez, la primera vez que un
+// usuario nuevo entra (ver GuiaContext.jsx / perfiles.guia_vista). "Saltar"
+// y terminar el carrusel llaman a lo MISMO (marcarGuiaVista): cerrar de
+// cualquier forma marca la guía como vista, para que nunca vuelva a
+// aparecer sola.
 //
 // Los íconos van hardcodeados acá (no en i18n), mismo criterio que ya usa
 // NavegacionInferior.jsx y GuiaUso.jsx para sus íconos decorativos.
 const TARJETAS = [
   { Icono: Sparkles, claveTitulo: 'guia.bienvenida.tarjeta1Titulo', claveTexto: 'guia.bienvenida.tarjeta1Texto' },
   {
-    Icono: ArrowLeftRight,
+    Icono: PlusCircle,
     claveTitulo: 'guia.bienvenida.tarjeta2Titulo',
     claveTexto: 'guia.bienvenida.tarjeta2Texto',
   },
-  { Icono: LifeBuoy, claveTitulo: 'guia.bienvenida.tarjeta3Titulo', claveTexto: 'guia.bienvenida.tarjeta3Texto' },
-  { Icono: BookOpen, claveTitulo: 'guia.bienvenida.tarjeta4Titulo', claveTexto: 'guia.bienvenida.tarjeta4Texto' },
+  { Icono: CreditCard, claveTitulo: 'guia.bienvenida.tarjeta3Titulo', claveTexto: 'guia.bienvenida.tarjeta3Texto' },
+  { Icono: Tag, claveTitulo: 'guia.bienvenida.tarjeta4Titulo', claveTexto: 'guia.bienvenida.tarjeta4Texto' },
+  { Icono: Compass, claveTitulo: 'guia.bienvenida.tarjeta5Titulo', claveTexto: 'guia.bienvenida.tarjeta5Texto' },
+  { Icono: BookOpen, claveTitulo: 'guia.bienvenida.tarjeta6Titulo', claveTexto: 'guia.bienvenida.tarjeta6Texto' },
 ]
 
 function GuiaBienvenida() {

@@ -1223,15 +1223,21 @@ export default {
       empezar: 'Empezar',
       tarjeta1Titulo: '¡Bienvenido a Seed! 👋',
       tarjeta1Texto:
-        'Tu app para llevar el control de tus finanzas personales, sin complicarte. Te mostramos en unos segundos lo esencial para empezar.',
-      tarjeta2Titulo: 'Registra tus movimientos',
+        'Tu app para mantener tus finanzas sanas: controla lo que entra y lo que sale, sin complicarte. Te mostramos en unos segundos lo esencial para empezar.',
+      tarjeta2Titulo: 'Registra en segundos',
       tarjeta2Texto:
-        'Anota tus ingresos y gastos con el botón "+" de Inicio. También puedes registrar traslados entre tus propias cuentas, sin que afecten tus estadísticas.',
-      tarjeta3Titulo: 'Cuida tu fondo de emergencia',
+        'Toca el botón "+" y un asistente te guía paso a paso: ingresos, gastos, traslados, retiros y hasta pagos a tu tarjeta -- sin formularios largos.',
+      tarjeta3Titulo: 'Cuentas y tarjetas, en un solo lugar',
       tarjeta3Texto:
-        'En la pestaña Fondo ves cuántos meses de gastos tienes cubiertos, y puedes crear metas de ahorro para tus próximos objetivos.',
-      tarjeta4Titulo: 'La guía completa te espera',
+        'Lleva tus cuentas (banco, efectivo, ahorros) y también tus tarjetas de crédito: cuánto has gastado, cuánta deuda tienes y cuánto cupo te queda.',
+      tarjeta4Titulo: 'Organiza cada gasto',
       tarjeta4Texto:
+        'Clasifica tus gastos por categoría, ponles un presupuesto si quieres vigilarlos de cerca, y separa lo fijo (arriendo, servicios) de lo variable (mercado, ocio).',
+      tarjeta5Titulo: 'Y todavía hay más',
+      tarjeta5Texto:
+        'Planea viajes con su propio presupuesto, crea metas de ahorro, y cuida tu fondo de emergencia -- Seed te acompaña más allá del día a día.',
+      tarjeta6Titulo: 'La guía completa te espera',
+      tarjeta6Texto:
         'En la pestaña Cuenta encontrarás la Guía de uso completa, con el detalle de cada función de la app -- vuelve ahí cuando la necesites.',
     },
     // Textos de los íconos de ayuda "?" (Fase 2, AyudaContextual.jsx): 1-2

@@ -1159,15 +1159,21 @@ export default {
       empezar: 'Get started',
       tarjeta1Titulo: 'Welcome to Seed! 👋',
       tarjeta1Texto:
-        "Your app for keeping track of your personal finances, without the hassle. Let's walk through the essentials in a few seconds.",
-      tarjeta2Titulo: 'Log your transactions',
+        "Your app for keeping your finances healthy: keep track of what comes in and goes out, without the hassle. Let's walk through the essentials in a few seconds.",
+      tarjeta2Titulo: 'Log it in seconds',
       tarjeta2Texto:
-        'Add income and expenses with the "+" button on Home. You can also log transfers between your own accounts, without affecting your stats.',
-      tarjeta3Titulo: 'Take care of your emergency fund',
+        'Tap the "+" button and a wizard walks you through it: income, expenses, transfers, withdrawals, or even card payments -- no long forms.',
+      tarjeta3Titulo: 'Accounts and cards, all in one place',
       tarjeta3Texto:
-        'The Fund tab shows how many months of expenses you have covered, and lets you create savings goals for what comes next.',
-      tarjeta4Titulo: 'The full guide is waiting for you',
+        "Track your accounts (bank, cash, savings) and your credit cards too: how much you've spent, how much debt you have, and how much limit is left.",
+      tarjeta4Titulo: 'Organize every expense',
       tarjeta4Texto:
+        'Sort your expenses by category, set a budget to keep a closer eye on any of them, and split fixed costs (rent, utilities) from everyday ones (groceries, fun).',
+      tarjeta5Titulo: 'And there is more',
+      tarjeta5Texto:
+        "Plan trips with their own budget, set savings goals, and keep an eye on your emergency fund -- Seed has you covered beyond the day-to-day.",
+      tarjeta6Titulo: 'The full guide is waiting for you',
+      tarjeta6Texto:
         "You'll find the complete User guide under Account, with details on every part of the app -- come back anytime you need it.",
     },
     // Text for the "?" help icons (Phase 2, AyudaContextual.jsx): 1-2 short
