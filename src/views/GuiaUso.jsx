@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   ArrowLeftRight,
   Landmark,
+  CreditCard,
   Tag,
   Pin,
   ShoppingBag,
@@ -22,6 +23,7 @@ import BotonVolver from '../components/ui/BotonVolver'
 const SECCIONES = [
   { id: 'movimientos', Icono: ArrowLeftRight },
   { id: 'cuentas', Icono: Landmark },
+  { id: 'tarjetas', Icono: CreditCard },
   { id: 'categorias', Icono: Tag },
   { id: 'gastosFijos', Icono: Pin },
   { id: 'gastosVariables', Icono: ShoppingBag },

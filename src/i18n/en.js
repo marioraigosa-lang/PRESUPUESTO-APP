@@ -1177,8 +1177,8 @@ export default {
     // alone says nothing to a screen reader).
     ayuda: {
       movimientoTipos:
-        'Income is money coming in, expense is money going out with a category, a transfer moves money between two of your own accounts without counting as either, and a withdrawal is money that leaves the account and leaves the system entirely (no category, like a transfer, but without going to another account of yours).',
-      movimientoTiposAria: 'Help: difference between income, expense, transfer, and withdrawal',
+        'Income is money coming in, expense is money going out with a category, a transfer moves money between two of your own accounts without counting as either, and a withdrawal is money that leaves the account and leaves the system entirely (no category, like a transfer, but without going to another account of yours). If you have a credit card with outstanding debt, you can also choose "Pay card" to pay it down.',
+      movimientoTiposAria: 'Help: difference between income, expense, transfer, withdrawal, and paying a card',
       gastoFijoPagado:
         "Marking it as paid lets you choose which account the money came out of: the app creates a real transaction, deducts that account's balance, and logs it in your history.",
       gastoFijoPagadoAria: 'Help: what happens when you mark a fixed expense as paid',
@@ -1210,9 +1210,6 @@ export default {
       quincena:
         "The 1st half covers days 1 to 15 of the month, and the 2nd half covers day 16 to the end. Fixed expenses always show for the whole month, no matter which half you pick.",
       quincenaAria: 'Help: what the 1st and 2nd half of the month mean',
-      traslados:
-        "A transfer moves money between two of your own accounts (like from savings to your everyday account). It doesn't count as income or expense, and it's excluded from your Summary stats.",
-      trasladosAria: 'Help: what a transfer is and how it affects your stats',
       resumenTotales:
         'Total income and expenses for the period you\'ve selected, with expenses split into fixed and variable, plus your final balance (income minus expenses).',
       resumenTotalesAria: 'Help: what the Summary totals show',
@@ -1251,27 +1248,32 @@ export default {
       movimientos: {
         titulo: 'Transactions',
         texto:
-          'A transaction is any money moving in or out: an income (like your paycheck), an expense (a purchase), or a transfer (moving money between two of your own accounts, like from savings to your everyday account).\n\nTap "+ Add transaction" on Home to log one: choose the type, the amount, the account (and a category, for expenses). To edit or delete a transaction you already logged, just tap it in the Home list.',
+          'A transaction is any money moving in or out. There are 5 types: income (money coming in, like your paycheck), expense (a purchase, with its category), transfer (moving money between two of your own accounts), withdrawal (money that leaves the system entirely, like an ATM withdrawal), and pay card (if you have a credit card with outstanding debt).\n\nTap the "+" button on Home: a step-by-step wizard walks you through it -- first you pick the type, then the account or category as needed, the amount, and at the end you can add an optional note before saving.\n\nTo edit or delete a transaction you already logged, open the detail of the account, category, or card it belongs to and tap it there -- there\'s no longer a transaction list on Home, each one lives in its own account, category, or card detail.',
       },
       cuentas: {
         titulo: 'Accounts',
         texto:
-          "Accounts represent where your money actually sits: a bank account, cash, a digital wallet, an investment, and so on. Every transaction you log moves money in or out of some account, so its balance updates on its own.\n\nYou can mark an account as part of your emergency fund (your savings, say, or a low-risk investment) -- its balance then counts automatically toward how many months of expenses you have covered.",
+          'Accounts represent where your money actually sits: a bank account, cash, a digital wallet, an investment, and so on. Every transaction you log moves money in or out of some account, so its balance updates on its own.\n\nTap an account to see its detail: the Income, Expenses, and Net totals for the month, and a list you can switch between "Income" and "Expenses" to review exactly what came in or out of that account.\n\nYou can mark an account as part of your emergency fund (your savings, say, or a low-risk investment) -- its balance then counts automatically toward how many months of expenses you have covered.',
+      },
+      tarjetas: {
+        titulo: 'Credit cards',
+        texto:
+          "A credit card is borrowed money: you spend now and pay later. Unlike an account, it has no balance of its own -- it has a total limit (the most you can owe) and a debt (what you've already spent and haven't paid back yet). Your available limit is the difference between the two: how much you have left to spend.\n\nWhen you log an expense with a card, the amount counts toward its category like any other expense and raises your debt, but it does NOT come out of any of your accounts -- it isn't your money yet. When you pay the card, you choose which account the money comes from: that account's balance drops and your debt goes down by the same amount.\n\nIf you no longer use a card, you can archive it (only when its debt is exactly 0): it stops showing up as an option when spending or paying, but all its expense and payment history stays intact.\n\nOn Home, the \"My cards\" section has its own progress bar: it shows how much of your total limit is already tied up in debt across all your cards.",
       },
       categorias: {
         titulo: 'Categories',
         texto:
-          'Categories classify your expenses (Groceries, Transport, Leisure...) so the Summary can show you where your money actually goes. You can create your own, pick an emoji and color, and set an optional monthly cap if you want to keep a closer eye on one.\n\nThere\'s a special "Fixed expenses" category the app creates for you: it\'s used for the fixed expenses you mark as paid, and it can\'t be edited or deleted, so you always have one consistent place to see them.',
+          'Categories classify your expenses (Groceries, Transport, Leisure...) so the Summary can show you where your money actually goes. You can create your own, pick an icon and color, and set an optional monthly cap if you want to keep a closer eye on one.\n\nThere\'s a special "Fixed expenses" category the app creates for you: it\'s used for the fixed expenses you mark as paid, and it can\'t be edited or deleted, so you always have one consistent place to see them.',
       },
       gastosFijos: {
         titulo: 'Fixed expenses',
         texto:
-          "Fixed expenses are the ones that repeat every month for roughly the same amount: rent, utilities, subscriptions. You set them up once, with a name and expected amount.\n\nEach month you mark them as paid from the Fixed Expenses screen, choose which account the money came out of, and the app automatically creates a real transaction: that account's balance drops and the expense is logged in your history -- no need to enter it twice.",
+          "Fixed expenses are the ones that repeat every month for roughly the same amount: rent, utilities, subscriptions. You set them up once, with a name and expected amount.\n\nEach month you mark them as paid from the Fixed Expenses screen, choose which account or card the money came out of, and the app automatically creates a real transaction: that account's balance drops (or your card debt goes up, if you paid with a card) and the expense is logged in your history -- no need to enter it twice.\n\nOn Home, this section's bar changes color based on how much you've paid so far this month, so you can see at a glance whether you're on track.",
       },
       gastosVariables: {
         titulo: 'Variable expenses',
         texto:
-          "These are your everyday expenses without a fixed amount: groceries, transport, leisure. You log them like any other expense transaction, picking the matching category.\n\nIf you set a monthly cap on a category, the app shows you how much you've spent against that cap, to help you keep it in check.",
+          "These are your everyday expenses without a fixed amount: groceries, transport, leisure. You log them like any other expense transaction, picking the matching category.\n\nIf you set a monthly cap on a category, the app shows you how much you've spent against that cap, to help you keep it in check. On Home, this section's bar also changes color based on how much you've spent against your caps.",
       },
       fondoEmergencia: {
         titulo: 'Emergency fund',
@@ -1296,7 +1298,7 @@ export default {
       viajes: {
         titulo: 'Plan your trips',
         texto:
-          "A separate space to budget a trip without mixing those numbers with your real accounts and transactions. Create a trip, add categories with their own budget (lodging, food, transport...), and log expenses as they happen.\n\nEach expense can be logged in the currency of the country you're visiting (it doesn't have to match your profile's currency), and the trip summary shows the total spent grouped by every currency you used.",
+          "A separate space to budget a trip without mixing those numbers with your real accounts and transactions. A wizard walks you through creating it: where you're traveling from and to, the dates, how many people are going, and which categories you want to budget (hotel, food, transport...) with an amount for each -- you can leave anything blank and fill it in later.\n\nA trip's categories are tap-to-open: tap one to see how much you've spent against its budget. You can log an expense with the trip's floating \"+\" button (no fixed category) or with \"+ New expense\" inside a category (already set to that category) -- either way, a wizard walks you through it step by step.\n\nEach expense can be logged in the currency of the country you're visiting (it doesn't have to match your profile's currency), and the trip summary shows the total spent grouped by every currency you used.",
       },
       calculadoras: {
         titulo: 'Calculators',

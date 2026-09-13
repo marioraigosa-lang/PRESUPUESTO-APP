@@ -1241,8 +1241,8 @@ export default {
     // QUÉ explica, ya que un "?" solo no dice nada a un lector de pantalla).
     ayuda: {
       movimientoTipos:
-        'Ingreso es dinero que entra, gasto es dinero que sale con categoría, traslado es mover dinero entre dos cuentas tuyas sin que cuente como ingreso ni gasto, y retiro es dinero que sale de la cuenta y sale del sistema (sin categoría, como un traslado, pero sin ir a otra cuenta tuya).',
-      movimientoTiposAria: 'Ayuda: diferencia entre ingreso, gasto, traslado y retiro',
+        'Ingreso es dinero que entra, gasto es dinero que sale con categoría, traslado es mover dinero entre dos cuentas tuyas sin que cuente como ingreso ni gasto, y retiro es dinero que sale de la cuenta y sale del sistema (sin categoría, como un traslado, pero sin ir a otra cuenta tuya). Si tienes una tarjeta de crédito con deuda pendiente, también puedes elegir "Pagar tarjeta" para abonarle.',
+      movimientoTiposAria: 'Ayuda: diferencia entre ingreso, gasto, traslado, retiro y pagar tarjeta',
       gastoFijoPagado:
         'Al marcarlo como pagado eliges de qué cuenta salió el dinero: la app crea un movimiento real, descuenta el saldo de esa cuenta y lo deja registrado en tu historial.',
       gastoFijoPagadoAria: 'Ayuda: qué pasa al marcar un gasto fijo como pagado',
@@ -1274,9 +1274,6 @@ export default {
       quincena:
         '1ª quincena son los días 1 al 15 del mes, y 2ª quincena del 16 al último día. Los gastos fijos siempre se muestran por mes completo, sin importar qué quincena elijas.',
       quincenaAria: 'Ayuda: qué es la 1ª y 2ª quincena',
-      traslados:
-        'Un traslado mueve dinero entre dos cuentas tuyas (por ejemplo, de ahorros a tu cuenta de gastos). No cuenta como ingreso ni como gasto, y se excluye de tus estadísticas de Resumen.',
-      trasladosAria: 'Ayuda: qué es un traslado y cómo afecta tus estadísticas',
       resumenTotales:
         'Ingresos y gastos totales del periodo que tienes seleccionado, con los gastos separados en fijos y variables, y tu balance final (ingresos menos gastos).',
       resumenTotalesAria: 'Ayuda: qué muestran los totales del Resumen',
@@ -1315,27 +1312,32 @@ export default {
       movimientos: {
         titulo: 'Movimientos',
         texto:
-          'Un movimiento es cualquier entrada o salida de dinero: un ingreso (tu sueldo, por ejemplo), un gasto (una compra) o un traslado (mover plata entre dos cuentas tuyas, como pasar de tu cuenta de ahorros a la de gastos).\n\nToca "+ Registrar movimiento" en Inicio para agregar uno: elige el tipo, el monto, la cuenta (y la categoría, si es un gasto). Para editar o eliminar un movimiento ya registrado, tócalo en la lista de Inicio.',
+          'Un movimiento es cualquier entrada o salida de dinero. Hay 5 tipos: ingreso (dinero que entra, como tu sueldo), gasto (una compra, con su categoría), traslado (mover plata entre dos cuentas tuyas), retiro (dinero que sale del sistema, como un retiro en cajero) y pagar tarjeta (si tienes una tarjeta de crédito con deuda pendiente).\n\nToca el botón "+" en Inicio: un asistente te guía paso a paso -- primero eliges el tipo, luego la cuenta o categoría según corresponda, el monto, y al final puedes anotar un concepto opcional antes de guardar.\n\nPara editar o eliminar un movimiento ya registrado, entra al detalle de la cuenta, la categoría o la tarjeta donde vive ese movimiento y tócalo ahí -- ya no hay una lista de movimientos en Inicio, cada uno se ve y se edita desde su cuenta, categoría o tarjeta.',
       },
       cuentas: {
         titulo: 'Cuentas',
         texto:
-          'Las cuentas representan dónde tienes tu dinero: una cuenta bancaria, efectivo, una billetera digital, una inversión, etc. Cada movimiento que registras entra o sale de alguna cuenta, así que su saldo se actualiza solo.\n\nPuedes marcar una cuenta como parte de tu fondo de emergencia (por ejemplo, tus ahorros o una inversión de bajo riesgo) -- así su saldo cuenta automáticamente para calcular cuántos meses de gastos tienes cubiertos.',
+          'Las cuentas representan dónde tienes tu dinero: una cuenta bancaria, efectivo, una billetera digital, una inversión, etc. Cada movimiento que registras entra o sale de alguna cuenta, así que su saldo se actualiza solo.\n\nToca una cuenta para ver su detalle: los totales de Ingresos, Egresos y tu Neto del mes, y una lista que puedes alternar entre los botones "Ingresos" y "Egresos" para revisar justo lo que entró o salió de esa cuenta.\n\nPuedes marcar una cuenta como parte de tu fondo de emergencia (por ejemplo, tus ahorros o una inversión de bajo riesgo) -- así su saldo cuenta automáticamente para calcular cuántos meses de gastos tienes cubiertos.',
+      },
+      tarjetas: {
+        titulo: 'Tarjetas de crédito',
+        texto:
+          'Una tarjeta de crédito es dinero prestado: gastas ahora y pagas después. A diferencia de una cuenta, no tiene saldo propio -- tiene un cupo total (lo máximo que puedes deber) y una deuda (lo que ya gastaste y todavía no has pagado). El cupo disponible es la resta entre los dos: lo que te queda por gastar.\n\nCuando registras un gasto con tarjeta, el monto cuenta en su categoría igual que cualquier otro gasto y sube tu deuda, pero NO sale de ninguna de tus cuentas -- todavía no es tu plata. Cuando pagas la tarjeta, eliges de qué cuenta sale el dinero: esa cuenta baja su saldo y tu deuda baja lo mismo que pagaste.\n\nSi ya no usas una tarjeta, puedes archivarla (solo si su deuda está en 0): deja de aparecer para elegir al gastar o pagar, pero todo su historial de gastos y pagos queda intacto.\n\nEn Inicio, la sección "Mis tarjetas" tiene su propia barra: muestra qué tanto de tu cupo total ya está comprometido en deuda entre todas tus tarjetas.',
       },
       categorias: {
         titulo: 'Categorías',
         texto:
-          'Las categorías clasifican tus gastos (Mercado, Transporte, Ocio...) para que el Resumen te muestre en qué se te va la plata. Puedes crear las tuyas, elegir emoji y color, y ponerles un tope mensual opcional si quieres vigilar de cerca alguna.\n\nHay una categoría especial, "Gastos fijos", que crea la app automáticamente: se usa para los gastos fijos que marcas como pagados y no se puede editar ni eliminar, para que siempre tengas un lugar consistente donde verlos.',
+          'Las categorías clasifican tus gastos (Mercado, Transporte, Ocio...) para que el Resumen te muestre en qué se te va la plata. Puedes crear las tuyas, elegir un ícono y color, y ponerles un tope mensual opcional si quieres vigilar de cerca alguna.\n\nHay una categoría especial, "Gastos fijos", que crea la app automáticamente: se usa para los gastos fijos que marcas como pagados y no se puede editar ni eliminar, para que siempre tengas un lugar consistente donde verlos.',
       },
       gastosFijos: {
         titulo: 'Gastos fijos',
         texto:
-          'Los gastos fijos son los que se repiten cada mes con un monto más o menos constante: arriendo, servicios, suscripciones. Los creas una sola vez, con su nombre y monto esperado.\n\nCada mes los marcas como "pagado" desde la pantalla de Gastos fijos, eliges de qué cuenta salió el dinero, y la app crea automáticamente un movimiento real: el saldo de esa cuenta baja y el gasto queda en tu historial, sin que tengas que registrarlo dos veces.',
+          'Los gastos fijos son los que se repiten cada mes con un monto más o menos constante: arriendo, servicios, suscripciones. Los creas una sola vez, con su nombre y monto esperado.\n\nCada mes los marcas como "pagado" desde la pantalla de Gastos fijos, eliges de qué cuenta o tarjeta salió el dinero, y la app crea automáticamente un movimiento real: el saldo de esa cuenta baja (o sube la deuda, si pagaste con tarjeta) y el gasto queda en tu historial, sin que tengas que registrarlo dos veces.\n\nEn Inicio, la barra de esta sección cambia de color según cuánto llevas pagado del mes, para que veas de un vistazo si vas al día.',
       },
       gastosVariables: {
         titulo: 'Gastos variables',
         texto:
-          'Son los gastos del día a día que no tienen un monto fijo: mercado, transporte, ocio. Se registran como cualquier movimiento de tipo "gasto", eligiendo la categoría que corresponda.\n\nSi le pusiste un tope mensual a una categoría, la app te muestra cuánto llevas gastado frente a ese tope, para ayudarte a no pasarte.',
+          'Son los gastos del día a día que no tienen un monto fijo: mercado, transporte, ocio. Se registran como cualquier movimiento de tipo "gasto", eligiendo la categoría que corresponda.\n\nSi le pusiste un tope mensual a una categoría, la app te muestra cuánto llevas gastado frente a ese tope, para ayudarte a no pasarte. En Inicio, la barra de esta sección también cambia de color según cuánto llevas gastado frente a tus topes.',
       },
       fondoEmergencia: {
         titulo: 'Fondo de emergencia',
@@ -1360,7 +1362,7 @@ export default {
       viajes: {
         titulo: 'Planifica tus viajes',
         texto:
-          'Un espacio aparte para presupuestar un viaje sin mezclar esos números con tus cuentas y movimientos reales. Creas un viaje, le agregas categorías con su presupuesto (hospedaje, comida, transporte...) y vas registrando los gastos a medida que ocurren.\n\nCada gasto puede quedar en la moneda del país que estés visitando (no tiene que ser la misma moneda de tu perfil), y el resumen del viaje te muestra el total gastado agrupado por cada moneda que usaste.',
+          'Un espacio aparte para presupuestar un viaje sin mezclar esos números con tus cuentas y movimientos reales. Un asistente te guía para crearlo: de dónde a dónde viajas, las fechas, cuántas personas van, y qué categorías vas a presupuestar (hotel, alimentación, transporte...) con su monto para cada una -- todo se puede dejar en blanco y completarlo después.\n\nLas categorías del viaje son navegables: tócalas para ver cuánto llevas gastado frente a su presupuesto. Puedes agregar un gasto con el botón "+" flotante del viaje (sin categoría fija) o con "+ Nuevo gasto" dentro de una categoría (ya viene con esa categoría elegida) -- en ambos casos un asistente te guía paso a paso.\n\nCada gasto puede quedar en la moneda del país que estés visitando (no tiene que ser la misma moneda de tu perfil), y el resumen del viaje te muestra el total gastado agrupado por cada moneda que usaste.',
       },
       calculadoras: {
         titulo: 'Calculadoras',
