@@ -348,22 +348,36 @@ export default {
   },
 
   categorias: {
+    // "Archive" replaced the delete-with-reassignment flow (see
+    // sql/supabase_archivar_categorias.sql and services/categorias.js): a
+    // category with expenses is never deleted, it just stops showing up as
+    // an option for new expenses -- its history is kept intact, and it
+    // keeps showing in any month where it has movements. Only a category
+    // that never had a single expense gets deleted for real (nothing to
+    // keep).
     gestion: {
       volverAria: 'Back',
       titulo: 'Manage categories',
-      subtitulo: 'Create, edit, and delete your expense categories',
+      subtitulo: 'Create, edit, archive, and delete your expense categories',
       agregarCategoria: '+ Add category',
       cargando: 'Loading categories...',
       errorCargar: "Couldn't load your categories. Please try again.",
-      errorEliminar: "Couldn't delete the category. Please try again.",
+      errorAccion: "Couldn't complete the action. Please try again.",
       confirmarEliminar: 'Delete the category "{{nombre}}"? This action cannot be undone.',
+      confirmarArchivar:
+        'Archive the category "{{nombre}}"? Its expenses are kept in your history and you\'ll keep seeing it in the months it already has expenses, but it won\'t show up as an option for new expenses.',
+      confirmarDesarchivar: 'Unarchive the category "{{nombre}}"? It will be available for new expenses again.',
+      errorDesarchivar: "Couldn't unarchive the category. Please try again.",
       sinCategorias: 'You don\'t have any categories yet. Create your first one with "+ Add category".',
       topeMensual: 'Monthly cap: {{monto}}',
       sinTopeDefinido: 'No cap set',
       editarAria: 'Edit category {{nombre}}',
       eliminarAria: 'Delete category {{nombre}}',
+      desarchivarAria: 'Unarchive category {{nombre}}',
       sistemaEtiqueta: 'System category',
       sistemaDescripcion: "Used for paid fixed expenses. It can't be edited or deleted.",
+      seccionArchivadas: 'Archived',
+      archivadaEtiqueta: 'Archived',
     },
     formulario: {
       nuevoTitulo: 'New category',
@@ -393,21 +407,6 @@ export default {
       guardando: 'Saving...',
       guardarCambios: 'Save changes',
       guardarCategoria: 'Save category',
-    },
-    reasignar: {
-      titulo: 'Move expenses and delete',
-      cerrarAria: 'Close',
-      contador: {
-        uno: '"{{nombre}}" has {{count}} transaction',
-        otro: '"{{nombre}}" has {{count}} transactions',
-      },
-      instruccion: 'To delete "{{nombre}}", first choose which category its expenses will move to.',
-      moverALabel: 'Move expenses to',
-      sinOpciones: "You don't have another category available. Create one first.",
-      errorSeleccionVacia: 'Select a destination category',
-      errorGuardar: "Couldn't complete the action. Please try again.",
-      moviendo: 'Moving and deleting...',
-      confirmar: 'Move expenses and delete category',
     },
     // Phase 2 of "navigable categories": screen opened by tapping a
     // variable-expense category on Home, showing that category's expenses

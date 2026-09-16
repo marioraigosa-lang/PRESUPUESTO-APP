@@ -2,10 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   agregarCategoria,
   actualizarCategoria,
+  archivarCategoria,
   asegurarNombreDisponible,
   contarMovimientosDeCategoria,
+  desarchivarCategoria,
   eliminarCategoria,
-  reasignarYEliminarCategoria,
 } from './categorias'
 
 // Imita el "query builder" encadenable de Supabase (.eq(), .select(),
@@ -229,58 +230,48 @@ describe('eliminarCategoria', () => {
   })
 })
 
-describe('reasignarYEliminarCategoria', () => {
-  it('reasigna los movimientos a la categoría destino y luego elimina la categoría', async () => {
+describe('archivarCategoria', () => {
+  it('archiva una categoría normal con un UPDATE de archivada_en', async () => {
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
-    await expect(
-      reasignarYEliminarCategoria(datosUsuario, { id: 1, es_sistema: false }, 2),
-    ).resolves.toBeUndefined()
+    await expect(archivarCategoria(datosUsuario, { id: 1, es_sistema: false })).resolves.toBeUndefined()
 
-    expect(actualizarPropio).toHaveBeenCalledWith('movimientos', { categoria_id: 2 })
-    expect(eliminarPropio).toHaveBeenCalledWith('categorias')
+    expect(actualizarPropio).toHaveBeenCalledWith('categorias', { archivada_en: expect.any(String) })
   })
 
-  it('bloquea eliminar la categoría del sistema sin llamar a Supabase', async () => {
+  it('bloquea archivar la categoría del sistema sin llamar a Supabase', async () => {
     const actualizarPropio = vi.fn()
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
-    await expect(
-      reasignarYEliminarCategoria(datosUsuario, { id: 1, es_sistema: true }, 2),
-    ).rejects.toThrow('La categoría del sistema no se puede eliminar')
+    await expect(archivarCategoria(datosUsuario, { id: 1, es_sistema: true })).rejects.toThrow(
+      'La categoría del sistema no se puede archivar',
+    )
     expect(actualizarPropio).not.toHaveBeenCalled()
   })
 
-  it('exige una categoría destino antes de llamar a Supabase', async () => {
-    const actualizarPropio = vi.fn()
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
-
-    await expect(
-      reasignarYEliminarCategoria(datosUsuario, { id: 1, es_sistema: false }, null),
-    ).rejects.toThrow('Selecciona una categoría destino')
-    expect(actualizarPropio).not.toHaveBeenCalled()
-  })
-
-  it('si falla la reasignación, no intenta eliminar la categoría', async () => {
+  it('propaga el mensaje de error de Supabase', async () => {
     const actualizarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
-    const eliminarPropio = vi.fn()
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
-    await expect(
-      reasignarYEliminarCategoria(datosUsuario, { id: 1, es_sistema: false }, 2),
-    ).rejects.toThrow('boom')
-    expect(eliminarPropio).not.toHaveBeenCalled()
+    await expect(archivarCategoria(datosUsuario, { id: 1, es_sistema: false })).rejects.toThrow('boom')
+  })
+})
+
+describe('desarchivarCategoria', () => {
+  it('desarchiva una categoría con un UPDATE de archivada_en a null', async () => {
+    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+
+    await expect(desarchivarCategoria(datosUsuario, { id: 1 })).resolves.toBeUndefined()
+
+    expect(actualizarPropio).toHaveBeenCalledWith('categorias', { archivada_en: null })
   })
 
-  it('si falla la eliminación tras reasignar, el mensaje avisa que los gastos ya se movieron', async () => {
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio, eliminarPropio })
+  it('propaga el mensaje de error de Supabase', async () => {
+    const actualizarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
-    await expect(
-      reasignarYEliminarCategoria(datosUsuario, { id: 1, es_sistema: false }, 2),
-    ).rejects.toThrow('Los gastos se movieron pero no se pudo eliminar la categoría: boom')
+    await expect(desarchivarCategoria(datosUsuario, { id: 1 })).rejects.toThrow('boom')
   })
 })

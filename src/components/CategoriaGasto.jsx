@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Archive } from 'lucide-react'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useIdioma } from '../context/IdiomaContext'
 import { calcularProgresoPresupuesto } from '../utils/progresoPresupuesto'
@@ -12,7 +12,7 @@ import IconoCategoria from './IconoCategoria'
 function CategoriaGasto({ categoria, onClick }) {
   const formatear = useFormatoMoneda()
   const { t } = useIdioma()
-  const { nombre, color, presupuesto, gastado } = categoria
+  const { nombre, color, presupuesto, gastado, archivada_en: archivadaEn } = categoria
 
   const { tieneTope, excedido, porcentaje } = calcularProgresoPresupuesto(presupuesto, gastado)
   const colorBarra = excedido ? '#f2795b' : color
@@ -32,7 +32,22 @@ function CategoriaGasto({ categoria, onClick }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-text">{nombre}</p>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <p className="truncate text-sm font-medium text-text">{nombre}</p>
+          {/* Solo puede aparecer acá una categoría archivada CON gastos en
+              este período (ver el filtro en GastosVariables.jsx) -- este
+              badge es lo que le explica al usuario por qué ya no la
+              encuentra entre las activas de Gestión de categorías. */}
+          {archivadaEn && (
+            <span
+              className="flex shrink-0 items-center gap-1 rounded-full bg-line px-2 py-0.5 text-[10px] font-semibold text-text-dim"
+              title={t('categorias.gestion.archivadaEtiqueta')}
+            >
+              <Archive className="h-3 w-3" aria-hidden="true" />
+              {t('categorias.gestion.archivadaEtiqueta')}
+            </span>
+          )}
+        </div>
         {tieneTope && (
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line">
             <div

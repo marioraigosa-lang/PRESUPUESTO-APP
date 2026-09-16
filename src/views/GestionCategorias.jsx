@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Pencil, Trash2, Lock } from 'lucide-react'
+import { Pencil, Trash2, ArchiveRestore, Lock } from 'lucide-react'
 import HojaCategoria from '../components/HojaCategoria'
-import HojaReasignarCategoria from '../components/HojaReasignarCategoria'
 import AyudaContextual from '../components/AyudaContextual'
 import IconoCategoria from '../components/IconoCategoria'
 import { useIdioma } from '../context/IdiomaContext'
@@ -19,21 +18,23 @@ function GestionCategorias({
   onActualizarCategoria,
   onContarMovimientos,
   onEliminarCategoria,
-  onReasignarYEliminarCategoria,
+  onArchivarCategoria,
+  onDesarchivarCategoria,
 }) {
   const { t } = useIdioma()
   const formatear = useFormatoMoneda()
   const [hojaAbierta, setHojaAbierta] = useState(false)
   const [categoriaEditando, setCategoriaEditando] = useState(null)
-  const [eliminandoId, setEliminandoId] = useState(null)
+  const [procesandoId, setProcesandoId] = useState(null)
   const [errorAccion, setErrorAccion] = useState(null)
 
-  const [hojaReasignarAbierta, setHojaReasignarAbierta] = useState(false)
-  const [categoriaAEliminar, setCategoriaAEliminar] = useState(null)
-  const [cantidadMovimientos, setCantidadMovimientos] = useState(0)
-
   const categoriaSistema = categorias.find((categoria) => categoria.es_sistema)
+  // "Gestionables" = todo lo que no es la categoría de sistema (esa siempre
+  // se muestra aparte, bloqueada). Separada en activas/archivadas para las
+  // dos secciones de abajo -- ver plan de archivado de categorías.
   const categoriasGestionables = categorias.filter((categoria) => !categoria.es_sistema)
+  const categoriasActivas = categoriasGestionables.filter((categoria) => !categoria.archivada_en)
+  const categoriasArchivadas = categoriasGestionables.filter((categoria) => categoria.archivada_en)
 
   function abrirCrear() {
     setCategoriaEditando(null)
@@ -50,42 +51,60 @@ function GestionCategorias({
     setCategoriaEditando(null)
   }
 
-  function cerrarHojaReasignar() {
-    setHojaReasignarAbierta(false)
-    setCategoriaAEliminar(null)
-  }
-
-  async function manejarEliminar(categoria) {
+  // Decide en el momento (después de consultar el conteo real de
+  // movimientos) si esta categoría se puede borrar de verdad o si hay que
+  // archivarla -- mismo criterio que ya usaba manejarEliminar antes de
+  // reasignar-y-eliminar: no hace falta mostrar dos botones distintos de
+  // entrada, el botón único ya explica en su propio diálogo de confirmación
+  // cuál de las dos acciones va a pasar.
+  async function manejarAccion(categoria) {
     setErrorAccion(null)
-    setEliminandoId(categoria.id)
+    setProcesandoId(categoria.id)
 
     try {
       const cantidad = await onContarMovimientos(categoria.id)
 
-      if (cantidad > 0) {
-        setCantidadMovimientos(cantidad)
-        setCategoriaAEliminar(categoria)
-        setHojaReasignarAbierta(true)
+      if (cantidad === 0) {
+        const confirmado = window.confirm(
+          t('categorias.gestion.confirmarEliminar', { nombre: categoria.nombre }),
+        )
+        if (!confirmado) return
+
+        await onEliminarCategoria(categoria)
         return
       }
 
       const confirmado = window.confirm(
-        t('categorias.gestion.confirmarEliminar', { nombre: categoria.nombre }),
+        t('categorias.gestion.confirmarArchivar', { nombre: categoria.nombre }),
       )
       if (!confirmado) return
 
-      await onEliminarCategoria(categoria)
+      await onArchivarCategoria(categoria)
     } catch (error) {
       console.error(error)
-      setErrorAccion(t('categorias.gestion.errorEliminar'))
+      setErrorAccion(t('categorias.gestion.errorAccion'))
     } finally {
-      setEliminandoId(null)
+      setProcesandoId(null)
     }
   }
 
-  async function manejarConfirmarReasignar(categoriaDestinoId) {
-    await onReasignarYEliminarCategoria(categoriaAEliminar, categoriaDestinoId)
-    cerrarHojaReasignar()
+  async function manejarDesarchivar(categoria) {
+    setErrorAccion(null)
+
+    const confirmado = window.confirm(
+      t('categorias.gestion.confirmarDesarchivar', { nombre: categoria.nombre }),
+    )
+    if (!confirmado) return
+
+    setProcesandoId(categoria.id)
+    try {
+      await onDesarchivarCategoria(categoria)
+    } catch (error) {
+      console.error(error)
+      setErrorAccion(t('categorias.gestion.errorDesarchivar'))
+    } finally {
+      setProcesandoId(null)
+    }
   }
 
   return (
@@ -122,7 +141,7 @@ function GestionCategorias({
         )}
 
         <div className="flex flex-col gap-3">
-          {categoriasGestionables.map((categoria) => (
+          {categoriasActivas.map((categoria) => (
             <div key={categoria.id} className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4">
               <div
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -152,8 +171,8 @@ function GestionCategorias({
                 </button>
                 <button
                   type="button"
-                  onClick={() => manejarEliminar(categoria)}
-                  disabled={eliminandoId === categoria.id}
+                  onClick={() => manejarAccion(categoria)}
+                  disabled={procesandoId === categoria.id}
                   aria-label={t('categorias.gestion.eliminarAria', { nombre: categoria.nombre })}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-coral/70 hover:bg-panel-2 hover:text-coral disabled:opacity-60"
                 >
@@ -194,6 +213,47 @@ function GestionCategorias({
             </div>
           )}
         </div>
+
+        {/* Sección "Archivadas": a diferencia de tarjetas (que nunca se
+            muestran archivadas en ningún lado), acá sí conviene un lugar
+            desde donde desarchivar -- las categorías son estacionales
+            (vacaciones, regalos de fin de año...) y el usuario puede querer
+            reactivar una que ya usó antes, sin recrearla desde cero y perder
+            la continuidad con su historial. Atenuada a propósito: no compite
+            visualmente con las activas. */}
+        {categoriasArchivadas.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
+              {t('categorias.gestion.seccionArchivadas')}
+            </h2>
+            {categoriasArchivadas.map((categoria) => (
+              <div
+                key={categoria.id}
+                className="flex items-center gap-3 rounded-2xl bg-panel-2 p-4 opacity-70"
+              >
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: `${categoria.color}26` }}
+                >
+                  <IconoCategoria nombre={resolverIconoCategoria(categoria)} color={categoria.color} size="md" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-text">{categoria.nombre}</p>
+                  <p className="truncate text-xs text-text-dim">{t('categorias.gestion.archivadaEtiqueta')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => manejarDesarchivar(categoria)}
+                  disabled={procesandoId === categoria.id}
+                  aria-label={t('categorias.gestion.desarchivarAria', { nombre: categoria.nombre })}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-text-dim hover:bg-panel hover:text-mint disabled:opacity-60"
+                >
+                  <ArchiveRestore className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <HojaCategoria
@@ -202,15 +262,6 @@ function GestionCategorias({
         onCerrar={cerrarHoja}
         onGuardar={onAgregarCategoria}
         onActualizar={onActualizarCategoria}
-      />
-
-      <HojaReasignarCategoria
-        abierta={hojaReasignarAbierta}
-        categorias={categoriasGestionables}
-        categoria={categoriaAEliminar}
-        cantidadMovimientos={cantidadMovimientos}
-        onCerrar={cerrarHojaReasignar}
-        onConfirmar={manejarConfirmarReasignar}
       />
     </main>
   )

@@ -560,10 +560,29 @@ function App() {
     setMovimientosVersion((version) => version + 1)
   }
 
-  async function reasignarYEliminarCategoria(categoria, categoriaDestinoId) {
-    await categoriasService.reasignarYEliminarCategoria(datosUsuario, categoria, categoriaDestinoId)
-    setCategorias((actuales) => actuales.filter((c) => c.id !== categoria.id))
-    setMovimientosVersion((version) => version + 1)
+  // Archivar/desarchivar son solo un UPDATE de "archivada_en" (ver
+  // sql/supabase_archivar_categorias.sql): los movimientos de la categoría
+  // quedan INTACTOS -- a diferencia de tarjetas, acá NO se saca la fila del
+  // estado local (categorias sigue siendo la lista completa, incluidas las
+  // archivadas): GestionCategorias necesita verlas en su sección
+  // "Archivadas", y GastosVariables.jsx necesita saber cuáles están
+  // archivadas para decidir si mostrarlas en el mes que se esté mirando. Los
+  // servicios no devuelven la fila actualizada (son UPDATE simples sin
+  // .select()), así que el nuevo valor de archivada_en se aplica acá mismo,
+  // en el estado local.
+  async function archivarCategoria(categoria) {
+    await categoriasService.archivarCategoria(datosUsuario, categoria)
+    const archivadaEn = new Date().toISOString()
+    setCategorias((actuales) =>
+      actuales.map((c) => (c.id === categoria.id ? { ...c, archivada_en: archivadaEn } : c)),
+    )
+  }
+
+  async function desarchivarCategoria(categoria) {
+    await categoriasService.desarchivarCategoria(datosUsuario, categoria)
+    setCategorias((actuales) =>
+      actuales.map((c) => (c.id === categoria.id ? { ...c, archivada_en: null } : c)),
+    )
   }
 
   // Fase 6 del plan de saldo calculado ("Reiniciar datos", ver
@@ -713,7 +732,8 @@ function App() {
           onActualizarCategoria={actualizarCategoria}
           onContarMovimientos={contarMovimientosDeCategoria}
           onEliminarCategoria={eliminarCategoria}
-          onReasignarYEliminarCategoria={reasignarYEliminarCategoria}
+          onArchivarCategoria={archivarCategoria}
+          onDesarchivarCategoria={desarchivarCategoria}
         />
       )}
       {vista === 'gastosFijos' && (

@@ -109,29 +109,38 @@ export async function eliminarCategoria(datosUsuario, categoria) {
   if (error) throw new Error(error.message)
 }
 
-// Antes de borrar, mueve todos los movimientos de "categoria" a
-// "categoriaDestinoId" para que nunca quede un movimiento apuntando a una
-// categoría que ya no existe. Solo se elimina la categoría después de que
-// la reasignación se confirme sin errores.
-export async function reasignarYEliminarCategoria(datosUsuario, categoria, categoriaDestinoId) {
+// Archiva una categoría: la marca con "archivada_en = ahora" en vez de
+// borrarla. NO toca "movimientos" -- los gastos que ya tenía conservan su
+// categoria_id intacto, con su nombre e icono originales, en cualquier mes
+// donde tengan movimientos (ver sql/supabase_archivar_categorias.sql y el
+// filtro por período en GastosVariables.jsx). Deja de aparecer como opción
+// para un gasto NUEVO, y desaparece de los meses donde no tiene gastos.
+// Reemplaza a "reasignarYEliminarCategoria": archivar no reescribe ningún
+// gasto histórico, así que no hace falta pedir una categoría destino. Mismo
+// patrón que archivarTarjeta en services/tarjetas.js, pero sin su validación
+// de "deuda 0" -- una categoría no tiene ningún invariante acumulativo que
+// archivar pueda romper.
+export async function archivarCategoria(datosUsuario, categoria) {
   if (categoria.es_sistema) {
-    throw new Error('La categoría del sistema no se puede eliminar')
-  }
-  if (!categoriaDestinoId) {
-    throw new Error('Selecciona una categoría destino')
+    throw new Error('La categoría del sistema no se puede archivar')
   }
 
-  const { error: errorReasignar } = await datosUsuario
-    .actualizarPropio('movimientos', { categoria_id: categoriaDestinoId })
-    .eq('categoria_id', categoria.id)
+  const { error } = await datosUsuario
+    .actualizarPropio('categorias', { archivada_en: new Date().toISOString() })
+    .eq('id', categoria.id)
 
-  if (errorReasignar) throw new Error(errorReasignar.message)
+  if (error) throw new Error(error.message)
+}
 
-  const { error: errorEliminar } = await datosUsuario.eliminarPropio('categorias').eq('id', categoria.id)
+// Desarchiva una categoría: vuelve a dejarla disponible para gastos nuevos y
+// visible en cualquier mes, sin ninguna validación -- a diferencia de
+// archivar, desarchivar nunca puede dejar la app en un estado inconsistente,
+// así que no hace falta bloquear nada (ni siquiera para la categoría de
+// sistema, que nunca llega a archivarse).
+export async function desarchivarCategoria(datosUsuario, categoria) {
+  const { error } = await datosUsuario
+    .actualizarPropio('categorias', { archivada_en: null })
+    .eq('id', categoria.id)
 
-  if (errorEliminar) {
-    throw new Error(
-      `Los gastos se movieron pero no se pudo eliminar la categoría: ${errorEliminar.message}`,
-    )
-  }
+  if (error) throw new Error(error.message)
 }

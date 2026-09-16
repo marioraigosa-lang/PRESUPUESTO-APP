@@ -194,13 +194,20 @@ function DetalleCategoria({
             <h2 className="text-xs font-semibold uppercase tracking-wide text-text-dim">
               {t('categorias.detalle.gastosTitulo')}
             </h2>
-            <button
-              type="button"
-              onClick={abrirNuevoGasto}
-              className="text-xs font-semibold text-mint"
-            >
-              {t('categorias.detalle.nuevoGasto')}
-            </button>
+            {/* Una categoría archivada no es una opción para un gasto NUEVO
+                (mismo criterio que el grid del asistente, ver
+                AsistenteMovimiento.jsx) -- este botón es el único camino que
+                quedaba para colar un gasto nuevo en una categoría archivada
+                sin pasar por ese grid, así que se oculta acá también. */}
+            {!categoria.archivada_en && (
+              <button
+                type="button"
+                onClick={abrirNuevoGasto}
+                className="text-xs font-semibold text-mint"
+              >
+                {t('categorias.detalle.nuevoGasto')}
+              </button>
+            )}
           </div>
 
           {cargandoMovimientos && (

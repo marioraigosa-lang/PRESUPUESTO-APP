@@ -28,10 +28,10 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
     // (no el histórico completo).
     const [{ data: categoriasData, error: errorCategoriasData }, { data: gastosData, error: errorGastosData }] =
       await Promise.all([
-        seleccionarPropio('categorias', 'id, nombre, emoji, icono, color, presupuesto, descripcion').eq(
-          'es_sistema',
-          false,
-        ),
+        seleccionarPropio(
+          'categorias',
+          'id, nombre, emoji, icono, color, presupuesto, descripcion, archivada_en',
+        ).eq('es_sistema', false),
         seleccionarPropio('movimientos', 'categoria_id, monto')
           .eq('tipo', 'gasto')
           .gte('fecha', desde)
@@ -48,10 +48,22 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
       return acumulado
     }, {})
 
-    return categoriasData.map((categoria) => ({
-      ...categoria,
-      gastado: gastadoPorCategoria[categoria.id] ?? 0,
-    }))
+    // El corazón del archivado de categorías (a diferencia de tarjetas, que
+    // se ocultan siempre): una categoría ACTIVA se muestra sin condiciones;
+    // una ARCHIVADA solo se muestra si tiene algo gastado en ESTE período --
+    // así sigue viéndose en el mes donde de verdad se usó, pero desaparece
+    // en cualquier mes (como el actual) donde ya no tiene movimientos. Este
+    // filtro no puede vivir en una vista SQL fija (como sí lo hace
+    // tarjetas_con_deuda): depende del rango de fechas que esta pantalla
+    // esté mirando en cada momento, así que se resuelve acá, ya con
+    // "gastadoPorCategoria" calculado para el período elegido. Ver plan de
+    // archivado de categorías / sql/supabase_archivar_categorias.sql.
+    return categoriasData
+      .map((categoria) => ({
+        ...categoria,
+        gastado: gastadoPorCategoria[categoria.id] ?? 0,
+      }))
+      .filter((categoria) => !categoria.archivada_en || categoria.gastado > 0)
   }
 
   const {

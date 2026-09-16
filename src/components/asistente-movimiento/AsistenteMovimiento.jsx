@@ -48,15 +48,31 @@ function AsistenteMovimiento({
 }) {
   const { t } = useIdioma()
 
+  // Una categoría archivada (ver sql/supabase_archivar_categorias.sql) nunca
+  // es una opción para un movimiento NUEVO -- solo sigue visible en los
+  // meses donde ya tiene gastos (GastosVariables.jsx), no acá. Filtrar UNA
+  // sola vez acá, y usar "categoriasActivas" para todo lo demás en este
+  // componente (preselección, sugerencia de "última usada", el paso
+  // PasoCategoria, y la resolución de emoji/icono en construirDatosMovimiento),
+  // cubre los 3 lugares donde se monta este componente (App.jsx, "+ Nuevo
+  // movimiento" en DetalleCuenta.jsx y "+ Nuevo gasto" en DetalleCategoria.jsx)
+  // sin tener que repetir el filtro en cada uno de ellos.
+  const categoriasActivas = categorias.filter((categoria) => !categoria.archivada_en)
+
   // Blindaje contra una preselección obsoleta (ej. la cuenta/categoría se
-  // borró en otra pestaña mientras esta pantalla seguía abierta): sin esto,
-  // flujos.js saltaría igual el paso correspondiente (solo mira si el id es
-  // truthy) dejando un id fantasma sin ningún paso donde corregirlo. Mismo
-  // criterio .some(...) que ya usa elegirTipo() para las sugerencias de
-  // "última cuenta/categoría usada" -- ver idValidoEnLista en
-  // preselecciones.js.
+  // borró -- o se archivó -- en otra pestaña mientras esta pantalla seguía
+  // abierta): sin esto, flujos.js saltaría igual el paso correspondiente
+  // (solo mira si el id es truthy) dejando un id fantasma sin ningún paso
+  // donde corregirlo. Mismo criterio .some(...) que ya usa elegirTipo() para
+  // las sugerencias de "última cuenta/categoría usada" -- ver
+  // idValidoEnLista en preselecciones.js. Se valida contra
+  // "categoriasActivas": una categoría archivada nunca es una preselección
+  // válida para un gasto nuevo, ni siquiera si "categoriaPreseleccionadaId"
+  // la nombra explícitamente (ej. DetalleCategoria.jsx oculta su botón
+  // "Nuevo gasto" cuando la categoría está archivada, pero esto es un
+  // segundo blindaje por si esa prop llegara igual).
   const cuentaPreseleccionadaIdValida = idValidoEnLista(cuentaPreseleccionadaId, cuentas)
-  const categoriaPreseleccionadaIdValida = idValidoEnLista(categoriaPreseleccionadaId, categorias)
+  const categoriaPreseleccionadaIdValida = idValidoEnLista(categoriaPreseleccionadaId, categoriasActivas)
   // BUG CRÍTICO corregido: con una sola cuenta, flujos.js salta el paso
   // donde se elegiría (unaSolaCuenta en pasosASaltar) pero nadie le asignaba
   // esa cuenta a `cuentaId` -- se quedaba en '' y el guardado fallaba
@@ -172,7 +188,7 @@ function AsistenteMovimiento({
     // un gasto con éxito, y el guardado fallaba siempre (bug corregido).
     const sugerencias = {
       cuentaId: opcionUnica(cuentas) || idValidoEnLista(leerUltimaCuenta(valor), cuentas),
-      categoriaId: valor === 'gasto' ? idValidoEnLista(leerUltimaCategoria(), categorias) : '',
+      categoriaId: valor === 'gasto' ? idValidoEnLista(leerUltimaCategoria(), categoriasActivas) : '',
     }
     dispatch({ tipo: 'ELEGIR_TIPO', valor, sugerencias })
   }
@@ -218,7 +234,7 @@ function AsistenteMovimiento({
     // partir del borrador -- borrador.descripcion ya está al día (PasoConcepto
     // la despacha con ACTUALIZAR en cada tecla, ver actualizarCampo arriba),
     // así que ni siquiera hace falta pasarla aparte.
-    const datos = construirDatosMovimiento(borrador, { cuentas, categorias, tarjetas, t })
+    const datos = construirDatosMovimiento(borrador, { cuentas, categorias: categoriasActivas, tarjetas, t })
 
     setErrorGuardado(false)
     setGuardando(true)
@@ -350,14 +366,18 @@ function AsistenteMovimiento({
                 borrador={borrador}
                 cuentas={cuentas}
                 tarjetas={tarjetas}
-                categorias={categorias}
+                categorias={categoriasActivas}
                 pasos={pasos}
                 onAvanzar={(monto) => elegir({ monto })}
               />
             )}
 
             {pasoActual === 'categoria' && (
-              <PasoCategoria borrador={borrador} categorias={categorias} onElegir={(categoriaId) => elegir({ categoriaId })} />
+              <PasoCategoria
+                borrador={borrador}
+                categorias={categoriasActivas}
+                onElegir={(categoriaId) => elegir({ categoriaId })}
+              />
             )}
 
             {pasoActual === 'monto' && (
@@ -365,7 +385,7 @@ function AsistenteMovimiento({
                 borrador={borrador}
                 cuentas={cuentas}
                 tarjetas={tarjetas}
-                categorias={categorias}
+                categorias={categoriasActivas}
                 pasos={pasos}
                 onAvanzar={(monto) => elegir({ monto })}
               />
@@ -376,7 +396,7 @@ function AsistenteMovimiento({
                 borrador={borrador}
                 cuentas={cuentas}
                 tarjetas={tarjetas}
-                categorias={categorias}
+                categorias={categoriasActivas}
                 pasos={pasos}
                 guardando={guardando}
                 errorGuardado={errorGuardado}

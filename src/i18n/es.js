@@ -378,22 +378,37 @@ export default {
   },
 
   categorias: {
+    // "Archivar" reemplazó al borrado con reasignación (ver
+    // sql/supabase_archivar_categorias.sql y services/categorias.js): una
+    // categoría con gastos nunca se borra, solo deja de mostrarse como
+    // opción para gastos nuevos -- su historial se conserva intacto, y
+    // sigue viendo en cualquier mes donde tenga movimientos. Solo se borra
+    // de verdad una categoría que nunca tuvo ningún gasto (nada que
+    // conservar).
     gestion: {
       volverAria: 'Volver',
       titulo: 'Gestionar categorías',
-      subtitulo: 'Crea, edita y elimina tus categorías de gasto',
+      subtitulo: 'Crea, edita, archiva y elimina tus categorías de gasto',
       agregarCategoria: '+ Agregar categoría',
       cargando: 'Cargando categorías...',
       errorCargar: 'No se pudieron cargar las categorías. Intenta de nuevo.',
-      errorEliminar: 'No se pudo eliminar la categoría. Intenta de nuevo.',
+      errorAccion: 'No se pudo completar la acción. Intenta de nuevo.',
       confirmarEliminar: '¿Eliminar la categoría "{{nombre}}"? Esta acción no se puede deshacer.',
+      confirmarArchivar:
+        '¿Archivar la categoría "{{nombre}}"? Sus gastos se conservan en su historial y seguirás viéndola en los meses donde ya tenga gastos, pero no aparecerá como opción para gastos nuevos.',
+      confirmarDesarchivar:
+        '¿Desarchivar la categoría "{{nombre}}"? Volverá a estar disponible para gastos nuevos.',
+      errorDesarchivar: 'No se pudo desarchivar la categoría. Intenta de nuevo.',
       sinCategorias: 'Aún no tienes categorías. Crea la primera con "+ Agregar categoría".',
       topeMensual: 'Tope mensual: {{monto}}',
       sinTopeDefinido: 'Sin tope definido',
       editarAria: 'Editar categoría {{nombre}}',
       eliminarAria: 'Eliminar categoría {{nombre}}',
+      desarchivarAria: 'Desarchivar categoría {{nombre}}',
       sistemaEtiqueta: 'Categoría del sistema',
       sistemaDescripcion: 'Se usa para los gastos fijos pagados. No se puede editar ni eliminar.',
+      seccionArchivadas: 'Archivadas',
+      archivadaEtiqueta: 'Archivada',
     },
     formulario: {
       nuevoTitulo: 'Nueva categoría',
@@ -423,21 +438,6 @@ export default {
       guardando: 'Guardando...',
       guardarCambios: 'Guardar cambios',
       guardarCategoria: 'Guardar categoría',
-    },
-    reasignar: {
-      titulo: 'Mover gastos y eliminar',
-      cerrarAria: 'Cerrar',
-      contador: {
-        uno: '"{{nombre}}" tiene {{count}} movimiento',
-        otro: '"{{nombre}}" tiene {{count}} movimientos',
-      },
-      instruccion: 'Para eliminar "{{nombre}}" primero elige a qué categoría se mueven sus gastos.',
-      moverALabel: 'Mover gastos a',
-      sinOpciones: 'No tienes otra categoría disponible. Crea una primero.',
-      errorSeleccionVacia: 'Selecciona una categoría destino',
-      errorGuardar: 'No se pudo completar la acción. Intenta de nuevo.',
-      moviendo: 'Moviendo y eliminando...',
-      confirmar: 'Mover gastos y eliminar categoría',
     },
     // Fase 2 de "categorías navegables": pantalla que se abre al tocar una
     // categoría de gasto variable en Inicio, con sus gastos del mes. Solo

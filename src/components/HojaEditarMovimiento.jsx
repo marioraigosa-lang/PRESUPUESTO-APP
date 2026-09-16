@@ -106,7 +106,7 @@ function HojaEditarMovimiento({ abierta, onCerrar, cuentas, tarjetas = [], categ
     // editar produzca EXACTAMENTE el mismo objeto que crear.
     const datos = construirDatosMovimiento(
       { tipo, monto, origen, cuentaId, tarjetaId, cuentaDestinoId, categoriaId, descripcion },
-      { cuentas, categorias, t },
+      { cuentas, categorias: categoriasParaElegir, t },
     )
 
     try {
@@ -120,7 +120,21 @@ function HojaEditarMovimiento({ abierta, onCerrar, cuentas, tarjetas = [], categ
     }
   }
 
-  const categoriaSeleccionada = categorias.find((categoria) => categoria.id === categoriaId)
+  // El grid de categorías muestra las activas MÁS -- pinneada -- la
+  // categoría que este movimiento ya tenía, aunque esté archivada (ver
+  // sql/supabase_archivar_categorias.sql): si no se hiciera esto, abrir para
+  // editar un gasto viejo de una categoría archivada (solo para cambiarle el
+  // monto, por ejemplo) forzaría a recategorizarlo sin que el usuario lo
+  // haya pedido -- categoriaId ya viene precargado con
+  // movimientoEditando.categoria_id (ver el useEffect de arriba) y no
+  // encontraría su propio botón en la lista. Al resto de las categorías
+  // archivadas (las que NO son la de este movimiento) no se les da lugar acá
+  // -- ese filtro es a propósito el mismo "solo activas" que ya aplica
+  // AsistenteMovimiento para un gasto nuevo.
+  const categoriasParaElegir = categorias.filter(
+    (categoria) => !categoria.archivada_en || categoria.id === categoriaId,
+  )
+  const categoriaSeleccionada = categoriasParaElegir.find((categoria) => categoria.id === categoriaId)
   // Solo un gasto puede salir de una tarjeta (ver constraint
   // movimientos_traslado_forma_check en sql/supabase_tarjetas_movimientos.sql).
   const usaTarjeta = tipo === 'gasto' && origen === 'tarjeta'
@@ -272,7 +286,7 @@ function HojaEditarMovimiento({ abierta, onCerrar, cuentas, tarjetas = [], categ
           <div>
             <p className="mb-1 text-xs text-text-dim">{t('movimientos.formulario.categoriaLabel')}</p>
             <div className="grid grid-cols-3 gap-2">
-              {categorias.map((categoria) => {
+              {categoriasParaElegir.map((categoria) => {
                 const activo = categoria.id === categoriaId
                 return (
                   <button
