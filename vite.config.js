@@ -44,11 +44,16 @@ export default defineConfig({
         short_name: 'Seed',
         description: 'Tus finanzas sanas, crecen contigo.',
         lang: 'es',
+        // Identificador estable de la app para TWA/Play Store, independiente
+        // de start_url (recomendado por PWABuilder). Debe mantenerse igual
+        // entre releases aunque cambie start_url en el futuro.
+        id: '/',
         start_url: '/',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#0f1512',
         theme_color: '#0f1512',
+        categories: ['finance'],
         icons: [
           {
             src: '/pwa-192x192.png',
