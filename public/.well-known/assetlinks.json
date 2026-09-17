@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.seedfinanzas.app",
+    "sha256_cert_fingerprints": ["F9:F2:A9:3C:73:F5:64:CB:C1:41:19:0C:C6:85:76:B1:89:D6:42:F1:18:C8:6B:5B:B3:33:BF:F6:AB:84:22:00"]
+  }
+}]
