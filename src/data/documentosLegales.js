@@ -1,4 +1,4 @@
-import VERSIONES_LEGALES from '../constants/versionesLegales'
+import VERSIONES_LEGALES from '../constants/versionesLegales.js'
 
 // Contenido íntegro de los documentos legales de Seed (Política de
 // Tratamiento de Datos Personales y Términos y Condiciones), en español --

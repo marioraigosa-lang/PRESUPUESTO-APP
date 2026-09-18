@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Términos y Condiciones - Seed</title>
+  <meta name="description" content="Términos y Condiciones de Uso de Seed-App, la aplicación de finanzas personales." />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --color-bg: #0f1512;
+      --color-panel: #161d19;
+      --color-panel-2: #1d2621;
+      --color-line: #2a352e;
+      --color-text: #eef3ef;
+      --color-text-dim: #9db0a6;
+      --color-mint: #4fd1a5;
+      --color-gold: #e9b949;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    a { color: inherit; }
+    .volver {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      color: var(--color-text-dim);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      width: fit-content;
+    }
+    .volver:hover { color: var(--color-text); }
+    .portada {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border-radius: 1rem;
+      background-color: var(--color-panel);
+      padding: 1.5rem 1.25rem;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.32), 0 10px 24px -10px rgba(0, 0, 0, 0.48);
+    }
+    .marca {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-seed {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 0.375rem;
+      background-color: var(--color-mint);
+      color: var(--color-bg);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .marca-nombre {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--color-text-dim);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .meta {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      border-radius: 999px;
+      background-color: var(--color-panel-2);
+      padding: 0.25rem 0.75rem;
+      font-size: 0.6875rem;
+      color: var(--color-text-dim);
+    }
+    .tarjeta {
+      border-radius: 1rem;
+      background-color: var(--color-panel);
+      padding: 1rem;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.32), 0 10px 24px -10px rgba(0, 0, 0, 0.48);
+    }
+    .indice-titulo {
+      margin: 0 0 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-dim);
+    }
+    .indice-lista {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .indice-lista li {
+      border-top: 1px solid var(--color-line);
+    }
+    .indice-lista li:first-child {
+      border-top: none;
+    }
+    .indice-lista a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.625rem 0;
+      text-decoration: none;
+      font-size: 0.875rem;
+      color: var(--color-text-dim);
+    }
+    .indice-lista a:hover { color: var(--color-text); }
+    .chevron { width: 1rem; height: 1rem; opacity: 0.4; flex-shrink: 0; }
+    .secciones {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .seccion { scroll-margin-top: 1.5rem; }
+    .seccion-destacada {
+      background-color: rgba(79, 209, 165, 0.1);
+      border: 1px solid rgba(79, 209, 165, 0.15);
+    }
+    .titulo-seccion {
+      display: flex;
+      align-items: baseline;
+      gap: 0.625rem;
+    }
+    .icono-destacado {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      transform: translateY(2px);
+      color: var(--color-mint);
+    }
+    .numero-seccion {
+      flex-shrink: 0;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-mint);
+    }
+    .titulo-seccion h2 {
+      margin: 0;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .bloques {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--color-text-dim);
+    }
+    .bloques p { margin: 0; }
+    .bloques .subtitulo {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-top: 0.25rem;
+    }
+    .bloques ul, .bloques ol {
+      margin: 0;
+      padding-left: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .bloques ul { list-style-type: disc; }
+    .bloques ol { list-style-type: decimal; }
+    .bloques li::marker { color: rgba(79, 209, 165, 0.6); }
+    .por-definir {
+      border-radius: 0.25rem;
+      background-color: rgba(233, 185, 73, 0.15);
+      color: var(--color-gold);
+      padding: 0.0625rem 0.25rem;
+    }
+    footer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+      text-align: center;
+      padding-top: 1rem;
+      font-size: 0.8125rem;
+      color: var(--color-text-dim);
+    }
+    footer a { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="volver" href="/">&larr; Seed</a>
+
+    <header class="portada">
+      <div class="marca">
+        <span class="logo-seed">S</span>
+        <span class="marca-nombre">Seed</span>
+      </div>
+      <h1>Términos y Condiciones de Uso — Seed-App</h1>
+      <p class="meta">Versión 1.0 · Última actualización: 1 de septiembre de 2026</p>
+    </header>
+
+    
+      <nav class="tarjeta indice" aria-label="Contenido">
+        <h2 class="indice-titulo">Contenido</h2>
+        <ol class="indice-lista">
+          <li><a href="#seccion-1"><span>1. Aceptación de los Términos</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-2"><span>2. Descripción del servicio</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-3"><span>3. Requisitos de uso</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-4"><span>4. Uso aceptable</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-5"><span>5. Cuenta y seguridad</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-6"><span>6. Sus datos</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-7"><span>7. Planes y pagos</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-8"><span>8. Propiedad intelectual</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-9"><span>9. Limitación de responsabilidad</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-10"><span>10. Disponibilidad y cambios</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-11"><span>11. Terminación</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-12"><span>12. Ley aplicable y jurisdicción</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-13"><span>13. Contacto</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+        </ol>
+      </nav>
+
+    <div class="secciones">
+      
+      <section id="seccion-1" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">01</span>
+          <h2>Aceptación de los Términos</h2>
+        </div>
+        <div class="bloques">
+          <p>Al crear una cuenta y usar Seed-App (en adelante, "la aplicación" o "el servicio"), usted acepta estos Términos y Condiciones. Si no está de acuerdo, por favor no use la aplicación.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-2" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">02</span>
+          <h2>Descripción del servicio</h2>
+        </div>
+        <div class="bloques">
+          <p>Seed-App es una aplicación de finanzas personales que le permite registrar y organizar su información financiera (ingresos, gastos, cuentas, metas de ahorro, fondo de emergencia, planificación de viajes, entre otros) con fines de control y educación financiera personal.</p>
+          <p>Seed-App es una herramienta de registro y organización personal. No es una entidad financiera, no maneja dinero real, no accede a sus cuentas bancarias, y no presta servicios de inversión, intermediación ni asesoría financiera profesional. La información y las calculadoras ofrecidas son de carácter informativo y educativo, y no constituyen asesoría financiera, contable, tributaria ni legal.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-3" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">03</span>
+          <h2>Requisitos de uso</h2>
+        </div>
+        <div class="bloques">
+          <ul><li>Debe ser mayor de 18 años.</li><li>Debe proporcionar información veraz al registrarse.</li><li>Es responsable de mantener la confidencialidad de su contraseña y de la actividad de su cuenta.</li><li>Le recomendamos activar la verificación en dos pasos para mayor seguridad.</li></ul>
+        </div>
+      </section>
+      
+      <section id="seccion-4" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">04</span>
+          <h2>Uso aceptable</h2>
+        </div>
+        <div class="bloques">
+          <p>Usted se compromete a:</p>
+          <ul><li>Usar la aplicación conforme a la ley y a estos Términos.</li><li>No intentar vulnerar la seguridad de la aplicación ni acceder a datos de otros usuarios.</li><li>No usar la aplicación para fines ilícitos.</li></ul>
+          <p>Nos reservamos el derecho de suspender o cancelar cuentas que incumplan estos Términos.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-5" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">05</span>
+          <h2>Cuenta y seguridad</h2>
+        </div>
+        <div class="bloques">
+          <p>Usted es responsable de la actividad que ocurra en su cuenta. Si detecta un uso no autorizado, debe notificarnos de inmediato a seed.fin.app@gmail.com. Adoptamos medidas de seguridad, pero usted también debe proteger sus credenciales.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-6" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">06</span>
+          <h2>Sus datos</h2>
+        </div>
+        <div class="bloques">
+          <p>El tratamiento de sus datos personales se rige por nuestra Política de Tratamiento de Datos Personales, que usted acepta al registrarse. Sus registros financieros le pertenecen; puede exportarlos (cuando esté disponible), actualizarlos o eliminarlos.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-7" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">07</span>
+          <h2>Planes y pagos</h2>
+        </div>
+        <div class="bloques">
+          <p>Seed-App es actualmente de uso gratuito, con la posibilidad de introducir funciones o planes de pago en el futuro, que serán comunicados oportunamente a los usuarios. Los pagos, de existir, se procesarán a través de pasarelas de pago externas; Seed-App no almacena datos de tarjetas.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-8" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">08</span>
+          <h2>Propiedad intelectual</h2>
+        </div>
+        <div class="bloques">
+          <p>La aplicación Seed-App, su nombre, logo, diseño y código son propiedad de Mario Alonso Raigosa Restrepo y están protegidos por las leyes de propiedad intelectual. Usted no adquiere derechos sobre la aplicación por usarla, salvo el derecho de uso conforme a estos Términos.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-9" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">09</span>
+          <h2>Limitación de responsabilidad</h2>
+        </div>
+        <div class="bloques">
+          <p>Seed-App se ofrece "tal cual". En la máxima medida permitida por la ley:</p>
+          <ul><li>No garantizamos que el servicio sea ininterrumpido o libre de errores.</li><li>No somos responsables por decisiones financieras que usted tome con base en la información que registra u organiza en la aplicación. Las calculadoras y resúmenes son referenciales.</li><li>No somos responsables por pérdidas derivadas del uso o imposibilidad de uso de la aplicación, en la medida permitida por la ley.</li></ul>
+        </div>
+      </section>
+      
+      <section id="seccion-10" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">10</span>
+          <h2>Disponibilidad y cambios</h2>
+        </div>
+        <div class="bloques">
+          <p>Podemos modificar, suspender o descontinuar la aplicación (o parte de ella) en cualquier momento. Procuraremos avisar los cambios relevantes. También podemos actualizar estos Términos; los cambios sustanciales se comunicarán a través de la aplicación.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-11" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">11</span>
+          <h2>Terminación</h2>
+        </div>
+        <div class="bloques">
+          <p>Usted puede dejar de usar la aplicación y eliminar su cuenta en cualquier momento. Podemos suspender o cancelar su cuenta si incumple estos Términos.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-12" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">12</span>
+          <h2>Ley aplicable y jurisdicción</h2>
+        </div>
+        <div class="bloques">
+          <p>Estos Términos se rigen por las leyes de la República de Colombia. Cualquier controversia se someterá a los jueces y tribunales competentes de Armenia, Colombia.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-13" class="tarjeta seccion seccion-destacada">
+        <div class="titulo-seccion">
+          <span class="icono-destacado" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+          <span class="numero-seccion">13</span>
+          <h2>Contacto</h2>
+        </div>
+        <div class="bloques">
+          <p>Para cualquier duda sobre estos Términos, escríbanos a: seed.fin.app@gmail.com.</p>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>Seed-App &middot; Mario Alonso Raigosa Restrepo &middot; Armenia, Quindío, Colombia</p>
+      <p><a href="mailto:seed.fin.app@gmail.com">seed.fin.app@gmail.com</a> &middot; <a href="/politica.html">Política de Privacidad</a></p>
+    </footer>
+  </main>
+</body>
+</html>

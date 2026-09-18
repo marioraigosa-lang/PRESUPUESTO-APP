@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Política de Privacidad - Seed</title>
+  <meta name="description" content="Política de Tratamiento de Datos Personales de Seed-App, la aplicación de finanzas personales." />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --color-bg: #0f1512;
+      --color-panel: #161d19;
+      --color-panel-2: #1d2621;
+      --color-line: #2a352e;
+      --color-text: #eef3ef;
+      --color-text-dim: #9db0a6;
+      --color-mint: #4fd1a5;
+      --color-gold: #e9b949;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    a { color: inherit; }
+    .volver {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      color: var(--color-text-dim);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      width: fit-content;
+    }
+    .volver:hover { color: var(--color-text); }
+    .portada {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border-radius: 1rem;
+      background-color: var(--color-panel);
+      padding: 1.5rem 1.25rem;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.32), 0 10px 24px -10px rgba(0, 0, 0, 0.48);
+    }
+    .marca {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-seed {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 0.375rem;
+      background-color: var(--color-mint);
+      color: var(--color-bg);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .marca-nombre {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--color-text-dim);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .meta {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      border-radius: 999px;
+      background-color: var(--color-panel-2);
+      padding: 0.25rem 0.75rem;
+      font-size: 0.6875rem;
+      color: var(--color-text-dim);
+    }
+    .tarjeta {
+      border-radius: 1rem;
+      background-color: var(--color-panel);
+      padding: 1rem;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.32), 0 10px 24px -10px rgba(0, 0, 0, 0.48);
+    }
+    .indice-titulo {
+      margin: 0 0 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-dim);
+    }
+    .indice-lista {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .indice-lista li {
+      border-top: 1px solid var(--color-line);
+    }
+    .indice-lista li:first-child {
+      border-top: none;
+    }
+    .indice-lista a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.625rem 0;
+      text-decoration: none;
+      font-size: 0.875rem;
+      color: var(--color-text-dim);
+    }
+    .indice-lista a:hover { color: var(--color-text); }
+    .chevron { width: 1rem; height: 1rem; opacity: 0.4; flex-shrink: 0; }
+    .secciones {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .seccion { scroll-margin-top: 1.5rem; }
+    .seccion-destacada {
+      background-color: rgba(79, 209, 165, 0.1);
+      border: 1px solid rgba(79, 209, 165, 0.15);
+    }
+    .titulo-seccion {
+      display: flex;
+      align-items: baseline;
+      gap: 0.625rem;
+    }
+    .icono-destacado {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      transform: translateY(2px);
+      color: var(--color-mint);
+    }
+    .numero-seccion {
+      flex-shrink: 0;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-mint);
+    }
+    .titulo-seccion h2 {
+      margin: 0;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .bloques {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--color-text-dim);
+    }
+    .bloques p { margin: 0; }
+    .bloques .subtitulo {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-top: 0.25rem;
+    }
+    .bloques ul, .bloques ol {
+      margin: 0;
+      padding-left: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .bloques ul { list-style-type: disc; }
+    .bloques ol { list-style-type: decimal; }
+    .bloques li::marker { color: rgba(79, 209, 165, 0.6); }
+    .por-definir {
+      border-radius: 0.25rem;
+      background-color: rgba(233, 185, 73, 0.15);
+      color: var(--color-gold);
+      padding: 0.0625rem 0.25rem;
+    }
+    footer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+      text-align: center;
+      padding-top: 1rem;
+      font-size: 0.8125rem;
+      color: var(--color-text-dim);
+    }
+    footer a { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="volver" href="/">&larr; Seed</a>
+
+    <header class="portada">
+      <div class="marca">
+        <span class="logo-seed">S</span>
+        <span class="marca-nombre">Seed</span>
+      </div>
+      <h1>Política de Tratamiento de Datos Personales — Seed-App</h1>
+      <p class="meta">Versión 1.0 · Última actualización: 1 de septiembre de 2026</p>
+    </header>
+
+    
+      <nav class="tarjeta indice" aria-label="Contenido">
+        <h2 class="indice-titulo">Contenido</h2>
+        <ol class="indice-lista">
+          <li><a href="#seccion-1"><span>1. Identificación del Responsable del Tratamiento</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-2"><span>2. Definiciones</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-3"><span>3. Datos que recolectamos</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-4"><span>4. Finalidades del Tratamiento</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-5"><span>5. Derechos del Titular</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-6"><span>6. Cómo ejercer sus derechos</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-7"><span>7. Autorización</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-8"><span>8. Seguridad de la información</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-9"><span>9. Encargados y proveedores</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-10"><span>10. Conservación de los datos</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-11"><span>11. Mayoría de edad</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-12"><span>12. Cambios en la Política</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+          <li><a href="#seccion-13"><span>13. Vigencia</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a></li>
+        </ol>
+      </nav>
+
+    <div class="secciones">
+      
+      <section id="seccion-1" class="tarjeta seccion seccion-destacada">
+        <div class="titulo-seccion">
+          <span class="icono-destacado" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+          <span class="numero-seccion">01</span>
+          <h2>Identificación del Responsable del Tratamiento</h2>
+        </div>
+        <div class="bloques">
+          <p>De conformidad con la Ley 1581 de 2012 y el Decreto 1377 de 2013, el responsable del tratamiento de sus datos personales es:</p>
+          <ul><li>Responsable: Mario Alonso Raigosa Restrepo</li><li>Domicilio: Armenia, Quindío, Colombia</li><li>Dirección de notificación electrónica: seed.fin.app@gmail.com</li><li>Correo electrónico: seed.fin.app@gmail.com</li></ul>
+          <p>En adelante, "Seed-App", "nosotros" o "la aplicación".</p>
+        </div>
+      </section>
+      
+      <section id="seccion-2" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">02</span>
+          <h2>Definiciones</h2>
+        </div>
+        <div class="bloques">
+          <p>Conforme al artículo 3 de la Ley 1581 de 2012:</p>
+          <ul><li>Titular: persona natural cuyos datos personales son objeto de tratamiento (usted, como usuario de Seed-App).</li><li>Dato personal: cualquier información vinculada o que pueda asociarse a una persona natural determinada o determinable.</li><li>Tratamiento: cualquier operación sobre datos personales, como recolección, almacenamiento, uso, circulación o supresión.</li><li>Autorización: consentimiento previo, expreso e informado del titular para tratar sus datos.</li><li>Responsable del Tratamiento: quien decide sobre el tratamiento de los datos (Seed-App).</li><li>Encargado del Tratamiento: quien trata los datos por cuenta del Responsable (por ejemplo, nuestros proveedores tecnológicos).</li></ul>
+        </div>
+      </section>
+      
+      <section id="seccion-3" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">03</span>
+          <h2>Datos que recolectamos</h2>
+        </div>
+        <div class="bloques">
+          <p>Seed-App recolecta y trata los siguientes datos personales:</p>
+          <p class="subtitulo">Datos de registro y cuenta:</p>
+          <ul><li>Correo electrónico.</li><li>Contraseña (almacenada de forma cifrada; nunca en texto plano).</li><li>Idioma y moneda de preferencia.</li><li>Confirmación de mayoría de edad.</li></ul>
+          <p class="subtitulo">Datos financieros que usted ingresa voluntariamente:</p>
+          <ul><li>Información sobre sus cuentas, ingresos, gastos, movimientos, metas de ahorro, gastos fijos y variables, fondo de emergencia y planificación de viajes.</li></ul>
+          <p>Importante: estos datos financieros son registrados por usted, para su propio uso y control personal. Seed-App no accede a sus cuentas bancarias reales ni recolecta información de tarjetas o credenciales bancarias.</p>
+          <p class="subtitulo">Datos técnicos:</p>
+          <ul><li>Datos de autenticación y seguridad (incluida la configuración de verificación en dos pasos, si la activa).</li></ul>
+          <p>No recolectamos datos sensibles (origen racial o étnico, orientación política, convicciones religiosas, datos de salud, vida sexual, datos biométricos, etc.).</p>
+        </div>
+      </section>
+      
+      <section id="seccion-4" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">04</span>
+          <h2>Finalidades del Tratamiento</h2>
+        </div>
+        <div class="bloques">
+          <p>Sus datos personales serán tratados para las siguientes finalidades:</p>
+          <ol><li>Crear, gestionar y mantener su cuenta de usuario.</li><li>Permitirle registrar y gestionar su información financiera personal dentro de la aplicación.</li><li>Autenticar su identidad y proteger la seguridad de su cuenta (incluida la verificación en dos pasos).</li><li>Enviarle comunicaciones relacionadas con el servicio (recuperación de contraseña, confirmación de correo, avisos importantes).</li><li>Prestar soporte al usuario y atender sus solicitudes.</li><li>Mejorar y mantener el funcionamiento de la aplicación.</li><li>Cumplir con obligaciones legales aplicables.</li></ol>
+          <p>No usaremos sus datos para finalidades distintas a las aquí descritas sin obtener su autorización previa.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-5" class="tarjeta seccion seccion-destacada">
+        <div class="titulo-seccion">
+          <span class="icono-destacado" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+          <span class="numero-seccion">05</span>
+          <h2>Derechos del Titular</h2>
+        </div>
+        <div class="bloques">
+          <p>Como titular de sus datos personales, usted tiene derecho a (artículo 8, Ley 1581 de 2012):</p>
+          <ul><li>Conocer, actualizar y rectificar sus datos personales.</li><li>Solicitar prueba de la autorización otorgada.</li><li>Ser informado sobre el uso que se ha dado a sus datos.</li><li>Presentar quejas ante la Superintendencia de Industria y Comercio (SIC) por infracciones a la ley.</li><li>Revocar la autorización y/o solicitar la supresión de sus datos, cuando no exista un deber legal o contractual que lo impida.</li><li>Acceder gratuitamente a sus datos personales.</li></ul>
+        </div>
+      </section>
+      
+      <section id="seccion-6" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">06</span>
+          <h2>Cómo ejercer sus derechos</h2>
+        </div>
+        <div class="bloques">
+          <p>Puede ejercer sus derechos enviando una solicitud al correo electrónico: seed.fin.app@gmail.com</p>
+          <p>Su solicitud debe contener: su identificación, la descripción concreta de lo que solicita, y una dirección de contacto. Atenderemos:</p>
+          <ul><li>Consultas: en un plazo máximo de diez (10) días hábiles, prorrogable por cinco (5) días hábiles más.</li><li>Reclamos: en un plazo máximo de quince (15) días hábiles, prorrogable por ocho (8) días hábiles más.</li></ul>
+          <p>Adicionalmente, dentro de la aplicación usted puede actualizar varios de sus datos directamente, y puede eliminar su cuenta y sus datos asociados.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-7" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">07</span>
+          <h2>Autorización</h2>
+        </div>
+        <div class="bloques">
+          <p>Al registrarse y marcar la casilla de aceptación, usted otorga su autorización previa, expresa e informada para que Seed-App trate sus datos personales conforme a esta Política. Esta autorización es requisito para poder usar la aplicación, dado que el tratamiento de los datos es necesario para prestar el servicio.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-8" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">08</span>
+          <h2>Seguridad de la información</h2>
+        </div>
+        <div class="bloques">
+          <p>Adoptamos medidas técnicas y organizativas razonables para proteger sus datos, incluyendo cifrado de contraseñas, aislamiento de datos por usuario, conexiones seguras, y la opción de verificación en dos pasos. Ningún sistema es completamente infalible, pero trabajamos para proteger su información.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-9" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">09</span>
+          <h2>Encargados y proveedores</h2>
+        </div>
+        <div class="bloques">
+          <p>Para prestar el servicio, utilizamos proveedores tecnológicos que actúan como Encargados del Tratamiento, incluyendo servicios de infraestructura y base de datos (por ejemplo, Supabase) y de alojamiento en la nube. Estos proveedores tratan los datos siguiendo nuestras instrucciones y estándares de seguridad, y pueden almacenar y procesar la información en servidores ubicados fuera de Colombia. Al aceptar esta Política, el titular autoriza esta transferencia y transmisión internacional de datos con las finalidades aquí descritas.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-10" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">10</span>
+          <h2>Conservación de los datos</h2>
+        </div>
+        <div class="bloques">
+          <p>Conservaremos sus datos mientras su cuenta esté activa o mientras sean necesarios para las finalidades descritas. Si usted elimina su cuenta o revoca su autorización, procederemos a suprimir sus datos, salvo que exista una obligación legal de conservarlos.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-11" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">11</span>
+          <h2>Mayoría de edad</h2>
+        </div>
+        <div class="bloques">
+          <p>Seed-App está dirigida exclusivamente a personas mayores de 18 años. No recolectamos intencionalmente datos de menores de edad. Al registrarse, usted declara ser mayor de 18 años.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-12" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">12</span>
+          <h2>Cambios en la Política</h2>
+        </div>
+        <div class="bloques">
+          <p>Podremos actualizar esta Política. Los cambios sustanciales serán comunicados a través de la aplicación. La versión vigente siempre estará disponible dentro de Seed-App.</p>
+        </div>
+      </section>
+      
+      <section id="seccion-13" class="tarjeta seccion">
+        <div class="titulo-seccion">
+          
+          <span class="numero-seccion">13</span>
+          <h2>Vigencia</h2>
+        </div>
+        <div class="bloques">
+          <p>Esta Política rige a partir del 1 de septiembre de 2026 y se mantendrá vigente mientras Seed-App preste sus servicios.</p>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>Seed-App &middot; Mario Alonso Raigosa Restrepo &middot; Armenia, Quindío, Colombia</p>
+      <p><a href="mailto:seed.fin.app@gmail.com">seed.fin.app@gmail.com</a> &middot; <a href="/terminos.html">Términos y Condiciones</a></p>
+    </footer>
+  </main>
+</body>
+</html>
