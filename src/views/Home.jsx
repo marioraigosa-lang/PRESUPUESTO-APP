@@ -79,8 +79,12 @@ function Home({
     const ingresos = data
       .filter((movimiento) => movimiento.tipo === 'ingreso')
       .reduce((suma, movimiento) => suma + movimiento.monto, 0)
+    // Un retiro cuenta como gasto acá también (mismo criterio que
+    // resumenCalculos.js/gastoMensualPromedio.js): es plata que sale del
+    // sistema y se consume. Sin esto, un retiro "desaparecía" del ahorro del
+    // mes -- no bajaba los gastos, pero tampoco quedaba en ningún lado.
     const gastos = data
-      .filter((movimiento) => movimiento.tipo === 'gasto')
+      .filter((movimiento) => movimiento.tipo === 'gasto' || movimiento.tipo === 'retiro')
       .reduce((suma, movimiento) => suma + movimiento.monto, 0)
 
     return { ingresos, gastos, ahorro: ingresos - gastos }

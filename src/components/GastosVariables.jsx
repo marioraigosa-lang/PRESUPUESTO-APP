@@ -32,6 +32,12 @@ function GastosVariables({ version, periodo, onGestionarCategorias, onAbrirCateg
           'categorias',
           'id, nombre, emoji, icono, color, presupuesto, descripcion, archivada_en',
         ).eq('es_sistema', false),
+        // A propósito NO se incluye 'retiro' acá aunque ahora sí cuenta como
+        // gasto del mes en Resumen/Home/gráficos/Fondo de emergencia: este
+        // acordeón agrupa por CATEGORÍA, y un retiro nunca tiene una (es
+        // efectivo genérico, ver flujos.js) -- no hay dónde mostrarlo sin
+        // inventarle una categoría que no eligió el usuario. Su lugar es el
+        // total general (resumenCalculos.js), no este desglose.
         seleccionarPropio('movimientos', 'categoria_id, monto')
           .eq('tipo', 'gasto')
           .gte('fecha', desde)

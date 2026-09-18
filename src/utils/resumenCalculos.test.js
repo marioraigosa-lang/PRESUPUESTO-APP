@@ -32,6 +32,7 @@ describe('calcularTotalesResumen', () => {
     expect(resultado.totalIngresos).toBe(3000000)
     expect(resultado.totalGastosFijos).toBe(800000)
     expect(resultado.totalGastosVariables).toBe(300000) // 200.000 + 100.000
+    expect(resultado.totalRetiros).toBe(0)
     expect(resultado.totalGastos).toBe(1100000) // fijos + variables
     expect(resultado.balance).toBe(1900000) // 3.000.000 - 1.100.000
   })
@@ -78,22 +79,39 @@ describe('calcularTotalesResumen', () => {
       totalIngresos: 0,
       totalGastosFijos: 0,
       totalGastosVariables: 0,
+      totalRetiros: 0,
       totalGastos: 0,
       balance: 0,
     })
   })
 
-  it('ignora los retiros: no son ni ingreso ni gasto (no cuentan en los reportes de gastos)', () => {
+  it('cuenta los retiros como gasto del mes, aparte de fijos/variables (no tienen categoría)', () => {
     const movimientos = [
       { tipo: 'ingreso', monto: 100000 },
-      { tipo: 'retiro', monto: 999999, categoria: null },
+      { tipo: 'retiro', monto: 30000, categoria: null },
     ]
 
     const resultado = calcularTotalesResumen(movimientos)
 
     expect(resultado.totalIngresos).toBe(100000)
-    expect(resultado.totalGastos).toBe(0)
-    expect(resultado.balance).toBe(100000)
+    expect(resultado.totalGastosFijos).toBe(0)
+    expect(resultado.totalGastosVariables).toBe(0)
+    expect(resultado.totalRetiros).toBe(30000)
+    expect(resultado.totalGastos).toBe(30000)
+    expect(resultado.balance).toBe(70000)
+  })
+
+  it('suma retiros y gastos categorizados en el mismo totalGastos, sin doble conteo', () => {
+    const movimientos = [
+      { tipo: 'gasto', monto: 200000, categoria: CATEGORIA_VARIABLE },
+      { tipo: 'retiro', monto: 50000, categoria: null },
+    ]
+
+    const resultado = calcularTotalesResumen(movimientos)
+
+    expect(resultado.totalGastosVariables).toBe(200000)
+    expect(resultado.totalRetiros).toBe(50000)
+    expect(resultado.totalGastos).toBe(250000)
   })
 })
 
@@ -200,16 +218,43 @@ describe('agruparGastosPorCategoria', () => {
     expect(agruparGastosPorCategoria([], 0, 'Sin categoría')).toEqual([])
   })
 
-  it('ignora los movimientos de retiro: no tienen categoría y no son un gasto categorizado', () => {
+  it('agrupa los retiros aparte, bajo un ítem propio "Retiros/Efectivo" (no junto a "sin categoría")', () => {
     const movimientos = [
       { tipo: 'retiro', monto: 500000, categoria: null },
       { tipo: 'gasto', monto: 30000, categoria: CATEGORIA_VARIABLE },
     ]
 
-    const resultado = agruparGastosPorCategoria(movimientos, 30000, 'Sin categoría')
+    const resultado = agruparGastosPorCategoria(movimientos, 530000, 'Sin categoría', 'Retiros/Efectivo')
 
-    expect(resultado).toHaveLength(1)
-    expect(resultado[0].id).toBe('cat-comida')
+    expect(resultado).toHaveLength(2)
+    expect(resultado[0]).toEqual({
+      id: 'retiros',
+      nombre: 'Retiros/Efectivo',
+      icono: 'banknote',
+      color: '#f2795b',
+      monto: 500000,
+      porcentaje: 94, // 500.000 / 530.000
+    })
+    expect(resultado[1].id).toBe('cat-comida')
+  })
+
+  it('no mezcla los retiros con los gastos "sin categoría" cuando ambos aparecen en el mismo periodo', () => {
+    const movimientos = [
+      { tipo: 'retiro', monto: 100000, categoria: null },
+      { tipo: 'gasto', monto: 20000, categoria: null },
+    ]
+
+    const resultado = agruparGastosPorCategoria(movimientos, 120000, 'Sin categoría', 'Retiros/Efectivo')
+
+    expect(resultado.map((item) => item.id).sort()).toEqual(['retiros', 'sin-categoria'])
+  })
+
+  it('sin retiros en el periodo, no agrega el ítem "Retiros/Efectivo"', () => {
+    const movimientos = [{ tipo: 'gasto', monto: 30000, categoria: CATEGORIA_VARIABLE }]
+
+    const resultado = agruparGastosPorCategoria(movimientos, 30000, 'Sin categoría', 'Retiros/Efectivo')
+
+    expect(resultado.some((item) => item.id === 'retiros')).toBe(false)
   })
 })
 
@@ -248,14 +293,14 @@ describe('agruparPorMes', () => {
     expect(resultado[4]).toEqual({ mes: 4, ingresos: 0, gastos: 40000 }) // mayo
   })
 
-  it('ignora los retiros al sumar ingresos/gastos de cada mes', () => {
+  it('suma los retiros al gasto de cada mes, igual que un gasto categorizado', () => {
     const movimientos = [
-      { tipo: 'retiro', monto: 999999, fecha: '2026-05-01' },
+      { tipo: 'retiro', monto: 60000, fecha: '2026-05-01' },
       { tipo: 'gasto', monto: 40000, fecha: '2026-05-02' },
     ]
 
     const resultado = agruparPorMes(movimientos)
 
-    expect(resultado[4]).toEqual({ mes: 4, ingresos: 0, gastos: 40000 }) // mayo
+    expect(resultado[4]).toEqual({ mes: 4, ingresos: 0, gastos: 100000 }) // mayo
   })
 })

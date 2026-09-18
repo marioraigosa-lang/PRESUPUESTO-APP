@@ -128,10 +128,12 @@ export default {
     gastos: 'Expenses',
     fijos: 'Fixed: {{monto}}',
     variables: 'Variable: {{monto}}',
+    retiros: 'Cash: {{monto}}',
     balancePeriodo: 'Period balance',
     graficoTitulo: 'Income and expenses by month',
     categoriasTitulo: 'Expenses by category',
     sinCategoria: 'No category',
+    retirosEfectivo: 'Withdrawals / Cash',
   },
 
   emergencia: {
@@ -549,6 +551,7 @@ export default {
       preguntaCategoria: 'Which category?',
       preguntaConcepto: 'Anything you want to note down?',
       conceptoOpcionalNota: 'The note is optional',
+      avisoRetiroGasto: 'This withdrawal will be counted as an expense for the month.',
       sinCuentasParaElegir: "You don't have any accounts registered yet.",
       sinTarjetasParaElegir: "You don't have any cards registered yet.",
       sinCategoriasParaElegir: "You don't have any categories yet. You can create one from Manage categories.",

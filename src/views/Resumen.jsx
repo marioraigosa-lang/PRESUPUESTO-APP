@@ -53,10 +53,15 @@ function Resumen() {
     error,
   } = useConsulta(cargarPeriodo, [anioSeleccionado, mesSeleccionado], [])
 
-  const { totalIngresos, totalGastosFijos, totalGastosVariables, totalGastos, balance } =
+  const { totalIngresos, totalGastosFijos, totalGastosVariables, totalRetiros, totalGastos, balance } =
     calcularTotalesResumen(movimientos)
 
-  const gastosPorCategoria = agruparGastosPorCategoria(movimientos, totalGastos, t('resumen.sinCategoria'))
+  const gastosPorCategoria = agruparGastosPorCategoria(
+    movimientos,
+    totalGastos,
+    t('resumen.sinCategoria'),
+    t('resumen.retirosEfectivo'),
+  )
 
   const datosPorMes = agruparPorMes(movimientos)
 
@@ -97,6 +102,7 @@ function Resumen() {
               totalIngresos={totalIngresos}
               totalGastosVariables={totalGastosVariables}
               totalGastosFijos={totalGastosFijos}
+              totalRetiros={totalRetiros}
               totalGastos={totalGastos}
               balance={balance}
             />

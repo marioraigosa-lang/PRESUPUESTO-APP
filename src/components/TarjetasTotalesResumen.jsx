@@ -5,6 +5,7 @@ function TarjetasTotalesResumen({
   totalIngresos,
   totalGastosVariables,
   totalGastosFijos,
+  totalRetiros,
   totalGastos,
   balance,
 }) {
@@ -26,6 +27,7 @@ function TarjetasTotalesResumen({
           <div className="mt-2 flex flex-col gap-0.5 text-[11px] text-text-dim">
             <p>{t('resumen.fijos', { monto: formatear(totalGastosFijos) })}</p>
             <p>{t('resumen.variables', { monto: formatear(totalGastosVariables) })}</p>
+            {totalRetiros > 0 && <p>{t('resumen.retiros', { monto: formatear(totalRetiros) })}</p>}
           </div>
         </div>
       </div>

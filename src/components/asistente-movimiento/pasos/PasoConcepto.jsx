@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react'
 import { useIdioma } from '../../../context/IdiomaContext'
 import { useFormatoMoneda } from '../../../context/MonedaContext'
 import ResumenBorrador from '../ResumenBorrador'
@@ -79,6 +80,19 @@ function PasoConcepto({
           />
           <p className="mt-2 text-xs text-text-dim">{t('movimientos.asistente.conceptoOpcionalNota')}</p>
         </div>
+
+        {/* Aviso de coherencia: desde que el retiro cuenta como gasto del
+        mes en Resumen/Home/gráficos/Fondo de emergencia (antes solo
+        contaba como "egreso" de la cuenta, no como gasto), esto evita que
+        el usuario se sorprenda al ver su gasto mensual subir por un
+        retiro. Estilo sutil (icono + texto chico), a propósito discreto:
+        no es un error ni una advertencia, es solo información. */}
+        {borrador.tipo === 'retiro' && (
+          <div className="flex items-start gap-2 rounded-xl bg-azul/10 px-3 py-2 text-xs text-text-dim">
+            <Info size={14} className="mt-0.5 shrink-0 text-azul" />
+            <p>{t('movimientos.asistente.avisoRetiroGasto')}</p>
+          </div>
+        )}
 
         {errorGuardado && <MensajeError>{t('movimientos.formulario.errorGuardar')}</MensajeError>}
       </div>

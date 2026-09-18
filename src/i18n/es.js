@@ -146,10 +146,12 @@ export default {
     gastos: 'Gastos',
     fijos: 'Fijos: {{monto}}',
     variables: 'Variables: {{monto}}',
+    retiros: 'Efectivo: {{monto}}',
     balancePeriodo: 'Balance del periodo',
     graficoTitulo: 'Ingresos y gastos por mes',
     categoriasTitulo: 'Gastos por categoría',
     sinCategoria: 'Sin categoría',
+    retirosEfectivo: 'Retiros / Efectivo',
   },
 
   emergencia: {
@@ -584,6 +586,7 @@ export default {
       preguntaCategoria: '¿En qué categoría?',
       preguntaConcepto: '¿Algo que quieras anotar?',
       conceptoOpcionalNota: 'El concepto es opcional',
+      avisoRetiroGasto: 'Este retiro se contabilizará como un gasto del mes.',
       sinCuentasParaElegir: 'No tienes cuentas registradas todavía.',
       sinTarjetasParaElegir: 'No tienes tarjetas registradas todavía.',
       sinCategoriasParaElegir: 'No tienes categorías propias todavía. Puedes crear una desde Gestionar categorías.',
