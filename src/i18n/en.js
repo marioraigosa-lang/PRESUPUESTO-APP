@@ -617,7 +617,7 @@ export default {
       restarAria: 'Decrease {{campo}}',
       sumarAria: 'Increase {{campo}}',
       preguntaCategorias: 'What will you spend on?',
-      categoriasNota: 'Check the categories that apply and set a budget -- you can adjust everything later.',
+      categoriasNota: 'Check the categories that apply and set a budget. You can adjust everything later.',
       presupuestoCategoriaAria: 'Budget for {{categoria}}',
       nombrePorDefecto: 'Trip to {{destino}}',
       nombrePorDefectoOrigen: 'Trip from {{origen}}',
@@ -855,6 +855,7 @@ export default {
     registrate: 'Sign up',
     olvidasteContrasena: 'Forgot your password?',
     sesionCerradaPorInactividad: 'Your session was closed due to inactivity. Please sign in again.',
+    conoceSeed: 'Learn about and share Seed',
   },
 
   recuperar: {
@@ -1154,7 +1155,7 @@ export default {
     titulo: 'User guide',
     subtitulo: 'How every part of Seed works',
     intro:
-      "This is Seed's full guide. Tap any section to see how it works -- come back anytime, there's nothing to memorize.",
+      "This is Seed's full guide. Tap any section to see how it works — come back anytime, there's nothing to memorize.",
     // Welcome carousel cards (Phase 3, GuiaBienvenida.jsx): shown ONLY the
     // first time a new user signs in (see GuiaContext.jsx / perfiles.guia_vista).
     // Capped at 4 cards on purpose, to avoid overwhelming -- the last one
@@ -1169,7 +1170,7 @@ export default {
         "Your app for keeping your finances healthy: keep track of what comes in and goes out, without the hassle. Let's walk through the essentials in a few seconds.",
       tarjeta2Titulo: 'Log it in seconds',
       tarjeta2Texto:
-        'Tap the "+" button and a wizard walks you through it: income, expenses, transfers, withdrawals, or even card payments -- no long forms.',
+        'Tap the "+" button and a wizard walks you through it: income, expenses, transfers, withdrawals, or even card payments, no long forms.',
       tarjeta3Titulo: 'Accounts and cards, all in one place',
       tarjeta3Texto:
         "Track your accounts (bank, cash, savings) and your credit cards too: how much you've spent, how much debt you have, and how much limit is left.",
@@ -1178,10 +1179,10 @@ export default {
         'Sort your expenses by category, set a budget to keep a closer eye on any of them, and split fixed costs (rent, utilities) from everyday ones (groceries, fun).',
       tarjeta5Titulo: 'And there is more',
       tarjeta5Texto:
-        "Plan trips with their own budget, set savings goals, and keep an eye on your emergency fund -- Seed has you covered beyond the day-to-day.",
+        "Plan trips with their own budget, set savings goals, and keep an eye on your emergency fund. Seed has you covered beyond the day-to-day.",
       tarjeta6Titulo: 'The full guide is waiting for you',
       tarjeta6Texto:
-        "You'll find the complete User guide under Account, with details on every part of the app -- come back anytime you need it.",
+        "You'll find the complete User guide under Account, with details on every part of the app, come back anytime you need it.",
     },
     // Text for the "?" help icons (Phase 2, AyudaContextual.jsx): 1-2 short
     // sentences next to specific features, unlike "completa" (below), which
@@ -1202,7 +1203,7 @@ export default {
         "Turn this on if the account is savings or an investment: its balance will automatically count toward your emergency fund.",
       cuentaEsAhorroAria: 'Help: what marking an account as part of the emergency fund means',
       presupuestoOpcional:
-        "It's optional: leave it empty and the category has no cap -- it'll just show how much you've spent.",
+        "It's optional: leave it empty and the category has no cap — it'll just show how much you've spent.",
       presupuestoOpcionalAria: "Help: a category's monthly cap is optional",
       // Phase 3: tooltips expand to the rest of the app's key features.
       gastosVariables:
@@ -1233,13 +1234,13 @@ export default {
         'It shows which categories your money went to during the period, from highest to lowest, with the percentage each one represents of your total spending.',
       resumenDesgloseAria: 'Help: what the category breakdown shows',
       viajeEspacioAparte:
-        "Trips are a separate space for budgeting: expenses you log here do NOT affect your real accounts or transactions -- they're just for planning.",
+        "Trips are a separate space for budgeting: expenses you log here do NOT affect your real accounts or transactions — they're just for planning.",
       viajeEspacioAparteAria: 'Help: how trips relate to your real accounts',
       viajeCategoriaPresupuesto:
         "Each trip category has its own budget and its own currency (say, lodging in USD and food in COP), independent of your profile's currency.",
       viajeCategoriaPresupuestoAria: "Help: how a trip category's budget works",
       viajeGastoMoneda:
-        "You can log each expense in the currency of the country you're visiting -- it doesn't have to match your profile's currency. The trip summary groups totals by every currency you use.",
+        "You can log each expense in the currency of the country you're visiting — it doesn't have to match your profile's currency. The trip summary groups totals by every currency you use.",
       viajeGastoMonedaAria: 'Help: how expenses in different currencies work',
       viajeDashboard:
         "Each category's bar compares how much you've spent against its budget: it stays calm while you're on track, and warns you as you get close to or go over the cap.",
@@ -1248,7 +1249,7 @@ export default {
         "Currency only changes the symbol and format your amounts are shown in across the app. It doesn't convert your values: if you had 1,000,000, you'll still see 1,000,000 in the new currency.",
       multiMonedaAria: "Help: what your profile's currency does",
       calcCuota:
-        "It works out your fixed monthly loan payment (French amortization system) from the amount, the interest rate (E.A.), and the term. It doesn't move real money -- it's just for simulating.",
+        "It works out your fixed monthly loan payment (French amortization system) from the amount, the interest rate (E.A.), and the term. It doesn't move real money — it's just for simulating.",
       calcCuotaAria: 'Help: what this calculator does',
       calcCdt:
         'It compares how much your money earns in a CD (which pays interest at the end) versus a high-yield account (which compounds daily or monthly), for the same amount and term.',
@@ -1261,17 +1262,17 @@ export default {
       movimientos: {
         titulo: 'Transactions',
         texto:
-          'A transaction is any money moving in or out. There are 5 types: income (money coming in, like your paycheck), expense (a purchase, with its category), transfer (moving money between two of your own accounts), withdrawal (money that leaves the system entirely, like an ATM withdrawal), and pay card (if you have a credit card with outstanding debt).\n\nTap the "+" button on Home: a step-by-step wizard walks you through it -- first you pick the type, then the account or category as needed, the amount, and at the end you can add an optional note before saving.\n\nTo edit or delete a transaction you already logged, open the detail of the account, category, or card it belongs to and tap it there -- there\'s no longer a transaction list on Home, each one lives in its own account, category, or card detail.',
+          'A transaction is any money moving in or out. There are 5 types: income (money coming in, like your paycheck), expense (a purchase, with its category), transfer (moving money between two of your own accounts), withdrawal (money that leaves the system entirely, like an ATM withdrawal), and pay card (if you have a credit card with outstanding debt).\n\nTap the "+" button on Home: a step-by-step wizard walks you through it. First you pick the type, then the account or category as needed, the amount, and at the end you can add an optional note before saving.\n\nTo edit or delete a transaction you already logged, open the detail of the account, category, or card it belongs to and tap it there — there\'s no longer a transaction list on Home, each one lives in its own account, category, or card detail.',
       },
       cuentas: {
         titulo: 'Accounts',
         texto:
-          'Accounts represent where your money actually sits: a bank account, cash, a digital wallet, an investment, and so on. Every transaction you log moves money in or out of some account, so its balance updates on its own.\n\nTap an account to see its detail: the Income, Expenses, and Net totals for the month, and a list you can switch between "Income" and "Expenses" to review exactly what came in or out of that account.\n\nYou can mark an account as part of your emergency fund (your savings, say, or a low-risk investment) -- its balance then counts automatically toward how many months of expenses you have covered.',
+          'Accounts represent where your money actually sits: a bank account, cash, a digital wallet, an investment, and so on. Every transaction you log moves money in or out of some account, so its balance updates on its own.\n\nTap an account to see its detail: the Income, Expenses, and Net totals for the month, and a list you can switch between "Income" and "Expenses" to review exactly what came in or out of that account.\n\nYou can mark an account as part of your emergency fund (your savings, say, or a low-risk investment) — its balance then counts automatically toward how many months of expenses you have covered.',
       },
       tarjetas: {
         titulo: 'Credit cards',
         texto:
-          "A credit card is borrowed money: you spend now and pay later. Unlike an account, it has no balance of its own -- it has a total limit (the most you can owe) and a debt (what you've already spent and haven't paid back yet). Your available limit is the difference between the two: how much you have left to spend.\n\nWhen you log an expense with a card, the amount counts toward its category like any other expense and raises your debt, but it does NOT come out of any of your accounts -- it isn't your money yet. When you pay the card, you choose which account the money comes from: that account's balance drops and your debt goes down by the same amount.\n\nIf you no longer use a card, you can archive it (only when its debt is exactly 0): it stops showing up as an option when spending or paying, but all its expense and payment history stays intact.\n\nOn Home, the \"My cards\" section has its own progress bar: it shows how much of your total limit is already tied up in debt across all your cards.",
+          "A credit card is borrowed money: you spend now and pay later. Unlike an account, it has no balance of its own: it has a total limit (the most you can owe) and a debt (what you've already spent and haven't paid back yet). Your available limit is the difference between the two: how much you have left to spend.\n\nWhen you log an expense with a card, the amount counts toward its category like any other expense and raises your debt, but it does NOT come out of any of your accounts — it isn't your money yet. When you pay the card, you choose which account the money comes from: that account's balance drops and your debt goes down by the same amount.\n\nIf you no longer use a card, you can archive it (only when its debt is exactly 0): it stops showing up as an option when spending or paying, but all its expense and payment history stays intact.\n\nOn Home, the \"My cards\" section has its own progress bar: it shows how much of your total limit is already tied up in debt across all your cards.",
       },
       categorias: {
         titulo: 'Categories',
@@ -1281,7 +1282,7 @@ export default {
       gastosFijos: {
         titulo: 'Fixed expenses',
         texto:
-          "Fixed expenses are the ones that repeat every month for roughly the same amount: rent, utilities, subscriptions. You set them up once, with a name and expected amount.\n\nEach month you mark them as paid from the Fixed Expenses screen, choose which account or card the money came out of, and the app automatically creates a real transaction: that account's balance drops (or your card debt goes up, if you paid with a card) and the expense is logged in your history -- no need to enter it twice.\n\nOn Home, this section's bar changes color based on how much you've paid so far this month, so you can see at a glance whether you're on track.",
+          "Fixed expenses are the ones that repeat every month for roughly the same amount: rent, utilities, subscriptions. You set them up once, with a name and expected amount.\n\nEach month you mark them as paid from the Fixed Expenses screen, choose which account or card the money came out of, and the app automatically creates a real transaction: that account's balance drops (or your card debt goes up, if you paid with a card) and the expense is logged in your history — no need to enter it twice.\n\nOn Home, this section's bar changes color based on how much you've paid so far this month, so you can see at a glance whether you're on track.",
       },
       gastosVariables: {
         titulo: 'Variable expenses',
@@ -1301,7 +1302,7 @@ export default {
       periodo: {
         titulo: 'Month and pay-period filter',
         texto:
-          "On Home you can filter your transactions by month, and within a month, by pay period (1st half, 2nd half, or the whole month) -- handy if you get paid twice a month and just want to see what's happened since your last paycheck.\n\nThis filter also controls which period you're looking at in the Summary.",
+          "On Home you can filter your transactions by month, and within a month, by pay period (1st half, 2nd half, or the whole month), handy if you get paid twice a month and just want to see what's happened since your last paycheck.\n\nThis filter also controls which period you're looking at in the Summary.",
       },
       resumen: {
         titulo: 'Summary',
@@ -1311,17 +1312,17 @@ export default {
       viajes: {
         titulo: 'Plan your trips',
         texto:
-          "A separate space to budget a trip without mixing those numbers with your real accounts and transactions. A wizard walks you through creating it: where you're traveling from and to, the dates, how many people are going, and which categories you want to budget (hotel, food, transport...) with an amount for each -- you can leave anything blank and fill it in later.\n\nA trip's categories are tap-to-open: tap one to see how much you've spent against its budget. You can log an expense with the trip's floating \"+\" button (no fixed category) or with \"+ New expense\" inside a category (already set to that category) -- either way, a wizard walks you through it step by step.\n\nEach expense can be logged in the currency of the country you're visiting (it doesn't have to match your profile's currency), and the trip summary shows the total spent grouped by every currency you used.",
+          "A separate space to budget a trip without mixing those numbers with your real accounts and transactions. A wizard walks you through creating it: where you're traveling from and to, the dates, how many people are going, and which categories you want to budget (hotel, food, transport...) with an amount for each, you can leave anything blank and fill it in later.\n\nA trip's categories are tap-to-open: tap one to see how much you've spent against its budget. You can log an expense with the trip's floating \"+\" button (no fixed category) or with \"+ New expense\" inside a category (already set to that category); either way, a wizard walks you through it step by step.\n\nEach expense can be logged in the currency of the country you're visiting (it doesn't have to match your profile's currency), and the trip summary shows the total spent grouped by every currency you used.",
       },
       calculadoras: {
         titulo: 'Calculators',
         texto:
-          "Three educational tools to help you plan ahead, found under Account:\n\n• Loan payment: works out your monthly payment (French amortization system) from an amount, rate, and term.\n• CD vs. high-yield savings account: compares which one earns more for the same money over the same time.\n• Compound interest savings: projects how much you'd build up by saving a set amount every month.\n\nThey don't move real money and nothing gets saved -- they're just for simulating.",
+          "Three educational tools to help you plan ahead, found under Account:\n\n• Loan payment: works out your monthly payment (French amortization system) from an amount, rate, and term.\n• CD vs. high-yield savings account: compares which one earns more for the same money over the same time.\n• Compound interest savings: projects how much you'd build up by saving a set amount every month.\n\nThey don't move real money and nothing gets saved — they're just for simulating.",
       },
       preferencias: {
         titulo: 'Currency and language',
         texto:
-          "You choose your currency (COP, USD, or EUR) and your language (Spanish or English) when you sign up. Currency controls how amounts are displayed across the app -- it doesn't convert your numbers, only the format.\n\nYou can change your currency anytime from Account -> Profile. Language, on the other hand, is set once, when you create your account.",
+          "You choose your currency (COP, USD, or EUR) and your language (Spanish or English) when you sign up. Currency controls how amounts are displayed across the app — it doesn't convert your numbers, only the format.\n\nYou can change your currency anytime from Account -> Profile. Language, on the other hand, is set once, when you create your account.",
       },
     },
   },

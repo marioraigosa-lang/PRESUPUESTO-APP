@@ -656,7 +656,7 @@ export default {
       restarAria: 'Restar {{campo}}',
       sumarAria: 'Sumar {{campo}}',
       preguntaCategorias: '¿En qué vas a gastar?',
-      categoriasNota: 'Marca las categorías que apliquen y ponles un presupuesto -- puedes ajustarlo todo después.',
+      categoriasNota: 'Marca las categorías que apliquen y ponles un presupuesto. Puedes ajustarlo todo después.',
       presupuestoCategoriaAria: 'Presupuesto para {{categoria}}',
       nombrePorDefecto: 'Viaje a {{destino}}',
       nombrePorDefectoOrigen: 'Viaje desde {{origen}}',
@@ -854,7 +854,7 @@ export default {
     comparacion: '{{ganador}} rinde más, por {{monto}} al final del plazo',
     empate: 'Ambas opciones rinden prácticamente igual',
     notaFrecuencia:
-      '¿Diaria o mensual: cuál rinde más? Cuando dos productos anuncian la misma tasa efectiva anual (E.A.), en realidad rinden prácticamente igual sin importar si liquidan los intereses cada día o cada mes -- la E.A. ya lleva "incorporado" el efecto de la capitalización, por eso se llama "efectiva". Lo que sí es cierto es la idea general: entre más seguido te liquiden los intereses, más rápido empiezan esos intereses a generar sus propios intereses (interés compuesto). Verás una ventaja real de la liquidación diaria cuando las dos opciones parten de una tasa distinta a esa frecuencia (no de la misma E.A.), o en el mundo real, por pequeñas diferencias en cómo cada entidad cuenta los días.',
+      '¿Diaria o mensual: cuál rinde más? Cuando dos productos anuncian la misma tasa efectiva anual (E.A.), en realidad rinden prácticamente igual sin importar si liquidan los intereses cada día o cada mes — la E.A. ya lleva "incorporado" el efecto de la capitalización, por eso se llama "efectiva". Lo que sí es cierto es la idea general: entre más seguido te liquiden los intereses, más rápido empiezan esos intereses a generar sus propios intereses (interés compuesto). Verás una ventaja real de la liquidación diaria cuando las dos opciones parten de una tasa distinta a esa frecuencia (no de la misma E.A.), o en el mundo real, por pequeñas diferencias en cómo cada entidad cuenta los días.',
     notaSupuestos:
       'Supuesto de este cálculo: el CDT paga los intereses al vencimiento con su tasa E.A. aplicada sobre el plazo en años. La cuenta de alto rendimiento liquida intereses con la frecuencia que elijas arriba, así que su tasa E.A. se convierte a la tasa equivalente por periodo (diaria o mensual) y se capitaliza periodo a periodo, usando el promedio real de días por mes (365/12) para que el plazo en días y en meses representen exactamente el mismo tiempo. Cálculo estimado con fines educativos: los valores reales pueden variar por GMF, retención en la fuente u otras condiciones. Consulta con tu entidad financiera.',
   },
@@ -903,6 +903,7 @@ export default {
     // interacción (ver AuthContext.jsx / cerradaPorInactividad). Este aviso
     // se muestra una sola vez, en el siguiente login.
     sesionCerradaPorInactividad: 'Tu sesión se cerró por inactividad. Inicia sesión de nuevo.',
+    conoceSeed: 'Conoce y comparte Seed',
   },
 
   // Pantalla "Recuperar contraseña" (RecuperarContrasena.jsx): pide el
@@ -1219,7 +1220,7 @@ export default {
     titulo: 'Guía de uso',
     subtitulo: 'Cómo funciona cada parte de Seed',
     intro:
-      'Esta es la guía completa de Seed. Toca cualquier sección para ver cómo funciona. Puedes volver aquí cuando quieras -- no hace falta memorizar nada.',
+      'Esta es la guía completa de Seed. Toca cualquier sección para ver cómo funciona. Puedes volver aquí cuando quieras, no hace falta memorizar nada.',
     // Tarjetas del carrusel de bienvenida (Fase 3, GuiaBienvenida.jsx): se
     // muestra SOLO la primera vez que un usuario nuevo entra a la app (ver
     // GuiaContext.jsx / perfiles.guia_vista). Máximo 4 tarjetas a propósito,
@@ -1234,7 +1235,7 @@ export default {
         'Tu app para mantener tus finanzas sanas: controla lo que entra y lo que sale, sin complicarte. Te mostramos en unos segundos lo esencial para empezar.',
       tarjeta2Titulo: 'Registra en segundos',
       tarjeta2Texto:
-        'Toca el botón "+" y un asistente te guía paso a paso: ingresos, gastos, traslados, retiros y hasta pagos a tu tarjeta -- sin formularios largos.',
+        'Toca el botón "+" y un asistente te guía paso a paso: ingresos, gastos, traslados, retiros y hasta pagos a tu tarjeta, sin formularios largos.',
       tarjeta3Titulo: 'Cuentas y tarjetas, en un solo lugar',
       tarjeta3Texto:
         'Lleva tus cuentas (banco, efectivo, ahorros) y también tus tarjetas de crédito: cuánto has gastado, cuánta deuda tienes y cuánto cupo te queda.',
@@ -1243,10 +1244,10 @@ export default {
         'Clasifica tus gastos por categoría, ponles un presupuesto si quieres vigilarlos de cerca, y separa lo fijo (arriendo, servicios) de lo variable (mercado, ocio).',
       tarjeta5Titulo: 'Y todavía hay más',
       tarjeta5Texto:
-        'Planea viajes con su propio presupuesto, crea metas de ahorro, y cuida tu fondo de emergencia -- Seed te acompaña más allá del día a día.',
+        'Planea viajes con su propio presupuesto, crea metas de ahorro, y cuida tu fondo de emergencia. Seed te acompaña más allá del día a día.',
       tarjeta6Titulo: 'La guía completa te espera',
       tarjeta6Texto:
-        'En la pestaña Cuenta encontrarás la Guía de uso completa, con el detalle de cada función de la app -- vuelve ahí cuando la necesites.',
+        'En la pestaña Cuenta encontrarás la Guía de uso completa, con el detalle de cada función de la app, vuelve ahí cuando la necesites.',
     },
     // Textos de los íconos de ayuda "?" (Fase 2, AyudaContextual.jsx): 1-2
     // frases breves junto a funciones puntuales, a diferencia de
@@ -1326,17 +1327,17 @@ export default {
       movimientos: {
         titulo: 'Movimientos',
         texto:
-          'Un movimiento es cualquier entrada o salida de dinero. Hay 5 tipos: ingreso (dinero que entra, como tu sueldo), gasto (una compra, con su categoría), traslado (mover plata entre dos cuentas tuyas), retiro (dinero que sale del sistema, como un retiro en cajero) y pagar tarjeta (si tienes una tarjeta de crédito con deuda pendiente).\n\nToca el botón "+" en Inicio: un asistente te guía paso a paso -- primero eliges el tipo, luego la cuenta o categoría según corresponda, el monto, y al final puedes anotar un concepto opcional antes de guardar.\n\nPara editar o eliminar un movimiento ya registrado, entra al detalle de la cuenta, la categoría o la tarjeta donde vive ese movimiento y tócalo ahí -- ya no hay una lista de movimientos en Inicio, cada uno se ve y se edita desde su cuenta, categoría o tarjeta.',
+          'Un movimiento es cualquier entrada o salida de dinero. Hay 5 tipos: ingreso (dinero que entra, como tu sueldo), gasto (una compra, con su categoría), traslado (mover plata entre dos cuentas tuyas), retiro (dinero que sale del sistema, como un retiro en cajero) y pagar tarjeta (si tienes una tarjeta de crédito con deuda pendiente).\n\nToca el botón "+" en Inicio: un asistente te guía paso a paso. Primero eliges el tipo, luego la cuenta o categoría según corresponda, el monto, y al final puedes anotar un concepto opcional antes de guardar.\n\nPara editar o eliminar un movimiento ya registrado, entra al detalle de la cuenta, la categoría o la tarjeta donde vive ese movimiento y tócalo ahí — ya no hay una lista de movimientos en Inicio, cada uno se ve y se edita desde su cuenta, categoría o tarjeta.',
       },
       cuentas: {
         titulo: 'Cuentas',
         texto:
-          'Las cuentas representan dónde tienes tu dinero: una cuenta bancaria, efectivo, una billetera digital, una inversión, etc. Cada movimiento que registras entra o sale de alguna cuenta, así que su saldo se actualiza solo.\n\nToca una cuenta para ver su detalle: los totales de Ingresos, Egresos y tu Neto del mes, y una lista que puedes alternar entre los botones "Ingresos" y "Egresos" para revisar justo lo que entró o salió de esa cuenta.\n\nPuedes marcar una cuenta como parte de tu fondo de emergencia (por ejemplo, tus ahorros o una inversión de bajo riesgo) -- así su saldo cuenta automáticamente para calcular cuántos meses de gastos tienes cubiertos.',
+          'Las cuentas representan dónde tienes tu dinero: una cuenta bancaria, efectivo, una billetera digital, una inversión, etc. Cada movimiento que registras entra o sale de alguna cuenta, así que su saldo se actualiza solo.\n\nToca una cuenta para ver su detalle: los totales de Ingresos, Egresos y tu Neto del mes, y una lista que puedes alternar entre los botones "Ingresos" y "Egresos" para revisar justo lo que entró o salió de esa cuenta.\n\nPuedes marcar una cuenta como parte de tu fondo de emergencia (por ejemplo, tus ahorros o una inversión de bajo riesgo), así su saldo cuenta automáticamente para calcular cuántos meses de gastos tienes cubiertos.',
       },
       tarjetas: {
         titulo: 'Tarjetas de crédito',
         texto:
-          'Una tarjeta de crédito es dinero prestado: gastas ahora y pagas después. A diferencia de una cuenta, no tiene saldo propio -- tiene un cupo total (lo máximo que puedes deber) y una deuda (lo que ya gastaste y todavía no has pagado). El cupo disponible es la resta entre los dos: lo que te queda por gastar.\n\nCuando registras un gasto con tarjeta, el monto cuenta en su categoría igual que cualquier otro gasto y sube tu deuda, pero NO sale de ninguna de tus cuentas -- todavía no es tu plata. Cuando pagas la tarjeta, eliges de qué cuenta sale el dinero: esa cuenta baja su saldo y tu deuda baja lo mismo que pagaste.\n\nSi ya no usas una tarjeta, puedes archivarla (solo si su deuda está en 0): deja de aparecer para elegir al gastar o pagar, pero todo su historial de gastos y pagos queda intacto.\n\nEn Inicio, la sección "Mis tarjetas" tiene su propia barra: muestra qué tanto de tu cupo total ya está comprometido en deuda entre todas tus tarjetas.',
+          'Una tarjeta de crédito es dinero prestado: gastas ahora y pagas después. A diferencia de una cuenta, no tiene saldo propio: tiene un cupo total (lo máximo que puedes deber) y una deuda (lo que ya gastaste y todavía no has pagado). El cupo disponible es la resta entre los dos: lo que te queda por gastar.\n\nCuando registras un gasto con tarjeta, el monto cuenta en su categoría igual que cualquier otro gasto y sube tu deuda, pero NO sale de ninguna de tus cuentas — todavía no es tu plata. Cuando pagas la tarjeta, eliges de qué cuenta sale el dinero: esa cuenta baja su saldo y tu deuda baja lo mismo que pagaste.\n\nSi ya no usas una tarjeta, puedes archivarla (solo si su deuda está en 0): deja de aparecer para elegir al gastar o pagar, pero todo su historial de gastos y pagos queda intacto.\n\nEn Inicio, la sección "Mis tarjetas" tiene su propia barra: muestra qué tanto de tu cupo total ya está comprometido en deuda entre todas tus tarjetas.',
       },
       categorias: {
         titulo: 'Categorías',
@@ -1366,7 +1367,7 @@ export default {
       periodo: {
         titulo: 'Filtro por mes y quincena',
         texto:
-          'En Inicio puedes filtrar tus movimientos por mes, y dentro de cada mes, por quincena (1ª, 2ª, o el mes completo) -- útil si te pagan quincenal y quieres ver solo lo que ha pasado desde tu último pago.\n\nEste filtro también controla qué periodo ves en el Resumen.',
+          'En Inicio puedes filtrar tus movimientos por mes, y dentro de cada mes, por quincena (1ª, 2ª, o el mes completo), útil si te pagan quincenal y quieres ver solo lo que ha pasado desde tu último pago.\n\nEste filtro también controla qué periodo ves en el Resumen.',
       },
       resumen: {
         titulo: 'Resumen',
@@ -1376,7 +1377,7 @@ export default {
       viajes: {
         titulo: 'Planifica tus viajes',
         texto:
-          'Un espacio aparte para presupuestar un viaje sin mezclar esos números con tus cuentas y movimientos reales. Un asistente te guía para crearlo: de dónde a dónde viajas, las fechas, cuántas personas van, y qué categorías vas a presupuestar (hotel, alimentación, transporte...) con su monto para cada una -- todo se puede dejar en blanco y completarlo después.\n\nLas categorías del viaje son navegables: tócalas para ver cuánto llevas gastado frente a su presupuesto. Puedes agregar un gasto con el botón "+" flotante del viaje (sin categoría fija) o con "+ Nuevo gasto" dentro de una categoría (ya viene con esa categoría elegida) -- en ambos casos un asistente te guía paso a paso.\n\nCada gasto puede quedar en la moneda del país que estés visitando (no tiene que ser la misma moneda de tu perfil), y el resumen del viaje te muestra el total gastado agrupado por cada moneda que usaste.',
+          'Un espacio aparte para presupuestar un viaje sin mezclar esos números con tus cuentas y movimientos reales. Un asistente te guía para crearlo: de dónde a dónde viajas, las fechas, cuántas personas van, y qué categorías vas a presupuestar (hotel, alimentación, transporte...) con su monto para cada una, todo se puede dejar en blanco y completarlo después.\n\nLas categorías del viaje son navegables: tócalas para ver cuánto llevas gastado frente a su presupuesto. Puedes agregar un gasto con el botón "+" flotante del viaje (sin categoría fija) o con "+ Nuevo gasto" dentro de una categoría (ya viene con esa categoría elegida), en ambos casos un asistente te guía paso a paso.\n\nCada gasto puede quedar en la moneda del país que estés visitando (no tiene que ser la misma moneda de tu perfil), y el resumen del viaje te muestra el total gastado agrupado por cada moneda que usaste.',
       },
       calculadoras: {
         titulo: 'Calculadoras',
@@ -1386,7 +1387,7 @@ export default {
       preferencias: {
         titulo: 'Moneda e idioma',
         texto:
-          'Eliges tu moneda (COP, USD o EUR) y tu idioma (español o inglés) al registrarte. La moneda define cómo se muestran tus montos en toda la app -- no convierte tus números, solo cambia el formato.\n\nPuedes cambiar la moneda cuando quieras desde Cuenta → Perfil. El idioma, en cambio, se elige una sola vez al crear la cuenta.',
+          'Eliges tu moneda (COP, USD o EUR) y tu idioma (español o inglés) al registrarte. La moneda define cómo se muestran tus montos en toda la app — no convierte tus números, solo cambia el formato.\n\nPuedes cambiar la moneda cuando quieras desde Cuenta → Perfil. El idioma, en cambio, se elige una sola vez al crear la cuenta.',
       },
     },
   },
