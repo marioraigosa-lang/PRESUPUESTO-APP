@@ -7,7 +7,7 @@ import CampoTexto from '../components/ui/CampoTexto'
 import BotonPrimario from '../components/ui/BotonPrimario'
 import MensajeError from '../components/ui/MensajeError'
 
-function Login({ onCambiarModo, onRecuperar }) {
+function Login({ onCambiarModo, onRecuperar, onVolverALanding }) {
   const { t } = useIdioma()
   // true si la ÚLTIMA sesión se cerró sola por 1 hora de inactividad (ver
   // useCierreInactividad.js) -- se muestra como aviso informativo, no como
@@ -106,6 +106,22 @@ function Login({ onCambiarModo, onRecuperar }) {
             {t('login.registrate')}
           </button>
         </p>
+
+        {/* Acceso secundario y discreto a la landing -- no es un CTA, por
+            eso va sin fondo/borde y con el mismo tono apagado que el resto
+            de texto auxiliar de esta pantalla. Solo se renderiza si RaizApp
+            pasó el callback (ver AppShell -> App -> PantallaAuth): en el
+            arranque normal siempre viene, pero se deja opcional por si
+            algún día Login se usa fuera de ese árbol. */}
+        {onVolverALanding && (
+          <button
+            type="button"
+            onClick={onVolverALanding}
+            className="text-center text-xs text-text-dim transition hover:text-text hover:underline underline-offset-2"
+          >
+            {t('login.conoceSeed')}
+          </button>
+        )}
       </div>
     </main>
   )

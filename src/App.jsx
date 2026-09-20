@@ -40,7 +40,11 @@ function PantallaCargando() {
   )
 }
 
-function App() {
+// modoAuthInicial: lo pasa Landing.jsx (vía AppShell) cuando el visitante
+// entra a la app desde el CTA "Empezar gratis"/"Ya tengo cuenta" -- ver
+// PantallaAuth.jsx. undefined en el arranque normal (PantallaAuth usa su
+// propio default 'login').
+function App({ modoAuthInicial, onVolverALanding }) {
   const { sesion, cargando, recuperacion, requiereVerificacionMfa, requiereConsentimiento } = useAuth()
   const { cargando: cargandoMoneda } = useMoneda()
   const { cargando: cargandoIdioma } = useIdioma()
@@ -624,7 +628,7 @@ function App() {
   }
 
   if (!sesion) {
-    return <PantallaAuth />
+    return <PantallaAuth modoInicial={modoAuthInicial} onVolverALanding={onVolverALanding} />
   }
 
   // Después de que la identidad quedó confirmada (pasó el gate de MFA de
