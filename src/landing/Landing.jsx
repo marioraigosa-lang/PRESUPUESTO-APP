@@ -1,7 +1,12 @@
 import { useRef, useState } from 'react'
 import { Apple, CreditCard, PiggyBank, Plane, PieChart, PlayCircle, Share2, ShieldCheck, Zap } from 'lucide-react'
+import capturaFondo from './capturas/captura-fondo.webp'
+import capturaHome from './capturas/captura-home.webp'
+import capturaRegistros from './capturas/captura-registros.webp'
+import capturaResumen from './capturas/captura-resumen.webp'
 import IndicadorScroll from './IndicadorScroll'
 import LogoBrote from './LogoBrote'
+import MarcoTelefono from './MarcoTelefono'
 import Revelar from './Revelar'
 import TarjetaBeneficio from './TarjetaBeneficio'
 import { detectarPlataforma } from './plataforma'
@@ -11,6 +16,7 @@ import {
   COMPARTIR,
   CONTACTO_EMAIL,
   DESCARGA,
+  GALERIA,
   HERO,
   PLAY_STORE_PUBLICADO,
   PLAY_STORE_URL,
@@ -20,6 +26,10 @@ import {
 } from './contenido'
 
 const ICONOS = { Zap, CreditCard, PieChart, PiggyBank, Plane }
+
+// Mapea GALERIA[].captura (contenido.js) a la imagen importada -- así
+// contenido.js sigue siendo solo texto/datos, sin imports de assets.
+const CAPTURAS = { resumen: capturaResumen, registros: capturaRegistros, fondo: capturaFondo }
 
 function Eyebrow({ children }) {
   return (
@@ -130,79 +140,96 @@ export default function Landing({ onEntrar }) {
           aria-hidden="true"
           className="pointer-events-none absolute top-16 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-mint/15 blur-3xl"
         />
-        <Revelar className="relative flex flex-col items-center">
-          <LogoBrote className="h-20 w-20 sm:h-24 sm:w-24" />
-          <h1 className="mt-6 text-5xl font-bold tracking-tight text-text sm:text-7xl">Seed</h1>
-          <p className="mt-4 text-xl font-medium text-mint sm:text-2xl">{HERO.subtitulo}</p>
-          <p className="mt-6 max-w-xl text-base text-text-dim sm:text-lg">{HERO.gancho}</p>
+        {/* Wrapper texto + captura: apilados y centrados en móvil, en fila
+            (texto | teléfono) desde lg. La captura acompaña al logo, no lo
+            reemplaza -- el logo sigue siendo la marca; la captura es la
+            prueba visual de la app real. */}
+        <div className="relative flex w-full flex-col items-center gap-12 lg:mx-auto lg:max-w-6xl lg:flex-row lg:justify-center lg:gap-14">
+          <Revelar className="relative flex flex-col items-center">
+            <LogoBrote className="h-20 w-20 sm:h-24 sm:w-24" />
+            <h1 className="mt-6 text-5xl font-bold tracking-tight text-text sm:text-7xl">Seed</h1>
+            <p className="mt-4 text-xl font-medium text-mint sm:text-2xl">{HERO.subtitulo}</p>
+            <p className="mt-6 max-w-xl text-base text-text-dim sm:text-lg">{HERO.gancho}</p>
 
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-            <BotonPrimario onClick={() => onEntrar('registro')}>Empezar gratis</BotonPrimario>
-            <BotonSecundario onClick={() => onEntrar('login')}>Ya tengo cuenta</BotonSecundario>
-          </div>
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <BotonPrimario onClick={() => onEntrar('registro')}>Empezar gratis</BotonPrimario>
+              <BotonSecundario onClick={() => onEntrar('login')}>Ya tengo cuenta</BotonSecundario>
+            </div>
 
-          {/* Badges de tienda -- compactos y atenuados a propósito (son
-              "próximamente", no una acción): mismo resalte de plataforma
-              que antes (borde mint sutil en la del visitante, ver
-              plataforma.js), sin ocultar nunca la otra. */}
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
-            {PLAY_STORE_PUBLICADO ? (
-              <a
-                href={PLAY_STORE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium text-text-dim transition hover:text-text ${
-                  plataforma === 'android' ? 'border-mint/50' : 'border-line'
-                }`}
-              >
-                <PlayCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                {DESCARGA.android.disponible}
-              </a>
-            ) : (
+            {/* Badges de tienda -- compactos y atenuados a propósito (son
+                "próximamente", no una acción): mismo resalte de plataforma
+                que antes (borde mint sutil en la del visitante, ver
+                plataforma.js), sin ocultar nunca la otra. */}
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+              {PLAY_STORE_PUBLICADO ? (
+                <a
+                  href={PLAY_STORE_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium text-text-dim transition hover:text-text ${
+                    plataforma === 'android' ? 'border-mint/50' : 'border-line'
+                  }`}
+                >
+                  <PlayCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {DESCARGA.android.disponible}
+                </a>
+              ) : (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs text-text-dim opacity-70 ${
+                    plataforma === 'android' ? 'border-mint/40' : 'border-line'
+                  }`}
+                >
+                  <PlayCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {DESCARGA.android.proximamente}
+                </span>
+              )}
+
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs text-text-dim opacity-70 ${
-                  plataforma === 'android' ? 'border-mint/40' : 'border-line'
+                  plataforma === 'ios' ? 'border-mint/40' : 'border-line'
                 }`}
               >
-                <PlayCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                {DESCARGA.android.proximamente}
+                <Apple className="h-3.5 w-3.5" aria-hidden="true" />
+                {DESCARGA.ios.proximamente}
               </span>
-            )}
+            </div>
 
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs text-text-dim opacity-70 ${
-                plataforma === 'ios' ? 'border-mint/40' : 'border-line'
-              }`}
+            {/* Instrucción de instalar en iPhone -- el único detalle que no
+                cabe en un badge compacto. <details> nativo: cero JS extra,
+                accesible por defecto, oculto hasta que alguien lo busca. El
+                resumen es una afirmación ("Instálalo...") a propósito, no una
+                pregunta -- invita a la acción con confianza. */}
+            <details className="mt-2.5 text-xs text-text-dim">
+              <summary className="cursor-pointer list-none underline decoration-dotted underline-offset-2 hover:text-text">
+                {DESCARGA.ios.tituloInstalar}
+              </summary>
+              <p className="mt-1.5 max-w-xs">{DESCARGA.ios.instruccionInstalar}</p>
+            </details>
+
+            {/* Compartir -- discreto, un enlace con icono, no un botón mint:
+                es la acción menos prioritaria del hero. */}
+            <button
+              type="button"
+              onClick={manejarCompartir}
+              className="mt-6 inline-flex items-center gap-1.5 text-xs text-text-dim transition hover:text-mint"
             >
-              <Apple className="h-3.5 w-3.5" aria-hidden="true" />
-              {DESCARGA.ios.proximamente}
-            </span>
-          </div>
+              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+              {COMPARTIR.boton}
+            </button>
+            {mensajeCompartir && <p className="mt-1.5 text-xs text-mint">{mensajeCompartir}</p>}
+          </Revelar>
 
-          {/* Instrucción de instalar en iPhone -- el único detalle que no
-              cabe en un badge compacto. <details> nativo: cero JS extra,
-              accesible por defecto, oculto hasta que alguien lo busca. El
-              resumen es una afirmación ("Instálalo...") a propósito, no una
-              pregunta -- invita a la acción con confianza. */}
-          <details className="mt-2.5 text-xs text-text-dim">
-            <summary className="cursor-pointer list-none underline decoration-dotted underline-offset-2 hover:text-text">
-              {DESCARGA.ios.tituloInstalar}
-            </summary>
-            <p className="mt-1.5 max-w-xs">{DESCARGA.ios.instruccionInstalar}</p>
-          </details>
-
-          {/* Compartir -- discreto, un enlace con icono, no un botón mint:
-              es la acción menos prioritaria del hero. */}
-          <button
-            type="button"
-            onClick={manejarCompartir}
-            className="mt-6 inline-flex items-center gap-1.5 text-xs text-text-dim transition hover:text-mint"
+          <Revelar
+            retraso={120}
+            className="w-full max-w-[220px] shrink-0 sm:max-w-[240px] lg:max-w-[280px]"
           >
-            <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
-            {COMPARTIR.boton}
-          </button>
-          {mensajeCompartir && <p className="mt-1.5 text-xs text-mint">{mensajeCompartir}</p>}
-        </Revelar>
+            <MarcoTelefono
+              src={capturaHome}
+              alt="Pantalla principal de Seed, con el saldo y los movimientos recientes"
+              eager
+            />
+          </Revelar>
+        </div>
 
         <IndicadorScroll destinoRef={refProposito} />
       </section>
@@ -255,6 +282,36 @@ export default function Landing({ onEntrar }) {
                 detalle={item.detalle}
                 retraso={(i % 3) * 80}
               />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* GALERÍA -- capturas reales de la app en marcos de teléfono
+          (MarcoTelefono.jsx), prueba visual de lo que describen los
+          beneficios de arriba. En móvil, carrusel horizontal deslizable
+          con snap (más natural que apilarlas y alargar aún más la página);
+          desde sm, una fila fija de 3 sin scroll. loading="lazy" en las
+          imágenes: esta sección queda bien por debajo del pliegue. */}
+      <section className="py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <Revelar className="mx-auto max-w-2xl px-6 text-center">
+            <Eyebrow>Así se ve por dentro</Eyebrow>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+              Cada pantalla, pensada para que veas claro
+            </h2>
+          </Revelar>
+
+          <div className="mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-6">
+            {GALERIA.map((item, i) => (
+              <Revelar
+                key={item.captura}
+                retraso={(i % 3) * 80}
+                className="w-[62vw] shrink-0 snap-center sm:w-auto"
+              >
+                <MarcoTelefono src={CAPTURAS[item.captura]} alt={item.titulo} className="mx-auto max-w-[220px]" />
+                <p className="mt-4 text-center text-sm font-medium text-text-dim">{item.titulo}</p>
+              </Revelar>
             ))}
           </div>
         </div>

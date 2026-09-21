@@ -73,6 +73,25 @@ export const BENEFICIOS = [
   },
 ]
 
+// Galería de capturas reales (Landing.jsx, dentro de MarcoTelefono.jsx).
+// captura: clave que Landing.jsx mapea a la imagen importada (ver
+// src/landing/capturas/). titulo dobla como alt de la imagen -- describe
+// qué muestra la pantalla, no repite "captura de pantalla de".
+export const GALERIA = [
+  {
+    captura: 'resumen',
+    titulo: 'Un resumen claro de tus finanzas',
+  },
+  {
+    captura: 'registros',
+    titulo: 'Registra tus movimientos en segundos',
+  },
+  {
+    captura: 'fondo',
+    titulo: 'Tu fondo de emergencia, siempre a la vista',
+  },
+]
+
 export const PRIVACIDAD = {
   titulo: 'No conectamos tu banco. Tus datos son tuyos.',
   parrafo:
