@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Apple, CreditCard, PiggyBank, Plane, PieChart, PlayCircle, Share2, ShieldCheck, Zap } from 'lucide-react'
+import IndicadorScroll from './IndicadorScroll'
 import LogoBrote from './LogoBrote'
 import Revelar from './Revelar'
 import TarjetaBeneficio from './TarjetaBeneficio'
@@ -60,6 +61,9 @@ export default function Landing({ onEntrar }) {
   // el badge de tienda del visitante en el hero (ver plataforma.js) --
   // 'android' | 'ios' | null, nunca oculta el otro.
   const [plataforma] = useState(() => detectarPlataforma())
+  // Destino del indicador de scroll del hero (ver IndicadorScroll.jsx): la
+  // sección justo debajo, a la que baja suavemente al tocarlo.
+  const refProposito = useRef(null)
 
   async function manejarCompartir() {
     const datos = {
@@ -199,13 +203,15 @@ export default function Landing({ onEntrar }) {
           </button>
           {mensajeCompartir && <p className="mt-1.5 text-xs text-mint">{mensajeCompartir}</p>}
         </Revelar>
+
+        <IndicadorScroll destinoRef={refProposito} />
       </section>
 
       {/* PROPÓSITO -- tratado como el manifiesto/corazón de Seed, no como
           una sección más: línea vertical mint tipo cita, fondo panel muy
           sutil, más aire, y una revelación más lenta y notable que el
           resto (duracionMs/distanciaPx por encima del default). */}
-      <section className="px-6 py-24 sm:py-32">
+      <section ref={refProposito} className="px-6 py-24 sm:py-32">
         <Revelar
           as="blockquote"
           duracionMs={1100}
