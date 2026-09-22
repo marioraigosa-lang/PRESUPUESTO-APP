@@ -196,3 +196,106 @@ body {
     animation: none;
   }
 }
+
+/* Entrada "brotando" del logo grande del hero de la landing (LogoBrote.jsx,
+ * ver el prop `animado`). Todas las piezas se animan con la MISMA curva de
+ * salida (cubic-bezier de frenado largo, ya usada arriba en asistente-entrar)
+ * para que se sienta como algo vivo que crece y se asienta, nunca lineal.
+ * Encadenadas con distintos "delay" para que se vea en cascada:
+ *   0.00s -- el tallo se dibuja de abajo hacia arriba (stroke-dashoffset;
+ *            el path del tallo va justo de la base a la punta, así que
+ *            "dibujarlo" en ese sentido ya es crecer hacia arriba).
+ *   0.42s -- la hoja izquierda se despliega (scale desde su punto de unión
+ *            al tallo, a media altura).
+ *   0.60s -- la hoja derecha se despliega (su unión está en la punta, así
+ *            que espera a que el tallo termine de crecer).
+ *   0.68s / 0.85s -- las venas de cada hoja aparecen (fade) una vez que su
+ *            hoja ya se desplegó.
+ *   1.00s -- el glow mint respira una sola vez alrededor del brote, como el
+ *            momento en que "cobra vida". Termina ~1.45s en total.
+ * El tallo tiene longitud exacta 40 (línea recta de y=106 a y=66 en el
+ * viewBox), por eso stroke-dasharray/dashoffset usan ese número.
+ */
+@keyframes brote-tallo-crecer {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes brote-hoja-desplegar {
+  from {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes brote-vena-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes brote-glow-respirar {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@layer utilities {
+  .brote-tallo-crecer {
+    stroke-dasharray: 40;
+    animation: brote-tallo-crecer 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .brote-hoja-izq-desplegar {
+    transform-origin: 70px 74px;
+    animation: brote-hoja-desplegar 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.42s both;
+  }
+
+  .brote-hoja-der-desplegar {
+    transform-origin: 70px 66px;
+    animation: brote-hoja-desplegar 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+  }
+
+  .brote-vena-izq-aparecer {
+    animation: brote-vena-aparecer 0.25s ease-out 0.68s both;
+  }
+
+  .brote-vena-der-aparecer {
+    animation: brote-vena-aparecer 0.25s ease-out 0.85s both;
+  }
+
+  .brote-glow-respirar {
+    opacity: 0;
+    animation: brote-glow-respirar 0.5s ease-out 1s 1 forwards;
+  }
+}
+
+/* Igual que el resto: quien pide "reduce motion" ve el brote YA CRECIDO (el
+ * tallo completo, las hojas en su tamaño final, sin el glow) desde el primer
+ * frame, sin ninguna de las animaciones de arriba.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .brote-tallo-crecer,
+  .brote-hoja-izq-desplegar,
+  .brote-hoja-der-desplegar,
+  .brote-vena-izq-aparecer,
+  .brote-vena-der-aparecer,
+  .brote-glow-respirar {
+    animation: none;
+  }
+}

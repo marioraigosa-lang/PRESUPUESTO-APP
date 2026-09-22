@@ -146,7 +146,7 @@ export default function Landing({ onEntrar }) {
             prueba visual de la app real. */}
         <div className="relative flex w-full flex-col items-center gap-12 lg:mx-auto lg:max-w-6xl lg:flex-row lg:justify-center lg:gap-14">
           <Revelar className="relative flex flex-col items-center">
-            <LogoBrote className="h-20 w-20 sm:h-24 sm:w-24" />
+            <LogoBrote className="h-20 w-20 sm:h-24 sm:w-24" animado />
             <h1 className="mt-6 text-5xl font-bold tracking-tight text-text sm:text-7xl">Seed</h1>
             <p className="mt-4 text-xl font-medium text-mint sm:text-2xl">{HERO.subtitulo}</p>
             <p className="mt-6 max-w-xl text-base text-text-dim sm:text-lg">{HERO.gancho}</p>
