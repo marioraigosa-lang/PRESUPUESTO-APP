@@ -23,6 +23,24 @@ function errorEnHashDeRecuperacion() {
   return hash.has('error')
 }
 
+// El enlace de confirmación de cuenta del registro (ver
+// urlConfirmacionCuenta() en utils/urlsAuth.js) vuelve con
+// "?tipo=cuenta-confirmada". Mismo mecanismo que vieneDeEnlaceRecuperacion()
+// de arriba, para el flujo de registro en vez de recuperación de contraseña.
+function vieneDeEnlaceConfirmacion() {
+  return new URLSearchParams(window.location.search).get('tipo') === 'cuenta-confirmada'
+}
+
+// Mismo chequeo que errorEnHashDeRecuperacion() de arriba -- Supabase agrega
+// el error al hash de la URL para cualquier enlace vencido/inválido, no solo
+// el de recuperación. Se separa en su propia función (en vez de reutilizar
+// la de arriba tal cual) para que el nombre deje claro a qué flujo
+// pertenece cada lectura.
+function errorEnHashDeConfirmacion() {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+  return hash.has('error')
+}
+
 export function AuthProvider({ children }) {
   const [sesion, setSesion] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -32,6 +50,20 @@ export function AuthProvider({ children }) {
   const [recuperacion, setRecuperacion] = useState(() => {
     if (!vieneDeEnlaceRecuperacion()) return null
     return errorEnHashDeRecuperacion() ? 'error' : null
+  })
+  // null: flujo normal. 'activo': el usuario llegó desde un enlace de
+  // confirmación de cuenta válido -- App.jsx muestra CuentaConfirmada.jsx
+  // antes que la app, aunque ya haya sesión (a diferencia de "recuperacion",
+  // que usa una sesión temporal restringida, este ya es el login real del
+  // usuario recién confirmado). 'error': el enlace ya venció o es inválido.
+  // A diferencia de la recuperación de contraseña, Supabase NO dispara un
+  // evento dedicado (no existe un "SIGNUP_CONFIRMED"): al confirmar un
+  // registro dispara el SIGNED_IN normal, así que hay que cruzarlo con
+  // vieneDeEnlaceConfirmacion() (ver más abajo) para no confundirlo con
+  // cualquier otro login.
+  const [confirmacionCuenta, setConfirmacionCuenta] = useState(() => {
+    if (!vieneDeEnlaceConfirmacion()) return null
+    return errorEnHashDeConfirmacion() ? 'error' : null
   })
   // Factores TOTP verificados del usuario (vacío si no tiene 2FA activo).
   // `listFactors()` separa `data.totp` (solo factores YA verificados) de
@@ -107,6 +139,13 @@ export function AuthProvider({ children }) {
       setSesion(nuevaSesion)
       if (evento === 'PASSWORD_RECOVERY') {
         setRecuperacion('activo')
+      }
+      // Ver el comentario de "confirmacionCuenta" arriba: sin evento propio,
+      // se detecta cruzando un SIGNED_IN cualquiera con la marca de la URL
+      // (para no mostrar esta pantalla en un login normal, que también
+      // dispara SIGNED_IN).
+      if (evento === 'SIGNED_IN' && vieneDeEnlaceConfirmacion()) {
+        setConfirmacionCuenta('activo')
       }
       // Un login exitoso nuevo (no un simple TOKEN_REFRESHED de la misma
       // sesión) es el momento correcto para limpiar el aviso de "tu sesión
@@ -254,6 +293,22 @@ export function AuthProvider({ children }) {
     window.history.replaceState({}, '', url)
   }
 
+  // Cierra la pantalla "¡Cuenta confirmada!" (éxito, o el usuario decide
+  // volver al login desde un enlace vencido) y limpia "?tipo=..." de la URL,
+  // igual que finalizarRecuperacion() de arriba -- para que refrescar la
+  // página no la vuelva a mostrar. A diferencia de finalizarRecuperacion(),
+  // ACÁ NUNCA se cierra la sesión: en el caso de éxito es el login real del
+  // usuario recién confirmado (no una sesión temporal restringida como la de
+  // recuperación), cerrarla acá lo mandaría de vuelta al login justo después
+  // de confirmar su cuenta.
+  function finalizarConfirmacion() {
+    setConfirmacionCuenta(null)
+    const url = new URL(window.location.href)
+    url.search = ''
+    url.hash = ''
+    window.history.replaceState({}, '', url)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -261,9 +316,11 @@ export function AuthProvider({ children }) {
         usuario: sesion?.user ?? null,
         cargando,
         recuperacion,
+        confirmacionCuenta,
         requiereVerificacionMfa,
         cerrarSesion,
         finalizarRecuperacion,
+        finalizarConfirmacion,
         factoresMfa,
         tieneMfaActivo: factoresMfa.length > 0,
         cargandoMfa,

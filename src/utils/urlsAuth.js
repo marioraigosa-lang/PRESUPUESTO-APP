@@ -18,3 +18,22 @@
 export function urlRestablecerContrasena() {
   return `${window.location.origin}${window.location.pathname}?tipo=restablecer-contrasena`
 }
+
+// Mismo patrón exacto que urlRestablecerContrasena() de arriba, para el
+// enlace de confirmación de correo del registro (ver Registro.jsx,
+// options.emailRedirectTo del signUp). window.location.origin hace que
+// apunte solo al dominio real donde esté desplegada la app (nunca a una URL
+// vieja de Vercel u otro ambiente hardcodeada) sin tener que tocar nada al
+// cambiar de ambiente. El parámetro "?tipo=cuenta-confirmada" tampoco lo usa
+// Supabase: es la marca propia que AuthContext.jsx lee para saber que este
+// regreso es de confirmación de cuenta y no de cualquier otro enlace de
+// Supabase que también use este mismo mecanismo (recuperación de
+// contraseña, magic link, etc.).
+//
+// Importante: esta URL debe estar en la lista blanca de "Redirect URLs" del
+// proyecto de Supabase (Authentication > URL Configuration) para que
+// Supabase la acepte -- si no está en la lista, cae de vuelta al "Site URL"
+// configurado ahí.
+export function urlConfirmacionCuenta() {
+  return `${window.location.origin}${window.location.pathname}?tipo=cuenta-confirmada`
+}

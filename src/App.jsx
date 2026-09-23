@@ -8,6 +8,7 @@ import GestionGastosFijos from './views/GestionGastosFijos'
 import Perfil from './views/Perfil'
 import PantallaAuth from './views/PantallaAuth'
 import EstablecerNuevaContrasena from './views/EstablecerNuevaContrasena'
+import CuentaConfirmada from './views/CuentaConfirmada'
 import VerificarMfa from './views/VerificarMfa'
 import PantallaConsentimiento from './views/PantallaConsentimiento'
 import OnboardingCuenta from './views/OnboardingCuenta'
@@ -45,7 +46,8 @@ function PantallaCargando() {
 // PantallaAuth.jsx. undefined en el arranque normal (PantallaAuth usa su
 // propio default 'login').
 function App({ modoAuthInicial, onVolverALanding }) {
-  const { sesion, cargando, recuperacion, requiereVerificacionMfa, requiereConsentimiento } = useAuth()
+  const { sesion, cargando, recuperacion, confirmacionCuenta, requiereVerificacionMfa, requiereConsentimiento } =
+    useAuth()
   const { cargando: cargandoMoneda } = useMoneda()
   const { cargando: cargandoIdioma } = useIdioma()
   const { guiaVista, cargando: cargandoGuia } = useGuia()
@@ -79,17 +81,20 @@ function App({ modoAuthInicial, onVolverALanding }) {
     // temporal de recuperación de contraseña (recuperacion === 'activo')
     // también cuenta como "sin sesión" aquí: no se muestra la app mientras
     // el usuario está en la pantalla de "Establecer nueva contraseña", así
-    // que no tiene sentido pedir sus cuentas/categorías todavía. Lo mismo
+    // que no tiene sentido pedir sus cuentas/categorías todavía. Mismo
+    // criterio para confirmacionCuenta: aunque ya haya sesión real (a
+    // diferencia de recuperación), se muestra CuentaConfirmada.jsx antes que
+    // la app, así que tampoco hace falta pedir datos todavía. Lo mismo
     // aplica mientras falta el segundo factor (requiereVerificacionMfa) o
     // falta aceptar los documentos legales (requiereConsentimiento): no
     // tiene sentido traer datos de la cuenta a memoria antes de que el
     // usuario termine de demostrar que es él y de aceptar (aunque RLS ya
     // los protege, acá evitamos pedirlos de más).
-    if (!sesion || recuperacion || requiereVerificacionMfa || requiereConsentimiento) return
+    if (!sesion || recuperacion || confirmacionCuenta || requiereVerificacionMfa || requiereConsentimiento) return
     cargarCuentas()
     cargarTarjetas()
     cargarCategorias()
-  }, [sesion, recuperacion, requiereVerificacionMfa, requiereConsentimiento])
+  }, [sesion, recuperacion, confirmacionCuenta, requiereVerificacionMfa, requiereConsentimiento])
 
   // Cada vez que arranca una sesión nueva (login recién hecho, recarga de
   // página estando logueado, o cambio a otro usuario) volvemos a "inicio".
@@ -615,6 +620,16 @@ function App({ modoAuthInicial, onVolverALanding }) {
   // mostrar esta pantalla en vez de la app o del login normal.
   if (recuperacion) {
     return <EstablecerNuevaContrasena />
+  }
+
+  // Mismo criterio que el gate de "recuperacion" de arriba, para el enlace
+  // de confirmación de cuenta del registro (ver urlConfirmacionCuenta()/
+  // AuthContext.jsx): se muestra ANTES que la app, incluso con sesión ya
+  // activa -- a diferencia de recuperación, acá el éxito ya deja al usuario
+  // con su sesión real, así que este gate es solo para no caer en silencio
+  // directo al onboarding/home sin ningún aviso.
+  if (confirmacionCuenta) {
+    return <CuentaConfirmada />
   }
 
   // Entre "hay sesión" y "se puede mostrar la app" falta este paso: si el

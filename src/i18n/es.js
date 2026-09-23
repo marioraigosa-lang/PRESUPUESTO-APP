@@ -1000,6 +1000,22 @@ export default {
     },
   },
 
+  // CuentaConfirmada.jsx: se muestra en vez de la app justo después de que
+  // el usuario confirma su correo desde el enlace del registro (ver
+  // "confirmacionCuenta" en AuthContext.jsx). Antes caía en silencio directo
+  // a la app -- esta pantalla se lo confirma explícitamente, o le avisa si
+  // el enlace ya venció.
+  cuentaConfirmada: {
+    titulo: '¡Cuenta confirmada! 🌱',
+    subtitulo: 'Tu correo quedó verificado',
+    explicacion: 'Ya puedes usar Seed. Toca continuar para entrar a tu cuenta.',
+    continuar: 'Continuar',
+    errorTitulo: 'El enlace ya no es válido',
+    errorSubtitulo: 'No pudimos confirmar tu cuenta',
+    errorEnlaceExpirado: 'Este enlace de confirmación venció o ya no es válido. Intenta registrarte de nuevo.',
+    volverLogin: 'Volver a iniciar sesión',
+  },
+
   perfil: {
     titulo: 'Perfil',
     subtitulo: 'Tu cuenta',

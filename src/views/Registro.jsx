@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sprout } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
+import { urlConfirmacionCuenta } from '../utils/urlsAuth'
 import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
 import { IDIOMA_POR_DEFECTO, IDIOMAS } from '../utils/idiomas'
 import { todosLosConsentimientosAceptados } from '../utils/consentimientos'
@@ -100,6 +101,11 @@ function Registro({ onCambiarModo }) {
       // versiones se mandan desde VERSIONES_LEGALES, nunca hardcodeadas acá,
       // para que subir la versión de un documento sea cambiar un solo lugar.
       options: {
+        // A dónde vuelve el usuario al hacer clic en "confirmar cuenta" del
+        // correo -- sin esto, Supabase usa el "Site URL" configurado en su
+        // Dashboard, que puede no coincidir con el dominio real (ver
+        // urlConfirmacionCuenta() en utils/urlsAuth.js).
+        emailRedirectTo: urlConfirmacionCuenta(),
         data: {
           moneda,
           idioma,

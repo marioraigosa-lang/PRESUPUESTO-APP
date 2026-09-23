@@ -934,6 +934,22 @@ export default {
     },
   },
 
+  // CuentaConfirmada.jsx: shown instead of the app right after the user
+  // confirms their email from the registration link (see
+  // "confirmacionCuenta" in AuthContext.jsx). It used to drop them silently
+  // into the app -- this screen confirms it explicitly, or lets them know if
+  // the link already expired.
+  cuentaConfirmada: {
+    titulo: 'Account confirmed! 🌱',
+    subtitulo: 'Your email is verified',
+    explicacion: 'You can now use Seed. Tap continue to get into your account.',
+    continuar: 'Continue',
+    errorTitulo: 'This link is no longer valid',
+    errorSubtitulo: "We couldn't confirm your account",
+    errorEnlaceExpirado: 'This confirmation link expired or is no longer valid. Try registering again.',
+    volverLogin: 'Back to sign in',
+  },
+
   perfil: {
     titulo: 'Profile',
     subtitulo: 'Your account',
