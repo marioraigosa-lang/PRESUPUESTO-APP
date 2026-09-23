@@ -965,6 +965,8 @@ export default {
     errorEmailInvalido: 'El correo no tiene un formato válido',
     errorLimiteIntentos: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
     errorSesionExpirada: 'Tu sesión de recuperación expiró. Solicita un nuevo enlace.',
+    errorCorreoYaEnviado:
+      'Ya te enviamos un correo de confirmación. Revisa tu bandeja de entrada (y la carpeta de spam) para activar tu cuenta.',
     errorGenerico: 'Ocurrió un error. Inténtalo de nuevo.',
   },
 
@@ -992,7 +994,8 @@ export default {
       titulo: '¡Bienvenido a Seed 🌱!',
       subtitulo: 'Para empezar, agrega tu primera cuenta',
       explicacion:
-        'En Seed, tu dinero se organiza en cuentas: tu banco, tu efectivo, tu billetera digital, y más. Crea la primera para poder empezar a registrar tus movimientos.',
+        'En Seed, tu dinero se organiza en cuentas: tu banco, tu efectivo, tu billetera digital, y más.',
+      explicacion2: 'Crea tu primera cuenta para poder empezar a registrar tus movimientos.',
       boton: '+ Agregar mi primera cuenta',
     },
   },
@@ -1420,11 +1423,25 @@ export default {
     consentimientoMayorEdad: 'Declaro que soy mayor de 18 años.',
     errorConsentimientoFaltante:
       'Debes aceptar la política, los términos y confirmar tu mayoría de edad para continuar.',
-    mensajeCuentaCreada:
-      'Cuenta creada. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',
     creandoCuenta: 'Creando cuenta...',
     crearCuenta: 'Crear cuenta',
     yaTienesCuenta: '¿Ya tienes cuenta?',
     iniciaSesion: 'Inicia sesión',
+    // Pantalla que reemplaza el formulario cuando el registro fue exitoso
+    // pero requiere confirmar el correo (Confirm email activo en Supabase):
+    // sin esto, el usuario solo veía un párrafo verde debajo de un
+    // formulario largo, fácil de no ver, y el formulario seguía ahí
+    // invitando a reenviar (ver caso real: un usuario tocó "Crear cuenta"
+    // dos veces, el segundo intento chocó con el cooldown de reenvío de
+    // Supabase y vio "Ocurrió un error" aunque su cuenta ya se había creado).
+    confirmacionTitulo: '¡Casi listo! 🌱',
+    confirmacionTexto: 'Te enviamos un correo a {{correo}} para confirmar tu cuenta.',
+    confirmacionInstrucciones:
+      'Revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace para activarla. Después de confirmar, ya puedes iniciar sesión.',
+    confirmacionVolverLogin: 'Volver al inicio de sesión',
+    confirmacionReenviarPregunta: '¿No te llegó el correo?',
+    confirmacionReenviarBoton: 'Reenviar correo',
+    confirmacionReenviando: 'Reenviando...',
+    correoReenviado: 'Correo reenviado. Revisa tu bandeja de entrada.',
   },
 }

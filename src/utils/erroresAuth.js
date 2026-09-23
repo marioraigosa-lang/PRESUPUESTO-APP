@@ -10,6 +10,15 @@ const traducciones = [
   { patron: /user already registered|already been registered/i, clave: 'auth.errorYaRegistrado' },
   { patron: /password should be at least/i, clave: 'auth.errorPasswordCorta' },
   { patron: /unable to validate email address/i, clave: 'auth.errorEmailInvalido' },
+  // Cooldown de reenvío de correo (registro con un correo que ya se registró
+  // pero todavía no confirmó, o el botón "Reenviar correo" de la pantalla de
+  // confirmación): Supabase no deja reenviar el mismo correo antes de que
+  // pase el cooldown y devuelve este mensaje -- NO contiene "rate limit", así
+  // que sin este patrón caía en el genérico y parecía que el registro había
+  // fallado cuando en realidad ya se había creado la cuenta y ya se había
+  // enviado el correo (ver caso real: usuario que tocó "Crear cuenta" dos
+  // veces). Se traduce a un mensaje tranquilizador, no a un error.
+  { patron: /you can only request this after \d+ seconds/i, clave: 'auth.errorCorreoYaEnviado' },
   { patron: /rate limit/i, clave: 'auth.errorLimiteIntentos' },
   { patron: /auth session missing|session.*expired|jwt expired/i, clave: 'auth.errorSesionExpirada' },
 ]

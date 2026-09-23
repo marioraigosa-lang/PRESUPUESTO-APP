@@ -42,7 +42,10 @@ function OnboardingCuenta({ onAgregarCuenta }) {
         </div>
 
         <div className="flex flex-col gap-4 rounded-2xl bg-panel shadow-card p-5">
-          <p className="text-sm leading-relaxed text-text-dim">{t('onboarding.cuenta.explicacion')}</p>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm leading-relaxed text-text-dim">{t('onboarding.cuenta.explicacion')}</p>
+            <p className="text-sm leading-relaxed text-text-dim">{t('onboarding.cuenta.explicacion2')}</p>
+          </div>
 
           <button
             type="button"

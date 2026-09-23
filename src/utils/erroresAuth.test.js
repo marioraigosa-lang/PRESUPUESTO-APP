@@ -37,6 +37,12 @@ describe('traducirErrorAuth', () => {
     expect(traducirErrorAuth('Email rate limit exceeded')).toBe('auth.errorLimiteIntentos')
   })
 
+  it('cooldown de reenvío de correo (registro repetido antes de confirmar, o botón "Reenviar correo")', () => {
+    expect(
+      traducirErrorAuth('For security purposes, you can only request this after 57 seconds.'),
+    ).toBe('auth.errorCorreoYaEnviado')
+  })
+
   it('sesión expirada: variante "auth session missing"', () => {
     expect(traducirErrorAuth('Auth session missing!')).toBe('auth.errorSesionExpirada')
   })

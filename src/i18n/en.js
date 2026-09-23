@@ -904,6 +904,8 @@ export default {
     errorEmailInvalido: "That email address isn't valid",
     errorLimiteIntentos: 'Too many attempts. Wait a moment and try again.',
     errorSesionExpirada: 'Your password reset session expired. Request a new link.',
+    errorCorreoYaEnviado:
+      "We already sent you a confirmation email. Check your inbox (and spam folder) to activate your account.",
     errorGenerico: 'Something went wrong. Please try again.',
   },
 
@@ -926,7 +928,8 @@ export default {
       titulo: 'Welcome to Seed 🌱!',
       subtitulo: 'To get started, add your first account',
       explicacion:
-        "In Seed, your money is organized into accounts: your bank, your cash, your digital wallet, and more. Create your first one so you can start logging your transactions.",
+        'In Seed, your money is organized into accounts: your bank, your cash, your digital wallet, and more.',
+      explicacion2: 'Create your first account to start logging your transactions.',
       boton: '+ Add my first account',
     },
   },
@@ -1355,10 +1358,25 @@ export default {
     consentimientoMayorEdad: 'I declare that I am over 18 years old.',
     errorConsentimientoFaltante:
       'You must accept the policy, the terms, and confirm you are of legal age to continue.',
-    mensajeCuentaCreada: 'Account created. Check your email to confirm it before signing in.',
     creandoCuenta: 'Creating account...',
     crearCuenta: 'Create account',
     yaTienesCuenta: 'Already have an account?',
     iniciaSesion: 'Sign in',
+    // Screen that replaces the form once registration succeeds but requires
+    // email confirmation (Confirm email on in Supabase): without this, the
+    // user only saw a green paragraph below a long form, easy to miss, and
+    // the form was still there inviting a resend (real case: a user tapped
+    // "Create account" twice, the second attempt hit Supabase's resend
+    // cooldown, and saw "Something went wrong" even though the account had
+    // already been created).
+    confirmacionTitulo: 'Almost there! 🌱',
+    confirmacionTexto: 'We sent an email to {{correo}} to confirm your account.',
+    confirmacionInstrucciones:
+      'Check your inbox (and spam folder) and click the link to activate it. Once confirmed, you can sign in.',
+    confirmacionVolverLogin: 'Back to sign in',
+    confirmacionReenviarPregunta: "Didn't get the email?",
+    confirmacionReenviarBoton: 'Resend email',
+    confirmacionReenviando: 'Resending...',
+    correoReenviado: 'Email resent. Check your inbox.',
   },
 }

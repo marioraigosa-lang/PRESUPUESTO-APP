@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Sprout } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
 import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
@@ -9,6 +10,8 @@ import { traducir } from '../i18n'
 import CampoTexto from '../components/ui/CampoTexto'
 import MedidorFortaleza from '../components/ui/MedidorFortaleza'
 import MensajeError from '../components/ui/MensajeError'
+import Tarjeta from '../components/ui/Tarjeta'
+import BotonPrimario from '../components/ui/BotonPrimario'
 import PoliticaDatos from './PoliticaDatos'
 import TerminosCondiciones from './TerminosCondiciones'
 
@@ -41,9 +44,18 @@ function Registro({ onCambiarModo }) {
   const [documentoAbierto, setDocumentoAbierto] = useState(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
-  const [mensaje, setMensaje] = useState('')
+  // Reemplaza el formulario por la pantalla "revisa tu correo" cuando el
+  // registro fue exitoso pero requiere confirmar el correo (Confirm email
+  // activo en Supabase: signUp responde sin sesión y SIN error). Antes solo
+  // se mostraba un párrafo verde debajo del formulario, que seguía ahí
+  // invitando a reenviar -- ver el comentario junto a manejarEnviar.
+  const [cuentaCreada, setCuentaCreada] = useState(false)
+  const [correoRegistrado, setCorreoRegistrado] = useState('')
+  const [reenviando, setReenviando] = useState(false)
+  const [errorReenvio, setErrorReenvio] = useState('')
+  const [mensajeReenvio, setMensajeReenvio] = useState('')
 
-  const t = (clave) => traducir(idioma, clave)
+  const t = (clave, valores) => traducir(idioma, clave, valores)
   const consentimientosCompletos = todosLosConsentimientosAceptados({
     aceptoDatos,
     aceptoTerminos,
@@ -53,7 +65,6 @@ function Registro({ onCambiarModo }) {
   async function manejarEnviar(evento) {
     evento.preventDefault()
     setError('')
-    setMensaje('')
 
     if (!/\S+@\S+\.\S+/.test(correo)) {
       setError(t('registro.errorCorreoInvalido'))
@@ -120,10 +131,38 @@ function Registro({ onCambiarModo }) {
     }
 
     if (!data.session) {
-      setMensaje(t('registro.mensajeCuentaCreada'))
+      // Cuenta creada, pero requiere confirmar el correo: reemplaza el
+      // formulario por la pantalla de confirmación (ver estado
+      // "cuentaCreada" arriba) en vez de solo mostrar un mensaje debajo del
+      // formulario, que seguía ahí invitando a un segundo envío.
+      setCorreoRegistrado(correo.trim())
+      setCuentaCreada(true)
+      return
     }
     // Si data.session existe, el AuthProvider detecta el cambio de sesión
     // automáticamente (onAuthStateChange) y la app se muestra sola.
+  }
+
+  async function manejarReenviar() {
+    setReenviando(true)
+    setErrorReenvio('')
+    setMensajeReenvio('')
+    const { error: errorSupabase } = await supabase.auth.resend({
+      type: 'signup',
+      email: correoRegistrado,
+    })
+    setReenviando(false)
+
+    if (errorSupabase) {
+      // Si Supabase rechaza el reenvío por el cooldown ("you can only
+      // request this after N seconds"), traducirErrorAuth ahora lo mapea a
+      // un mensaje tranquilizador ("ya te enviamos un correo...") en vez del
+      // genérico -- tiene sentido igual acá: significa que el correo ya está
+      // en camino.
+      setErrorReenvio(t(traducirErrorAuth(errorSupabase.message)))
+      return
+    }
+    setMensajeReenvio(t('registro.correoReenviado'))
   }
 
   if (documentoAbierto === 'politica') {
@@ -132,6 +171,48 @@ function Registro({ onCambiarModo }) {
 
   if (documentoAbierto === 'terminos') {
     return <TerminosCondiciones onVolver={() => setDocumentoAbierto(null)} />
+  }
+
+  if (cuentaCreada) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 py-6">
+        <div className="mx-auto flex w-full max-w-[460px] flex-col gap-6">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-mint/10 text-mint">
+              <Sprout className="h-7 w-7" aria-hidden="true" />
+            </span>
+            <div>
+              <h1 className="text-lg font-semibold text-text">{t('registro.confirmacionTitulo')}</h1>
+              <p className="mt-1 text-sm text-text-dim">
+                {t('registro.confirmacionTexto', { correo: correoRegistrado })}
+              </p>
+            </div>
+          </div>
+
+          <Tarjeta padding="p-5" className="flex flex-col gap-4">
+            <p className="text-sm leading-relaxed text-text-dim">
+              {t('registro.confirmacionInstrucciones')}
+            </p>
+
+            <BotonPrimario onClick={onCambiarModo}>{t('registro.confirmacionVolverLogin')}</BotonPrimario>
+
+            <div className="flex flex-col items-center gap-2 border-t border-panel-2 pt-4">
+              <p className="text-xs text-text-dim">{t('registro.confirmacionReenviarPregunta')}</p>
+              <button
+                type="button"
+                onClick={manejarReenviar}
+                disabled={reenviando}
+                className="text-sm font-semibold text-mint disabled:opacity-60"
+              >
+                {reenviando ? t('registro.confirmacionReenviando') : t('registro.confirmacionReenviarBoton')}
+              </button>
+              {mensajeReenvio && <p className="text-center text-xs text-mint">{mensajeReenvio}</p>}
+              <MensajeError className="w-full text-center">{errorReenvio}</MensajeError>
+            </div>
+          </Tarjeta>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -277,10 +358,6 @@ function Registro({ onCambiarModo }) {
           </div>
 
           <MensajeError>{error}</MensajeError>
-
-          {mensaje && (
-            <p className="rounded-2xl bg-mint/10 px-4 py-3 text-sm text-mint">{mensaje}</p>
-          )}
 
           <button
             type="submit"
