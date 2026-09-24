@@ -1010,10 +1010,30 @@ export default {
     subtitulo: 'Tu correo quedó verificado',
     explicacion: 'Ya puedes usar Seed. Toca continuar para entrar a tu cuenta.',
     continuar: 'Continuar',
-    errorTitulo: 'El enlace ya no es válido',
-    errorSubtitulo: 'No pudimos confirmar tu cuenta',
-    errorEnlaceExpirado: 'Este enlace de confirmación venció o ya no es válido. Intenta registrarte de nuevo.',
     volverLogin: 'Volver a iniciar sesión',
+    // Enlace vencido o ya usado (Supabase devuelve el mismo otp_expired en
+    // ambos casos). El mensaje de éxito es neutral a propósito: Supabase
+    // responde igual si la cuenta ya está confirmada o si el correo no
+    // existe, así que no se afirma nada sobre la cuenta.
+    errorTitulo: 'Este enlace expiró',
+    errorSubtitulo: 'No pasa nada, puedes pedir uno nuevo.',
+    errorExplicacion:
+      'Por seguridad, los enlaces de confirmación vencen después de un tiempo y solo se pueden usar una vez. Escribe tu correo y te enviamos uno nuevo.',
+    correoLabel: 'Correo',
+    correoPlaceholder: 'tucorreo@ejemplo.com',
+    errorCorreoInvalido: 'Ingresa un correo válido',
+    reenviarBoton: 'Reenviar enlace de confirmación',
+    reenviando: 'Enviando...',
+    reenviadoMensaje:
+      '¡Listo! Si tu cuenta aún no está confirmada, te llegará un enlace nuevo a {{correo}} en unos minutos (revisa también la carpeta de spam). Si ya la confirmaste, simplemente inicia sesión.',
+    reenviarPregunta: '¿No te llegó?',
+    reenviarDeNuevo: 'Reenviar de nuevo',
+    reenviarEnSegundos: 'Puedes reenviar en {{segundos}} s',
+    // El enlace falló, pero este navegador ya tiene la sesión de esa cuenta
+    // confirmada (ej. abrió de nuevo un correo viejo).
+    yaConfirmadaTitulo: 'Tu cuenta ya está confirmada 🌱',
+    yaConfirmadaSubtitulo: 'Este enlace ya se había usado',
+    yaConfirmadaExplicacion: 'No tienes que hacer nada más. Toca continuar para entrar a tu cuenta.',
   },
 
   perfil: {

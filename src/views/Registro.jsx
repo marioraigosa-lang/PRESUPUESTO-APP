@@ -3,6 +3,7 @@ import { Sprout } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { traducirErrorAuth } from '../utils/erroresAuth'
 import { urlConfirmacionCuenta } from '../utils/urlsAuth'
+import { reenviarConfirmacion } from '../services/reenvioConfirmacion'
 import { MONEDA_POR_DEFECTO, MONEDAS } from '../utils/monedas'
 import { IDIOMA_POR_DEFECTO, IDIOMAS } from '../utils/idiomas'
 import { todosLosConsentimientosAceptados } from '../utils/consentimientos'
@@ -153,10 +154,10 @@ function Registro({ onCambiarModo }) {
     setReenviando(true)
     setErrorReenvio('')
     setMensajeReenvio('')
-    const { error: errorSupabase } = await supabase.auth.resend({
-      type: 'signup',
-      email: correoRegistrado,
-    })
+    // reenviarConfirmacion manda emailRedirectTo (ver
+    // services/reenvioConfirmacion.js): sin él, el enlace reenviado volvía
+    // al "Site URL" sin la marca ?tipo=cuenta-confirmada.
+    const { error: errorSupabase } = await reenviarConfirmacion(correoRegistrado)
     setReenviando(false)
 
     if (errorSupabase) {

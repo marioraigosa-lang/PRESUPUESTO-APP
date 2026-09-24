@@ -944,10 +944,30 @@ export default {
     subtitulo: 'Your email is verified',
     explicacion: 'You can now use Seed. Tap continue to get into your account.',
     continuar: 'Continue',
-    errorTitulo: 'This link is no longer valid',
-    errorSubtitulo: "We couldn't confirm your account",
-    errorEnlaceExpirado: 'This confirmation link expired or is no longer valid. Try registering again.',
     volverLogin: 'Back to sign in',
+    // Expired or already-used link (Supabase returns the same otp_expired
+    // for both). The success message is neutral on purpose: Supabase
+    // answers the same whether the account is already confirmed or the
+    // email doesn't exist, so it doesn't claim anything about the account.
+    errorTitulo: 'This link expired',
+    errorSubtitulo: "No worries, you can ask for a new one.",
+    errorExplicacion:
+      'For security, confirmation links expire after a while and can only be used once. Enter your email and we’ll send you a new one.',
+    correoLabel: 'Email',
+    correoPlaceholder: 'you@example.com',
+    errorCorreoInvalido: 'Enter a valid email',
+    reenviarBoton: 'Resend confirmation link',
+    reenviando: 'Sending...',
+    reenviadoMensaje:
+      'Done! If your account isn’t confirmed yet, a new link will arrive at {{correo}} in a few minutes (check your spam folder too). If you already confirmed it, just sign in.',
+    reenviarPregunta: "Didn't get it?",
+    reenviarDeNuevo: 'Resend again',
+    reenviarEnSegundos: 'You can resend in {{segundos}}s',
+    // The link failed, but this browser already has that confirmed
+    // account's session (e.g. they reopened an old email).
+    yaConfirmadaTitulo: 'Your account is already confirmed 🌱',
+    yaConfirmadaSubtitulo: 'This link was already used',
+    yaConfirmadaExplicacion: "There's nothing else to do. Tap continue to get into your account.",
   },
 
   perfil: {
