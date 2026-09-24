@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { tieneConsentimientoVigente } from '../utils/consentimientos'
 import VERSIONES_LEGALES from '../constants/versionesLegales'
 import { useCierreInactividad, guardarUltimaActividad } from '../hooks/useCierreInactividad'
+import { vieneDeEnlaceConfirmacion, vieneDeEnlaceRecuperacion } from '../utils/urlsAuth'
 
 const AuthContext = createContext(undefined)
 
@@ -10,10 +11,8 @@ const AuthContext = createContext(undefined)
 // la app con "?tipo=restablecer-contrasena" en la URL. No lo usa Supabase
 // para nada -- es una marca propia para distinguir ESTE regreso concreto de
 // cualquier otro enlace de confirmación de Supabase que también use la URL
-// (mismo mecanismo, otro flujo).
-function vieneDeEnlaceRecuperacion() {
-  return new URLSearchParams(window.location.search).get('tipo') === 'restablecer-contrasena'
-}
+// (mismo mecanismo, otro flujo). La lee vieneDeEnlaceRecuperacion(), que
+// vive en utils/urlsAuth.js porque también la usa el switch landing/app.
 
 // Si el enlace de recuperación ya expiró o es inválido, Supabase no crea
 // sesión ni dispara el evento PASSWORD_RECOVERY: en vez de eso agrega el
@@ -25,11 +24,9 @@ function errorEnHashDeRecuperacion() {
 
 // El enlace de confirmación de cuenta del registro (ver
 // urlConfirmacionCuenta() en utils/urlsAuth.js) vuelve con
-// "?tipo=cuenta-confirmada". Mismo mecanismo que vieneDeEnlaceRecuperacion()
-// de arriba, para el flujo de registro en vez de recuperación de contraseña.
-function vieneDeEnlaceConfirmacion() {
-  return new URLSearchParams(window.location.search).get('tipo') === 'cuenta-confirmada'
-}
+// "?tipo=cuenta-confirmada" (la lee vieneDeEnlaceConfirmacion(), también en
+// utils/urlsAuth.js). Mismo mecanismo que la recuperación de arriba, para
+// el flujo de registro en vez de recuperación de contraseña.
 
 // Mismo chequeo que errorEnHashDeRecuperacion() de arriba -- Supabase agrega
 // el error al hash de la URL para cualquier enlace vencido/inválido, no solo

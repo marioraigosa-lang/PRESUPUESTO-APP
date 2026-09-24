@@ -1,10 +1,13 @@
+import { vieneDeEnlaceAuth } from '../utils/urlsAuth'
+
 // Decide, de forma SÍNCRONA y antes del primer render, si hay que mostrar
 // la app o la landing en la raíz ("/"). Ver src/main.jsx (RaizApp).
 //
 // Por qué síncrono: AuthContext resuelve la sesión real de forma asíncrona
 // (supabase.auth.getSession() es una Promise), así que no se puede esperar
-// a eso sin arriesgar un parpadeo landing→app. matchMedia y localStorage sí
-// son síncronos, por eso la decisión inicial se apoya solo en ellos.
+// a eso sin arriesgar un parpadeo landing→app. window.location, matchMedia y
+// localStorage sí son síncronos, por eso la decisión inicial se apoya solo
+// en ellos.
 
 // La TWA de Play Store y la PWA instalada heredan display:'standalone' del
 // mismo manifest (vite.config.js) -- esta única comprobación cubre ambas,
@@ -39,6 +42,13 @@ export function posibleSesionGuardada() {
   }
 }
 
+// El regreso de un enlace de correo (confirmación de cuenta o recuperación
+// de contraseña, válido O vencido) siempre va a la app: las pantallas que
+// manejan esos flujos (CuentaConfirmada, restablecer contraseña) viven
+// dentro de AppShell, y la landing ni siquiera carga supabase-js, así que
+// nunca procesaría los tokens/errores del hash. Sin este chequeo, quien
+// abre el enlace sin sesión guardada en ese navegador (siempre el caso de
+// un enlace vencido, que no crea sesión) caía en la landing.
 export function debeMostrarApp() {
-  return esStandalone() || posibleSesionGuardada()
+  return vieneDeEnlaceAuth() || esStandalone() || posibleSesionGuardada()
 }

@@ -37,3 +37,23 @@ export function urlRestablecerContrasena() {
 export function urlConfirmacionCuenta() {
   return `${window.location.origin}${window.location.pathname}?tipo=cuenta-confirmada`
 }
+
+// Lectores de las marcas de arriba. Viven acá (y no en AuthContext.jsx) para
+// que los compartan AuthContext y el switch landing/app de RaizApp.jsx (ver
+// debeMostrarApp() en lib/deteccionEntorno.js) sin que el chunk inicial
+// tenga que cargar AuthContext ni supabase-js. Son síncronos: solo leen
+// window.location.
+export function vieneDeEnlaceRecuperacion() {
+  return new URLSearchParams(window.location.search).get('tipo') === 'restablecer-contrasena'
+}
+
+export function vieneDeEnlaceConfirmacion() {
+  return new URLSearchParams(window.location.search).get('tipo') === 'cuenta-confirmada'
+}
+
+// true si la URL es el regreso de CUALQUIERA de los enlaces de correo de
+// arriba, válido o vencido (el error, si lo hay, va en el hash y no cambia
+// la marca del query string).
+export function vieneDeEnlaceAuth() {
+  return vieneDeEnlaceRecuperacion() || vieneDeEnlaceConfirmacion()
+}
