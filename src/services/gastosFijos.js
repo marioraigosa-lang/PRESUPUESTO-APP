@@ -123,18 +123,12 @@ export async function marcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, cat
     movimiento = insertado
   }
 
-  // Nota: este flag global (uno solo por gasto fijo, sin mes) queda
-  // desactualizado si el mismo fijo tiene pagos en varios meses a la
-  // vez; Inicio ya no lo usa para mostrar el estado (ver GastosFijos.jsx),
-  // pero se sigue escribiendo para no romper la pantalla "Gestionar
-  // gastos fijos", que todavía lo lee.
-  const { error: errorActualizarGasto } = await datosUsuario
-    .actualizarPropio('gastos_fijos', { pagado: true })
-    .eq('id', gasto.id)
-
-  if (errorActualizarGasto) {
-    throw new Error(errorActualizarGasto.message || 'No se pudo marcar el gasto fijo como pagado')
-  }
+  // Ya no se escribe el flag global `gastos_fijos.pagado`: no tiene mes y
+  // nunca se reiniciaba al cambiar de mes, así que mostraba "pagado" en
+  // meses donde no lo estaba. La única fuente de verdad de "pagado en un
+  // mes" es el movimiento vinculado de ESE mes (ver GastosFijos.jsx y
+  // GestionGastosFijos.jsx). La columna sigue en la tabla, pero nada la
+  // lee ni la escribe.
 
   // Solo hay ajuste que mostrar si el movimiento lo creamos nosotros en este
   // mismo llamado -- si ya existía este mes (lo ganó otra pestaña), su efecto
@@ -152,6 +146,7 @@ export async function marcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, cat
 // cualquier movimiento del gasto fijo. Revierte el ajuste optimista sobre la
 // cuenta (si el pago fue con cuenta) o sobre la deuda de la tarjeta (si fue
 // con tarjeta), leyendo tarjeta_id/cuenta_id del propio movimiento borrado.
+// `borroMovimiento` indica si de verdad había un pago ese mes (y se borró).
 export async function desmarcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, gasto, periodo) {
   const { desde, hasta } = rangoFechasPeriodo(periodo.anio, periodo.mes)
 
@@ -166,23 +161,15 @@ export async function desmarcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, 
 
   const movimiento = movimientos && movimientos[0]
 
-  // Si hay un movimiento vinculado a este mes, se borra primero (si no
-  // hay -- por ejemplo, ya se había desmarcado antes -- no hay nada que
-  // borrar, solo se deja el gasto como pendiente).
-  if (movimiento) {
-    const { error: errorEliminar } = await datosUsuario.eliminarPropio('movimientos').eq('id', movimiento.id)
-    if (errorEliminar) throw new Error(errorEliminar.message || 'No se pudo desmarcar el gasto fijo')
-  }
-
-  const { error: errorActualizarGasto } = await datosUsuario
-    .actualizarPropio('gastos_fijos', { pagado: false })
-    .eq('id', gasto.id)
-
-  if (errorActualizarGasto) throw new Error(errorActualizarGasto.message || 'No se pudo desmarcar el gasto fijo')
-
+  // Si no hay movimiento vinculado a este mes (por ejemplo, ya se había
+  // desmarcado antes), no hay nada que hacer: sin movimiento el gasto ya
+  // cuenta como pendiente ese mes.
   if (!movimiento) {
-    return { actualizaciones: [], actualizacionesTarjeta: [] }
+    return { actualizaciones: [], actualizacionesTarjeta: [], borroMovimiento: false }
   }
+
+  const { error: errorEliminar } = await datosUsuario.eliminarPropio('movimientos').eq('id', movimiento.id)
+  if (errorEliminar) throw new Error(errorEliminar.message || 'No se pudo desmarcar el gasto fijo')
 
   // Si el pago fue con tarjeta, borrar el movimiento BAJA la deuda de esa
   // tarjeta (delta negativo). La tarjeta puede no estar en el estado local
@@ -192,6 +179,7 @@ export async function desmarcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, 
     return {
       actualizaciones: [],
       actualizacionesTarjeta: tarjeta ? [{ id: tarjeta.id, delta: -movimiento.monto }] : [],
+      borroMovimiento: true,
     }
   }
 
@@ -201,6 +189,7 @@ export async function desmarcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, 
   return {
     actualizaciones: cuenta ? [{ id: cuenta.id, delta: movimiento.monto }] : [],
     actualizacionesTarjeta: [],
+    borroMovimiento: true,
   }
 }
 
@@ -210,7 +199,6 @@ export async function agregarGastoFijo(datosUsuario, { nombre, monto, diaPago })
       nombre: nombre.trim(),
       monto,
       dia_pago: diaPago,
-      pagado: false,
     })
     .select()
     .single()
@@ -220,24 +208,16 @@ export async function agregarGastoFijo(datosUsuario, { nombre, monto, diaPago })
   return data
 }
 
-// Si el gasto ya está pagado (tiene un movimiento vinculado), el formulario
-// bloquea el campo de monto; esta comprobación es solo un respaldo. Cambiar
-// nombre y día de pago siempre es seguro porque no tocan ningún saldo. Si
-// el nombre cambia y el gasto está pagado, lo replicamos en la descripción
-// del movimiento vinculado para que el historial no quede desincronizado.
-// Devuelve `{ data, sincronizoDescripcion }` para que App.jsx sepa si debe
-// bump-ear `movimientosVersion` (solo cuando de verdad se tocó un
-// movimiento).
+// Edita la PLANTILLA del gasto fijo (nombre, monto, día de pago). Siempre
+// está permitido, aunque el gasto ya tenga pagos: cada mes pagado muestra el
+// monto de su propio movimiento (ver GastosFijos.jsx), así que cambiar la
+// plantilla solo afecta a los meses que todavía no se han pagado. Por la
+// misma razón tampoco se renombran los movimientos ya registrados: el
+// historial conserva el nombre con el que se pagó.
 export async function actualizarGastoFijo(datosUsuario, gasto, { nombre, monto, diaPago }) {
-  const nombreLimpio = nombre.trim()
-
-  if (gasto.pagado && Number(monto) !== gasto.monto) {
-    throw new Error('Este gasto ya está pagado. Desmarca el pago antes de cambiar el monto.')
-  }
-
   const { data, error } = await datosUsuario
     .actualizarPropio('gastos_fijos', {
-      nombre: nombreLimpio,
+      nombre: nombre.trim(),
       monto,
       dia_pago: diaPago,
     })
@@ -247,39 +227,30 @@ export async function actualizarGastoFijo(datosUsuario, gasto, { nombre, monto, 
 
   if (error) throw new Error(error.message)
 
-  const sincronizoDescripcion = gasto.pagado && nombreLimpio !== gasto.nombre
-
-  if (sincronizoDescripcion) {
-    await datosUsuario.actualizarPropio('movimientos', { descripcion: nombreLimpio }).eq('gasto_fijo_id', gasto.id)
-  }
-
-  return { data, sincronizoDescripcion }
+  return data
 }
 
-// Si el gasto ya está pagado, primero revertimos el pago reutilizando la
-// misma función que usa el botón de "desmarcar" (borra el movimiento
-// vinculado), para no duplicar esa lógica. Solo si eso funciona borramos
-// el gasto fijo.
+// Si el gasto tiene un pago en el mes EN CURSO (un movimiento vinculado de
+// este mes -- no el antiguo flag global), primero se revierte reutilizando
+// la misma función del botón "desmarcar". Esta pantalla (Gestionar gastos
+// fijos) no tiene un `periodo` seleccionado, así que se usa el mes actual.
+// Los pagos de meses anteriores NO se tocan: son historial real, y al
+// borrar el gasto fijo quedan como gastos normales (gasto_fijo_id pasa a
+// null por el "on delete set null"). `borroPago` le dice a App.jsx si hubo
+// un movimiento borrado y hay que refrescar saldos.
 export async function eliminarGastoFijo(datosUsuario, cuentas, tarjetas, gasto) {
-  let actualizaciones = []
-  let actualizacionesTarjeta = []
-
-  if (gasto.pagado) {
-    // Esta pantalla (Gestionar gastos fijos) no tiene un `periodo`
-    // seleccionado como Home: usamos el mes actual, que es el que
-    // corresponde al pago que el flag global `pagado` refleja.
-    const hoy = new Date()
-    const resultado = await desmarcarGastoFijoPagado(datosUsuario, cuentas, tarjetas, gasto, {
-      anio: hoy.getFullYear(),
-      mes: hoy.getMonth(),
-    })
-    actualizaciones = resultado.actualizaciones
-    actualizacionesTarjeta = resultado.actualizacionesTarjeta
-  }
+  const hoy = new Date()
+  const { actualizaciones, actualizacionesTarjeta, borroMovimiento } = await desmarcarGastoFijoPagado(
+    datosUsuario,
+    cuentas,
+    tarjetas,
+    gasto,
+    { anio: hoy.getFullYear(), mes: hoy.getMonth() },
+  )
 
   const { error } = await datosUsuario.eliminarPropio('gastos_fijos').eq('id', gasto.id)
 
   if (error) throw new Error(error.message || 'No se pudo eliminar el gasto fijo')
 
-  return { actualizaciones, actualizacionesTarjeta }
+  return { actualizaciones, actualizacionesTarjeta, borroPago: borroMovimiento }
 }

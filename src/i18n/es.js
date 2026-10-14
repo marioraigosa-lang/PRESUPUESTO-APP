@@ -492,10 +492,10 @@ export default {
       errorEliminar: 'No se pudo eliminar el gasto fijo. Intenta de nuevo.',
       sinGastosFijos: 'Aún no tienes gastos fijos. Crea el primero con "+ Agregar gasto fijo".',
       confirmarEliminarPagado:
-        '"{{nombre}}" ya está pagado. Al eliminarlo se devolverá {{monto}} a la cuenta y se borrará el movimiento vinculado. Esta acción no se puede deshacer. ¿Continuar?',
+        '"{{nombre}}" ya está pagado este mes. Al eliminarlo se revertirá ese pago de {{monto}} y se borrará su movimiento. Los pagos de meses anteriores se conservan en tu historial. Esta acción no se puede deshacer. ¿Continuar?',
       confirmarEliminarPendiente: '¿Eliminar el gasto fijo "{{nombre}}"? Esta acción no se puede deshacer.',
-      estadoPagado: 'Pagado',
-      estadoPendiente: 'Pendiente',
+      estadoPagado: 'Pagado este mes',
+      estadoPendiente: 'Pendiente este mes',
       editarAria: 'Editar gasto fijo {{nombre}}',
       eliminarAria: 'Eliminar gasto fijo {{nombre}}',
     },
@@ -506,8 +506,8 @@ export default {
       nombreLabel: 'Nombre',
       nombrePlaceholder: 'Ej: Arriendo',
       montoLabel: 'Monto mensual',
-      montoBloqueadoAyuda:
-        'Este gasto ya está pagado. Para cambiar el monto, primero desmárcalo desde la pantalla principal.',
+      montoEdicionAyuda:
+        'El nuevo monto aplica a los meses que aún no hayas pagado. Los meses ya pagados conservan lo que pagaste.',
       diaPagoLabel: 'Día de pago (opcional)',
       diaPagoPlaceholder: 'Ej: 5',
       errorNombreVacio: 'Ingresa un nombre para el gasto fijo',

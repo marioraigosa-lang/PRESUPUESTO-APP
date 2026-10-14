@@ -8,7 +8,6 @@ import MensajeError from './ui/MensajeError'
 
 function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditando }) {
   const editando = Boolean(gastoEditando)
-  const montoBloqueado = editando && gastoEditando.pagado
   const { t } = useIdioma()
   const { moneda } = useMoneda()
   const { simbolo, decimales } = configMoneda(moneda)
@@ -149,11 +148,7 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
           <label htmlFor="montoGastoFijo" className="mb-1 block text-xs text-text-dim">
             {t('gastosFijos.formulario.montoLabel')}
           </label>
-          <div
-            className={`flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3 ${
-              montoBloqueado ? 'opacity-60' : ''
-            }`}
-          >
+          <div className="flex items-center gap-2 rounded-2xl bg-panel-2 px-4 py-3">
             <span className="text-2xl font-semibold text-text-dim">{simbolo}</span>
             <input
               id="montoGastoFijo"
@@ -162,12 +157,14 @@ function HojaGastoFijo({ abierta, onCerrar, onGuardar, onActualizar, gastoEditan
               placeholder="0"
               value={montoFormateado}
               onChange={manejarCambioMonto}
-              disabled={montoBloqueado}
-              className="w-full bg-transparent text-2xl font-semibold text-text outline-none placeholder:text-text-dim disabled:cursor-not-allowed"
+              className="w-full bg-transparent text-2xl font-semibold text-text outline-none placeholder:text-text-dim"
             />
           </div>
-          {montoBloqueado && (
-            <p className="mt-1 text-xs text-text-dim">{t('gastosFijos.formulario.montoBloqueadoAyuda')}</p>
+          {/* El monto de la plantilla siempre se puede editar: aplica a los
+              meses que todavía no se han pagado. Los meses ya pagados
+              conservan el monto de su movimiento. */}
+          {editando && (
+            <p className="mt-1 text-xs text-text-dim">{t('gastosFijos.formulario.montoEdicionAyuda')}</p>
           )}
         </div>
 

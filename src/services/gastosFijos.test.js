@@ -45,7 +45,7 @@ const categoriaNormal = { id: 5, es_sistema: false }
 const periodo = { anio: 2026, mes: 7 }
 
 describe('marcarGastoFijoPagado', () => {
-  it('crea el movimiento con cuenta, marca pagado y devuelve el delta negativo de saldo', async () => {
+  it('crea el movimiento con cuenta y devuelve el delta negativo de saldo, sin escribir el flag global', async () => {
     const movimientoInsertado = { id: 10, gasto_fijo_id: 3, cuenta_id: 1 }
     const seleccionarPropio = vi.fn(() => crearConstructor({ data: [], error: null }))
     const insertarPropio = vi.fn(() => crearConstructor({ data: movimientoInsertado, error: null }))
@@ -76,10 +76,9 @@ describe('marcarGastoFijoPagado', () => {
         gasto_fijo_id: 3,
       }),
     )
-    // Ya no hay ningún ajuste a la tabla "cuentas" -- solo se toca
-    // "gastos_fijos" (el flag pagado).
-    expect(actualizarPropio).toHaveBeenCalledTimes(1)
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: true })
+    // No se toca "cuentas" ni el flag global gastos_fijos.pagado: el
+    // movimiento del mes es la única fuente de verdad de "pagado".
+    expect(actualizarPropio).not.toHaveBeenCalled()
     expect(resultado).toEqual({
       movimiento: movimientoInsertado,
       actualizaciones: [{ id: 1, delta: -50 }],
@@ -118,7 +117,7 @@ describe('marcarGastoFijoPagado', () => {
         gasto_fijo_id: 3,
       }),
     )
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: true })
+    expect(actualizarPropio).not.toHaveBeenCalled()
     expect(resultado).toEqual({
       movimiento: movimientoInsertado,
       actualizaciones: [],
@@ -164,7 +163,7 @@ describe('marcarGastoFijoPagado', () => {
     )
 
     expect(insertarPropio).not.toHaveBeenCalled()
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: true })
+    expect(actualizarPropio).not.toHaveBeenCalled()
     expect(resultado).toEqual({
       movimiento: movimientoExistente,
       actualizaciones: [],
@@ -213,31 +212,6 @@ describe('marcarGastoFijoPagado', () => {
       marcarGastoFijoPagado(datosUsuario, [cuenta1], [tarjeta1], [categoriaSistema], gasto, { cuentaId: 1 }, periodo),
     ).rejects.toThrow('boom')
   })
-
-  it('propaga el error si falla el update final de gastos_fijos (ya no revierte el movimiento: es un solo paso más simple)', async () => {
-    const movimientoInsertado = { id: 10, gasto_fijo_id: 3, cuenta_id: 1 }
-    const seleccionarPropio = vi.fn(() => crearConstructor({ data: [], error: null }))
-    const insertarPropio = vi.fn(() => crearConstructor({ data: movimientoInsertado, error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: { message: 'no se pudo marcar pagado' } }))
-    const datosUsuario = crearDatosUsuarioMock({
-      seleccionarPropio,
-      insertarPropio,
-      actualizarPropio,
-      eliminarPropio,
-    })
-
-    const gasto = { id: 3, nombre: 'Netflix', monto: 50, dia_pago: 5 }
-
-    await expect(
-      marcarGastoFijoPagado(datosUsuario, [cuenta1], [tarjeta1], [categoriaSistema], gasto, { cuentaId: 1 }, periodo),
-    ).rejects.toThrow('no se pudo marcar pagado')
-
-    // A diferencia de antes, ya no hay reversión: el movimiento queda
-    // creado (su efecto en el saldo es correcto y real), solo falló el
-    // flag "pagado" de gastos_fijos.
-    expect(eliminarPropio).not.toHaveBeenCalled()
-  })
 })
 
 describe('desmarcarGastoFijoPagado', () => {
@@ -252,7 +226,7 @@ describe('desmarcarGastoFijoPagado', () => {
     fecha: '2026-08-05',
   }
 
-  it('borra el movimiento con cuenta, marca no pagado y devuelve el delta positivo de saldo', async () => {
+  it('borra el movimiento con cuenta y devuelve el delta positivo de saldo, sin escribir el flag global', async () => {
     const seleccionarPropio = vi.fn(() => crearConstructor({ data: [movimiento], error: null }))
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
@@ -263,9 +237,8 @@ describe('desmarcarGastoFijoPagado', () => {
     const resultado = await desmarcarGastoFijoPagado(datosUsuario, [cuenta1], [tarjeta1], gasto, periodo)
 
     expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
-    expect(actualizarPropio).toHaveBeenCalledTimes(1)
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: false })
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 50 }], actualizacionesTarjeta: [] })
+    expect(actualizarPropio).not.toHaveBeenCalled()
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 50 }], actualizacionesTarjeta: [], borroMovimiento: true })
   })
 
   it('si el movimiento fue con tarjeta, revierte la deuda de la tarjeta (delta negativo)', async () => {
@@ -280,11 +253,10 @@ describe('desmarcarGastoFijoPagado', () => {
     const resultado = await desmarcarGastoFijoPagado(datosUsuario, [cuenta1], [tarjeta1], gasto, periodo)
 
     expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: false })
-    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [{ id: 't1', delta: -50 }] })
+    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [{ id: 't1', delta: -50 }], borroMovimiento: true })
   })
 
-  it('si no hay movimiento del mes, solo marca el gasto como no pagado (sin borrar nada)', async () => {
+  it('si no hay movimiento del mes, no borra ni escribe nada', async () => {
     const seleccionarPropio = vi.fn(() => crearConstructor({ data: [], error: null }))
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
@@ -295,8 +267,8 @@ describe('desmarcarGastoFijoPagado', () => {
     const resultado = await desmarcarGastoFijoPagado(datosUsuario, [cuenta1], [tarjeta1], gasto, periodo)
 
     expect(eliminarPropio).not.toHaveBeenCalled()
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: false })
-    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [] })
+    expect(actualizarPropio).not.toHaveBeenCalled()
+    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [], borroMovimiento: false })
   })
 
   it('propaga el mensaje de error si falla la búsqueda del movimiento', async () => {
@@ -308,7 +280,7 @@ describe('desmarcarGastoFijoPagado', () => {
     ).rejects.toThrow('boom')
   })
 
-  it('propaga el error si falla el borrado del movimiento, sin llegar a tocar gastos_fijos', async () => {
+  it('propaga el error si falla el borrado del movimiento', async () => {
     const seleccionarPropio = vi.fn(() => crearConstructor({ data: [movimiento], error: null }))
     const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
     const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
@@ -323,8 +295,8 @@ describe('desmarcarGastoFijoPagado', () => {
 })
 
 describe('agregarGastoFijo', () => {
-  it('crea el gasto fijo con el nombre recortado y pagado en false', async () => {
-    const creado = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5, pagado: false }
+  it('crea el gasto fijo con el nombre recortado, sin escribir el flag global pagado', async () => {
+    const creado = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5 }
     const insertarPropio = vi.fn(() => crearConstructor({ data: creado, error: null }))
     const datosUsuario = crearDatosUsuarioMock({ insertarPropio })
 
@@ -334,7 +306,6 @@ describe('agregarGastoFijo', () => {
       nombre: 'Netflix',
       monto: 50,
       dia_pago: 5,
-      pagado: false,
     })
     expect(resultado).toEqual(creado)
   })
@@ -350,15 +321,15 @@ describe('agregarGastoFijo', () => {
 })
 
 describe('actualizarGastoFijo', () => {
-  it('actualiza nombre, monto y día de pago de un gasto no pagado', async () => {
+  it('actualiza nombre, monto y día de pago de la plantilla', async () => {
     const actualizado = { id: 1, nombre: 'Netflix Premium', monto: 60, dia_pago: 10 }
     const actualizarPropio = vi.fn(() => crearConstructor({ data: actualizado, error: null }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
-    const gasto = { id: 1, nombre: 'Netflix', monto: 60, dia_pago: 5, pagado: false }
+    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5 }
 
     const resultado = await actualizarGastoFijo(datosUsuario, gasto, {
-      nombre: 'Netflix Premium',
+      nombre: '  Netflix Premium ',
       monto: 60,
       diaPago: 10,
     })
@@ -368,57 +339,41 @@ describe('actualizarGastoFijo', () => {
       monto: 60,
       dia_pago: 10,
     })
-    expect(resultado).toEqual({ data: actualizado, sincronizoDescripcion: false })
+    expect(resultado).toEqual(actualizado)
   })
 
-  it('sincroniza la descripción del movimiento si el gasto ya está pagado y cambia el nombre', async () => {
+  it('permite cambiar el monto aunque el gasto tenga pagos (solo afecta a meses no pagados)', async () => {
+    const actualizado = { id: 1, nombre: 'Netflix', monto: 60, dia_pago: 5 }
+    const actualizarPropio = vi.fn(() => crearConstructor({ data: actualizado, error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
+
+    // `pagado: true` simula filas viejas que aún traen el flag global: ya no
+    // debe influir en nada.
+    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5, pagado: true }
+
+    const resultado = await actualizarGastoFijo(datosUsuario, gasto, { nombre: 'Netflix', monto: 60, diaPago: 5 })
+
+    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', expect.objectContaining({ monto: 60 }))
+    expect(resultado).toEqual(actualizado)
+  })
+
+  it('al renombrar no reescribe la descripción de los movimientos ya registrados', async () => {
     const actualizado = { id: 1, nombre: 'Netflix Premium', monto: 50, dia_pago: 5 }
     const actualizarPropio = vi.fn(() => crearConstructor({ data: actualizado, error: null }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
 
-    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5, pagado: true }
+    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5 }
 
-    const resultado = await actualizarGastoFijo(datosUsuario, gasto, {
-      nombre: 'Netflix Premium',
-      monto: 50,
-      diaPago: 5,
-    })
+    await actualizarGastoFijo(datosUsuario, gasto, { nombre: 'Netflix Premium', monto: 50, diaPago: 5 })
 
-    expect(actualizarPropio).toHaveBeenCalledWith('movimientos', { descripcion: 'Netflix Premium' })
-    expect(resultado).toEqual({ data: actualizado, sincronizoDescripcion: true })
-  })
-
-  it('no toca el movimiento si el gasto está pagado pero el nombre no cambia', async () => {
-    const actualizado = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 10 }
-    const actualizarPropio = vi.fn(() => crearConstructor({ data: actualizado, error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
-
-    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5, pagado: true }
-
-    const resultado = await actualizarGastoFijo(datosUsuario, gasto, {
-      nombre: 'Netflix',
-      monto: 50,
-      diaPago: 10,
-    })
-
+    expect(actualizarPropio).toHaveBeenCalledTimes(1)
     expect(actualizarPropio).not.toHaveBeenCalledWith('movimientos', expect.anything())
-    expect(resultado).toEqual({ data: actualizado, sincronizoDescripcion: false })
-  })
-
-  it('rechaza cambiar el monto de un gasto ya pagado', async () => {
-    const datosUsuario = crearDatosUsuarioMock()
-    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5, pagado: true }
-
-    await expect(
-      actualizarGastoFijo(datosUsuario, gasto, { nombre: 'Netflix', monto: 60, diaPago: 5 }),
-    ).rejects.toThrow('Este gasto ya está pagado. Desmarca el pago antes de cambiar el monto.')
-    expect(datosUsuario.actualizarPropio).not.toHaveBeenCalled()
   })
 
   it('propaga el mensaje de error de Supabase', async () => {
     const actualizarPropio = vi.fn(() => crearConstructor({ data: null, error: { message: 'boom' } }))
     const datosUsuario = crearDatosUsuarioMock({ actualizarPropio })
-    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5, pagado: false }
+    const gasto = { id: 1, nombre: 'Netflix', monto: 50, dia_pago: 5 }
 
     await expect(
       actualizarGastoFijo(datosUsuario, gasto, { nombre: 'Netflix', monto: 50, diaPago: 5 }),
@@ -427,76 +382,92 @@ describe('actualizarGastoFijo', () => {
 })
 
 describe('eliminarGastoFijo', () => {
-  it('elimina un gasto fijo no pagado directamente, sin tocar movimientos', async () => {
+  const movimientoCuenta = {
+    id: 10,
+    monto: 50,
+    cuenta_id: 1,
+    tipo: 'gasto',
+    descripcion: 'Netflix',
+    emoji: '📌',
+    categoria_id: 99,
+    fecha: '2026-08-05',
+  }
+
+  it('sin pago este mes: elimina el gasto fijo sin borrar movimientos (aunque traiga el viejo flag pagado)', async () => {
+    const seleccionarPropio = vi.fn(() => crearConstructor({ data: [], error: null }))
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ seleccionarPropio, eliminarPropio })
+
+    // El flag global dice "pagado", pero no hay movimiento este mes: manda el movimiento.
+    const gasto = { id: 1, nombre: 'Netflix', pagado: true }
+
+    const resultado = await eliminarGastoFijo(datosUsuario, [cuenta1], [tarjeta1], gasto)
+
+    expect(seleccionarPropio).toHaveBeenCalledWith('movimientos')
+    expect(eliminarPropio).not.toHaveBeenCalledWith('movimientos')
+    expect(eliminarPropio).toHaveBeenCalledWith('gastos_fijos')
+    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [], borroPago: false })
+  })
+
+  it('con pago este mes (con cuenta): lo revierte antes de eliminar, aunque el flag diga no pagado', async () => {
+    const seleccionarPropio = vi.fn(() => crearConstructor({ data: [movimientoCuenta], error: null }))
+    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+    const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
+    const datosUsuario = crearDatosUsuarioMock({ seleccionarPropio, actualizarPropio, eliminarPropio })
 
     const gasto = { id: 1, nombre: 'Netflix', pagado: false }
 
     const resultado = await eliminarGastoFijo(datosUsuario, [cuenta1], [tarjeta1], gasto)
 
-    expect(datosUsuario.seleccionarPropio).not.toHaveBeenCalled()
-    expect(eliminarPropio).toHaveBeenCalledWith('gastos_fijos')
-    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [] })
-  })
-
-  it('si está pagado con cuenta, borra el movimiento vinculado antes de eliminar el gasto fijo y devuelve el delta', async () => {
-    const movimiento = {
-      id: 10,
-      monto: 50,
-      cuenta_id: 1,
-      tipo: 'gasto',
-      descripcion: 'Netflix',
-      emoji: '📌',
-      categoria_id: 99,
-      fecha: '2026-08-05',
-    }
-    const seleccionarPropio = vi.fn(() => crearConstructor({ data: [movimiento], error: null }))
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ seleccionarPropio, actualizarPropio, eliminarPropio })
-
-    const gasto = { id: 1, nombre: 'Netflix', pagado: true }
-
-    const resultado = await eliminarGastoFijo(datosUsuario, [cuenta1], [tarjeta1], gasto)
-
     expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
-    expect(actualizarPropio).toHaveBeenCalledWith('gastos_fijos', { pagado: false })
     expect(eliminarPropio).toHaveBeenCalledWith('gastos_fijos')
-    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 50 }], actualizacionesTarjeta: [] })
+    expect(actualizarPropio).not.toHaveBeenCalled()
+    expect(resultado).toEqual({ actualizaciones: [{ id: 1, delta: 50 }], actualizacionesTarjeta: [], borroPago: true })
   })
 
-  it('si está pagado con tarjeta, revierte la deuda de la tarjeta antes de eliminar el gasto fijo', async () => {
-    const movimiento = {
-      id: 11,
-      monto: 50,
-      cuenta_id: null,
-      tarjeta_id: 't1',
-      tipo: 'gasto',
-      descripcion: 'Netflix',
-      emoji: '📌',
-      categoria_id: 99,
-      fecha: '2026-08-05',
-    }
-    const seleccionarPropio = vi.fn(() => crearConstructor({ data: [movimiento], error: null }))
-    const actualizarPropio = vi.fn(() => crearConstructor({ error: null }))
+  it('con pago este mes (con tarjeta): revierte la deuda de la tarjeta antes de eliminar', async () => {
+    const movimientoTarjeta = { ...movimientoCuenta, id: 11, cuenta_id: null, tarjeta_id: 't1' }
+    const seleccionarPropio = vi.fn(() => crearConstructor({ data: [movimientoTarjeta], error: null }))
     const eliminarPropio = vi.fn(() => crearConstructor({ error: null }))
-    const datosUsuario = crearDatosUsuarioMock({ seleccionarPropio, actualizarPropio, eliminarPropio })
+    const datosUsuario = crearDatosUsuarioMock({ seleccionarPropio, eliminarPropio })
 
-    const gasto = { id: 1, nombre: 'Netflix', pagado: true }
+    const gasto = { id: 1, nombre: 'Netflix' }
 
     const resultado = await eliminarGastoFijo(datosUsuario, [cuenta1], [tarjeta1], gasto)
 
     expect(eliminarPropio).toHaveBeenCalledWith('movimientos')
     expect(eliminarPropio).toHaveBeenCalledWith('gastos_fijos')
-    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [{ id: 't1', delta: -50 }] })
+    expect(resultado).toEqual({ actualizaciones: [], actualizacionesTarjeta: [{ id: 't1', delta: -50 }], borroPago: true })
+  })
+
+  it('busca el pago solo dentro del mes en curso', async () => {
+    const gte = vi.fn()
+    const lte = vi.fn()
+    const builder = crearConstructor({ data: [], error: null })
+    builder.gte = (...args) => {
+      gte(...args)
+      return builder
+    }
+    builder.lte = (...args) => {
+      lte(...args)
+      return builder
+    }
+    const seleccionarPropio = vi.fn(() => builder)
+    const datosUsuario = crearDatosUsuarioMock({ seleccionarPropio })
+
+    await eliminarGastoFijo(datosUsuario, [cuenta1], [tarjeta1], { id: 1, nombre: 'Netflix' })
+
+    const hoy = new Date()
+    const prefijoMes = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-`
+    expect(gte).toHaveBeenCalledWith('fecha', `${prefijoMes}01`)
+    expect(lte).toHaveBeenCalledWith('fecha', expect.stringMatching(new RegExp(`^${prefijoMes}`)))
   })
 
   it('propaga el mensaje de error de Supabase al eliminar el gasto fijo', async () => {
     const eliminarPropio = vi.fn(() => crearConstructor({ error: { message: 'boom' } }))
     const datosUsuario = crearDatosUsuarioMock({ eliminarPropio })
 
-    const gasto = { id: 1, nombre: 'Netflix', pagado: false }
+    const gasto = { id: 1, nombre: 'Netflix' }
 
     await expect(eliminarGastoFijo(datosUsuario, [cuenta1], [tarjeta1], gasto)).rejects.toThrow('boom')
   })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calcularResumenGastosFijos } from './resumenGastosFijos'
+import { calcularResumenGastosFijos, combinarGastosConMes } from './resumenGastosFijos'
 
 describe('calcularResumenGastosFijos', () => {
   it('ninguno pagado: totalPagado y porcentaje en 0, totalPendiente igual al total', () => {
@@ -82,5 +82,60 @@ describe('calcularResumenGastosFijos', () => {
 
     // 100 / 300 = 33.33... -> redondeado a 33
     expect(resultado.porcentaje).toBe(33)
+  })
+})
+
+describe('combinarGastosConMes', () => {
+  const plantillas = [
+    { id: 1, nombre: 'Arriendo', monto: 1200000, dia_pago: 5 },
+    { id: 2, nombre: 'Internet', monto: 90000, dia_pago: 10 },
+  ]
+
+  it('sin movimientos ese mes: todos pendientes, con el monto de la plantilla', () => {
+    const resultado = combinarGastosConMes(plantillas, {})
+
+    expect(resultado).toEqual([
+      { ...plantillas[0], pagado: false, pagadoConTarjeta: null },
+      { ...plantillas[1], pagado: false, pagadoConTarjeta: null },
+    ])
+  })
+
+  it('pagado: usa el monto del movimiento del mes, aunque la plantilla haya cambiado después', () => {
+    // El arriendo se pagó a 1.000.000 y luego se subió la plantilla a 1.200.000.
+    const resultado = combinarGastosConMes(plantillas, { 1: { id: 10, gasto_fijo_id: 1, monto: 1000000 } })
+
+    expect(resultado[0]).toMatchObject({ id: 1, pagado: true, monto: 1000000 })
+    expect(resultado[1]).toMatchObject({ id: 2, pagado: false, monto: 90000 })
+  })
+
+  it('convierte a número el monto del movimiento si llega como texto', () => {
+    const resultado = combinarGastosConMes(plantillas, { 2: { monto: '85000.50' } })
+
+    expect(resultado[1].monto).toBe(85000.5)
+  })
+
+  it('placeholder optimista sin monto: cuenta como pagado con el monto de la plantilla', () => {
+    const resultado = combinarGastosConMes(plantillas, { 1: { pendienteDeConfirmar: true } })
+
+    expect(resultado[0]).toMatchObject({ pagado: true, monto: 1200000 })
+  })
+
+  it('expone el nombre de la tarjeta si el pago del mes fue con tarjeta', () => {
+    const resultado = combinarGastosConMes(plantillas, {
+      2: { monto: 90000, tarjeta_id: 't1', tarjeta: { nombre: 'Visa' } },
+    })
+
+    expect(resultado[1].pagadoConTarjeta).toBe('Visa')
+    expect(resultado[0].pagadoConTarjeta).toBeNull()
+  })
+
+  it('el resumen suma lo realmente pagado y lo pendiente según la plantilla', () => {
+    const gastosConEstado = combinarGastosConMes(plantillas, { 1: { monto: 1000000 } })
+
+    const resumen = calcularResumenGastosFijos(gastosConEstado)
+
+    expect(resumen.totalPagado).toBe(1000000)
+    expect(resumen.totalPendiente).toBe(90000)
+    expect(resumen.total).toBe(1090000)
   })
 })

@@ -5,6 +5,7 @@ import { useIdioma } from '../context/IdiomaContext'
 import { useFormatoMoneda } from '../context/MonedaContext'
 import { useDatosUsuario } from '../lib/datosUsuario'
 import { useConsulta } from '../hooks/useConsulta'
+import { rangoFechasPeriodo } from '../utils/formatoPeriodo'
 import BotonVolver from '../components/ui/BotonVolver'
 import MensajeError from '../components/ui/MensajeError'
 
@@ -43,6 +44,39 @@ function GestionGastosFijos({
     establecerDatos: setGastos,
   } = useConsulta(cargarGastosFijos, [], [])
 
+  // Esta pantalla edita PLANTILLAS (no tiene selector de mes), así que la
+  // etiqueta "Pagado/Pendiente" se refiere siempre al mes EN CURSO, y se
+  // calcula igual que el checklist de Inicio: hay pago si existe un
+  // movimiento vinculado al gasto fijo con fecha en este mes. Ya no se usa
+  // el flag global gastos_fijos.pagado (no tiene mes y nunca se reiniciaba).
+  // Mapa gasto_fijo_id -> monto realmente pagado este mes.
+  async function cargarPagosMesActual() {
+    const hoy = new Date()
+    const { desde, hasta } = rangoFechasPeriodo(hoy.getFullYear(), hoy.getMonth())
+
+    const { data, error } = await seleccionarPropio('movimientos', 'gasto_fijo_id, monto')
+      .not('gasto_fijo_id', 'is', null)
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
+
+    if (error) throw new Error(error.message)
+
+    const mapa = {}
+    data.forEach((movimiento) => {
+      mapa[movimiento.gasto_fijo_id] = Number(movimiento.monto)
+    })
+    return mapa
+  }
+
+  const {
+    datos: pagosMesActual,
+    cargando: cargandoPagos,
+    error: errorPagos,
+  } = useConsulta(cargarPagosMesActual, [], {})
+
+  const cargando = cargandoGastos || cargandoPagos
+  const conError = errorGastos || errorPagos
+
   function abrirCrear() {
     setGastoEditando(null)
     setHojaAbierta(true)
@@ -69,11 +103,12 @@ function GestionGastosFijos({
   }
 
   async function manejarEliminar(gasto) {
+    const montoPagadoEsteMes = pagosMesActual[gasto.id]
     const confirmado = window.confirm(
-      gasto.pagado
+      montoPagadoEsteMes != null
         ? t('gastosFijos.gestion.confirmarEliminarPagado', {
             nombre: gasto.nombre,
-            monto: formatear(gasto.monto),
+            monto: formatear(montoPagadoEsteMes),
           })
         : t('gastosFijos.gestion.confirmarEliminarPendiente', { nombre: gasto.nombre }),
     )
@@ -113,28 +148,28 @@ function GestionGastosFijos({
 
         <MensajeError>{errorAccion}</MensajeError>
 
-        {cargandoGastos && <p className="px-2 text-sm text-text-dim">{t('gastosFijos.gestion.cargando')}</p>}
+        {cargando && <p className="px-2 text-sm text-text-dim">{t('gastosFijos.gestion.cargando')}</p>}
 
-        {errorGastos && <MensajeError>{t('gastosFijos.gestion.errorCargar')}</MensajeError>}
+        {conError && <MensajeError>{t('gastosFijos.gestion.errorCargar')}</MensajeError>}
 
-        {!cargandoGastos && !errorGastos && gastos.length === 0 && (
+        {!cargando && !conError && gastos.length === 0 && (
           <p className="rounded-2xl bg-panel p-4 text-sm text-text-dim">
             {t('gastosFijos.gestion.sinGastosFijos')}
           </p>
         )}
 
         <div className="flex flex-col gap-3">
-          {gastos.map((gasto) => (
+          {!cargando && !conError && gastos.map((gasto) => (
             <div key={gasto.id} className="flex items-center gap-3 rounded-2xl bg-panel shadow-card p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="truncate text-sm font-medium text-text">{gasto.nombre}</p>
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                      gasto.pagado ? 'bg-mint/10 text-mint' : 'bg-line text-text-dim'
+                      pagosMesActual[gasto.id] != null ? 'bg-mint/10 text-mint' : 'bg-line text-text-dim'
                     }`}
                   >
-                    {gasto.pagado
+                    {pagosMesActual[gasto.id] != null
                       ? t('gastosFijos.gestion.estadoPagado')
                       : t('gastosFijos.gestion.estadoPendiente')}
                   </span>

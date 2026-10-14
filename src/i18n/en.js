@@ -457,10 +457,10 @@ export default {
       errorEliminar: "Couldn't delete the fixed expense. Please try again.",
       sinGastosFijos: 'You don\'t have any fixed expenses yet. Create your first one with "+ Add fixed expense".',
       confirmarEliminarPagado:
-        '"{{nombre}}" is already paid. Deleting it will refund {{monto}} to the account and remove the linked transaction. This action cannot be undone. Continue?',
+        '"{{nombre}}" is already paid this month. Deleting it will reverse that {{monto}} payment and remove its transaction. Payments from previous months stay in your history. This action cannot be undone. Continue?',
       confirmarEliminarPendiente: 'Delete the fixed expense "{{nombre}}"? This action cannot be undone.',
-      estadoPagado: 'Paid',
-      estadoPendiente: 'Pending',
+      estadoPagado: 'Paid this month',
+      estadoPendiente: 'Pending this month',
       editarAria: 'Edit fixed expense {{nombre}}',
       eliminarAria: 'Delete fixed expense {{nombre}}',
     },
@@ -471,8 +471,8 @@ export default {
       nombreLabel: 'Name',
       nombrePlaceholder: 'E.g. Rent',
       montoLabel: 'Monthly amount',
-      montoBloqueadoAyuda:
-        'This expense is already paid. To change the amount, first unmark it from the main screen.',
+      montoEdicionAyuda:
+        "The new amount applies to months you haven't paid yet. Months already paid keep what you paid.",
       diaPagoLabel: 'Due day (optional)',
       diaPagoPlaceholder: 'E.g. 5',
       errorNombreVacio: 'Enter a name for the fixed expense',

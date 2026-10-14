@@ -11,7 +11,7 @@ import AyudaContextual from './AyudaContextual'
 import MensajeError from './ui/MensajeError'
 import Acordeon from './ui/Acordeon'
 import BarraProgreso from './ui/BarraProgreso'
-import { calcularResumenGastosFijos } from '../utils/resumenGastosFijos'
+import { calcularResumenGastosFijos, combinarGastosConMes } from '../utils/resumenGastosFijos'
 
 function GastosFijos({ cuentas, tarjetas = [], periodo, onMarcarPagado, onDesmarcarPagado, onGestionar }) {
   const { seleccionarPropio } = useDatosUsuario()
@@ -76,18 +76,11 @@ function GastosFijos({ cuentas, tarjetas = [], periodo, onMarcarPagado, onDesmar
     establecerDatos: setMovimientosMes,
   } = useConsulta(cargarMovimientosDelMes, [periodo.anio, periodo.mes], {})
 
-  // Lista de gastos fijos con su estado "pagado" recalculado para el mes
-  // seleccionado (no el campo global de la tabla). `pagadoConTarjeta` es el
-  // nombre de la tarjeta si el pago de ESTE mes fue con tarjeta, o null si
-  // fue con cuenta / está pendiente -- solo alimenta el indicador visual 💳.
-  const gastosConEstado = gastos.map((gasto) => {
-    const movimiento = movimientosMes[gasto.id]
-    return {
-      ...gasto,
-      pagado: Boolean(movimiento),
-      pagadoConTarjeta: movimiento?.tarjeta?.nombre ?? null,
-    }
-  })
+  // Lista de gastos fijos con su estado "pagado" y su monto recalculados
+  // para el mes seleccionado (pagado = hay movimiento ese mes; monto = el
+  // del movimiento si está pagado, el de la plantilla si no). Ver
+  // combinarGastosConMes.
+  const gastosConEstado = combinarGastosConMes(gastos, movimientosMes)
 
   function abrirSelectorCuenta(gasto) {
     setErrorGuardado(null)

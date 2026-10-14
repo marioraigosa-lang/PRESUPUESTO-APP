@@ -406,23 +406,18 @@ function App({ modoAuthInicial, onVolverALanding }) {
     return gastosFijosService.agregarGastoFijo(datosUsuario, datos)
   }
 
+  // Solo edita la plantilla: no toca ningún movimiento, así que no hace falta
+  // bump-ear movimientosVersion.
   async function actualizarGastoFijo(gasto, datos) {
-    const { data, sincronizoDescripcion } = await gastosFijosService.actualizarGastoFijo(
-      datosUsuario,
-      gasto,
-      datos,
-    )
-    if (sincronizoDescripcion) {
-      setMovimientosVersion((version) => version + 1)
-    }
-    return data
+    return gastosFijosService.actualizarGastoFijo(datosUsuario, gasto, datos)
   }
 
-  // Si el gasto ya está pagado, el servicio primero revierte el pago
-  // reutilizando su propia lógica de "desmarcar" (devuelve el saldo a la
-  // cuenta y borra el movimiento vinculado) antes de borrar el gasto fijo.
+  // Si el gasto tiene un pago en el mes en curso, el servicio primero lo
+  // revierte reutilizando su propia lógica de "desmarcar" (devuelve el saldo
+  // a la cuenta y borra el movimiento vinculado) antes de borrar el gasto
+  // fijo. Los pagos de meses anteriores se conservan.
   async function eliminarGastoFijo(gasto) {
-    const { actualizaciones, actualizacionesTarjeta = [] } = await gastosFijosService.eliminarGastoFijo(
+    const { actualizaciones, actualizacionesTarjeta, borroPago } = await gastosFijosService.eliminarGastoFijo(
       datosUsuario,
       cuentas,
       tarjetas,
@@ -430,7 +425,7 @@ function App({ modoAuthInicial, onVolverALanding }) {
     )
     aplicarActualizacionesSaldo(actualizaciones)
     aplicarActualizacionesDeuda(actualizacionesTarjeta)
-    if (gasto.pagado) {
+    if (borroPago) {
       setMovimientosVersion((version) => version + 1)
       // Solo si estaba pagado había un movimiento vinculado que borrar --
       // mismo motivo que en desmarcarGastoFijoPagado. Puede haber sido con
