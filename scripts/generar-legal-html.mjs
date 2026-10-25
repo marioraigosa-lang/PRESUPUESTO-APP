@@ -6,6 +6,10 @@
 // páginas públicas -- necesarias para que Play Store pueda enlazar la
 // Política de Privacidad sin necesidad de iniciar sesión -- nunca queden
 // desincronizadas del texto legal que se muestra dentro de la app.
+//
+// También genera public/eliminar-cuenta.html (ver GUIA_ELIMINAR_CUENTA más
+// abajo): la URL pública que pide Google Play para que cualquier usuario --
+// incluso sin la app instalada -- sepa cómo eliminar su cuenta y sus datos.
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -17,6 +21,8 @@ const publicDir = path.join(raiz, '..', 'public')
 const ICONOS_DESTACADO = {
   contacto:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+  advertencia:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
   derechos:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>',
 }
@@ -68,7 +74,7 @@ function renderSeccion(seccion, indice) {
   const icono = seccion.destacado ? ICONOS_DESTACADO[seccion.destacado] : null
 
   return `
-      <section id="seccion-${indice + 1}" class="tarjeta seccion${seccion.destacado ? ' seccion-destacada' : ''}">
+      <section id="seccion-${indice + 1}" class="tarjeta seccion${seccion.destacado === 'advertencia' ? ' seccion-advertencia' : seccion.destacado ? ' seccion-destacada' : ''}">
         <div class="titulo-seccion">
           ${icono ? `<span class="icono-destacado" aria-hidden="true">${icono}</span>` : ''}
           ${numero ? `<span class="numero-seccion">${numero.padStart(2, '0')}</span>` : ''}
@@ -94,8 +100,19 @@ function renderIndice(secciones) {
       </nav>`
 }
 
-function generarPagina({ documento, tituloPagina, descripcion, archivoSalida, otraPagina, otraPaginaEtiqueta }) {
-  const metaTexto = `Versión ${documento.version} · Última actualización: ${documento.ultimaActualizacion}`
+function generarPagina({
+  documento,
+  tituloPagina,
+  descripcion,
+  archivoSalida,
+  otraPagina,
+  otraPaginaEtiqueta,
+  conIndice = true,
+}) {
+  // `meta` permite a un documento no versionado (la guía de eliminar cuenta)
+  // mostrar otro texto en la píldora de la portada.
+  const metaTexto =
+    documento.meta ?? `Versión ${documento.version} · Última actualización: ${documento.ultimaActualizacion}`
 
   const html = `<!doctype html>
 <html lang="es">
@@ -116,6 +133,7 @@ function generarPagina({ documento, tituloPagina, descripcion, archivoSalida, ot
       --color-text-dim: #9db0a6;
       --color-mint: #4fd1a5;
       --color-gold: #e9b949;
+      --color-coral: #f2795b;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -186,6 +204,12 @@ function generarPagina({ documento, tituloPagina, descripcion, archivoSalida, ot
       font-weight: 600;
       line-height: 1.35;
     }
+    .intro {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--color-text-dim);
+    }
     .meta {
       display: inline-flex;
       width: fit-content;
@@ -248,6 +272,11 @@ function generarPagina({ documento, tituloPagina, descripcion, archivoSalida, ot
       align-items: baseline;
       gap: 0.625rem;
     }
+    .seccion-advertencia {
+      background-color: rgba(242, 121, 91, 0.1);
+      border: 1px solid rgba(242, 121, 91, 0.2);
+    }
+    .seccion-advertencia .icono-destacado { color: var(--color-coral); }
     .icono-destacado {
       width: 1rem;
       height: 1rem;
@@ -321,10 +350,11 @@ function generarPagina({ documento, tituloPagina, descripcion, archivoSalida, ot
         <span class="marca-nombre">Seed</span>
       </div>
       <h1>${escapeHtml(documento.titulo)}</h1>
+      ${documento.intro ? `<p class="intro">${escapeHtml(documento.intro)}</p>` : ''}
       <p class="meta">${escapeHtml(metaTexto)}</p>
     </header>
 
-    ${renderIndice(documento.secciones)}
+    ${conIndice ? renderIndice(documento.secciones) : ''}
 
     <div class="secciones">
       ${documento.secciones.map(renderSeccion).join('\n      ')}
@@ -359,4 +389,103 @@ generarPagina({
   archivoSalida: 'terminos.html',
   otraPagina: 'politica.html',
   otraPaginaEtiqueta: 'Política de Privacidad',
+})
+
+// Contenido de la página pública de eliminación de cuenta (requisito de
+// Google Play). Vive acá y no en documentosLegales.js porque no es un
+// documento legal versionado ni se muestra dentro de la app. Si cambia el
+// flujo real (Perfil -> Zona de peligro -> Eliminar cuenta, ver
+// EliminarCuenta.jsx) o las tablas que borra la Edge Function eliminar-cuenta
+// (todas con "on delete cascade" hacia auth.users), actualizar este texto.
+const GUIA_ELIMINAR_CUENTA = {
+  titulo: 'Cómo eliminar tu cuenta de Seed',
+  intro:
+    'Puedes eliminar tu cuenta de Seed y todos tus datos cuando quieras, sin costo y sin tener que darnos explicaciones. Aquí te contamos cómo hacerlo y qué se borra.',
+  meta: 'Seed: Finanzas personales · Mario Alonso Raigosa Restrepo',
+  secciones: [
+    {
+      titulo: '1. Elimínala desde la app',
+      bloques: [
+        { tipo: 'parrafo', texto: 'Es la forma más rápida, y la haces tú mismo en menos de un minuto:' },
+        {
+          tipo: 'listaOrdenada',
+          items: [
+            'Abre Seed e inicia sesión con la cuenta que quieres eliminar.',
+            'Entra a tu Perfil.',
+            'En la sección "Zona de peligro", toca "Eliminar cuenta".',
+            'Confirma tu contraseña y toca "Eliminar mi cuenta permanentemente".',
+          ],
+        },
+        {
+          tipo: 'parrafo',
+          texto: 'La eliminación es inmediata: en cuanto confirmas, tu cuenta y tus datos se borran de nuestros servidores.',
+        },
+      ],
+    },
+    {
+      titulo: '2. Qué datos se eliminan',
+      bloques: [
+        { tipo: 'parrafo', texto: 'Se borra todo lo asociado a tu cuenta, sin excepción:' },
+        {
+          tipo: 'lista',
+          items: [
+            'Tu cuenta de acceso: correo, contraseña y verificación en dos pasos.',
+            'Tus cuentas y todos sus movimientos: ingresos, gastos, traslados y retiros.',
+            'Tus tarjetas de crédito, con sus gastos y pagos.',
+            'Tus categorías y gastos fijos.',
+            'Tus metas de ahorro y tu fondo de emergencia.',
+            'Tus viajes, con sus categorías y gastos.',
+            'Tu perfil y preferencias (moneda e idioma).',
+            'El registro de tu aceptación de la Política de Privacidad y los Términos.',
+          ],
+        },
+        {
+          tipo: 'parrafo',
+          texto:
+            'No conservamos ninguno de estos datos para otros fines. Se borran de inmediato de nuestra base de datos y no guardamos copias de seguridad de ellos. Si en el futuro activamos copias de seguridad automáticas, tus datos podrían permanecer en ellas un máximo de 30 días antes de desaparecer por completo, y nunca se usarían ni se restaurarían.',
+        },
+      ],
+    },
+    {
+      titulo: '3. Es permanente',
+      destacado: 'advertencia',
+      bloques: [
+        {
+          tipo: 'parrafo',
+          texto:
+            'Eliminar tu cuenta no se puede deshacer. Una vez borrada, ni tú ni nosotros podremos recuperar tu información. Si más adelante quieres volver a usar Seed, tendrás que crear una cuenta nueva desde cero.',
+        },
+      ],
+    },
+    {
+      titulo: '4. ¿No puedes entrar a la app?',
+      destacado: 'contacto',
+      bloques: [
+        {
+          tipo: 'parrafo',
+          texto:
+            'Si olvidaste tu contraseña, puedes recuperarla desde la pantalla de inicio de sesión ("¿Olvidaste tu contraseña?") y luego seguir los pasos de arriba.',
+        },
+        {
+          tipo: 'parrafo',
+          texto:
+            'Si ya desinstalaste la app o no logras entrar, escríbenos a seed.fin.app@gmail.com desde el correo con el que te registraste, con el asunto "Eliminar mi cuenta". Verificaremos que la solicitud venga del titular, eliminaremos tu cuenta y todos tus datos, y te lo confirmaremos por correo en un plazo máximo de quince (15) días hábiles.',
+        },
+        {
+          tipo: 'parrafo',
+          texto: 'También puedes escribirnos a ese mismo correo si tienes cualquier duda sobre el proceso.',
+        },
+      ],
+    },
+  ],
+}
+
+generarPagina({
+  documento: GUIA_ELIMINAR_CUENTA,
+  tituloPagina: 'Eliminar tu cuenta - Seed',
+  descripcion: 'Cómo eliminar tu cuenta de Seed y todos tus datos: pasos en la app, qué se borra y cómo pedir ayuda.',
+  archivoSalida: 'eliminar-cuenta.html',
+  otraPagina: 'politica.html',
+  otraPaginaEtiqueta: 'Política de Privacidad',
+  conIndice: false,
 })

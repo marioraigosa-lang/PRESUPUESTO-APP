@@ -4,10 +4,11 @@
 // Borra PERMANENTEMENTE la cuenta del usuario autenticado que hace la
 // petición, junto con TODOS sus datos (cuentas, movimientos, gastos fijos,
 // categorías, fondo de emergencia, metas de ahorro, perfil, viajes,
-// categorías/gastos de viaje y consentimientos) -- todas esas tablas tienen
+// categorías/gastos de viaje, tarjetas y consentimientos) -- todas esas tablas tienen
 // "on delete cascade" hacia auth.users(id) (ver sql/README.md), así que un
-// solo auth.admin.deleteUser() en auth.users arrastra automáticamente las 11
-// tablas sin que esta función tenga que borrarlas una por una.
+// solo auth.admin.deleteUser() en auth.users arrastra automáticamente el
+// resto de tablas. La única excepción son los movimientos, que se borran
+// antes a mano (ver PASO 2a) para no depender del orden del cascade.
 //
 // POR QUÉ HACE FALTA UNA EDGE FUNCTION (y no se puede desde el cliente):
 //   auth.admin.deleteUser() solo existe en el Admin API de Supabase Auth, que
@@ -38,10 +39,13 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 // Allowlist de orígenes autorizados a llamar esta función: producción
-// (Vercel) y desarrollo local (puerto real de Vite, más 3000 por si acaso).
+// (dominio propio, con y sin www, y la URL original de Vercel) y desarrollo
+// local (puerto real de Vite, más 3000 por si acaso).
 // A diferencia del "*" anterior, el origen SIEMPRE se valida contra esta
 // lista antes de reflejarlo -- ver construirCorsHeaders() más abajo.
 const ORIGENES_PERMITIDOS = [
+  'https://www.seedfinanzas.com',
+  'https://seedfinanzas.com',
   'https://presupuesto-app-ten-sable.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -141,6 +145,27 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
+    // PASO 2a: borrar primero los movimientos del usuario. Si se dejara todo
+    // al "on delete cascade" desde auth.users, Postgres borra las tablas hijas
+    // en el orden de sus triggers internos, y si alcanza "tarjetas" antes que
+    // "movimientos", la FK movimientos.tarjeta_id (ON DELETE RESTRICT, a
+    // propósito: una tarjeta nunca se borra, se archiva) hace fallar TODO el
+    // borrado. Lo mismo con las FK "on delete set null" de movimientos
+    // (categoria_id, gasto_fijo_id): poner NULL en un movimiento que igual se
+    // va a borrar puede chocar con sus check constraints. Sin movimientos ya
+    // no queda nada que referencie a tarjetas/categorías/gastos fijos, y el
+    // cascade del paso 2b se encarga del resto en cualquier orden.
+    // Si esto funciona pero el paso 2b falla, el usuario queda con la cuenta
+    // pero sin movimientos -- aceptable, porque lo que pidió fue borrar todo,
+    // y al reintentar se completa el borrado.
+    const { error: errorMovimientos } = await clienteAdmin.from('movimientos').delete().eq('user_id', user.id)
+
+    if (errorMovimientos) {
+      console.error('Error borrando movimientos del usuario:', errorMovimientos)
+      return respuestaJson({ error: 'No se pudo eliminar la cuenta. Intenta de nuevo.' }, 500, corsHeaders)
+    }
+
+    // PASO 2b: borrar el usuario; el cascade arrastra el resto de tablas.
     const { error: errorBorrado } = await clienteAdmin.auth.admin.deleteUser(user.id)
 
     if (errorBorrado) {

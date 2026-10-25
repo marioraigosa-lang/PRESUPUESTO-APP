@@ -17,6 +17,7 @@
       --color-text-dim: #9db0a6;
       --color-mint: #4fd1a5;
       --color-gold: #e9b949;
+      --color-coral: #f2795b;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -87,6 +88,12 @@
       font-weight: 600;
       line-height: 1.35;
     }
+    .intro {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--color-text-dim);
+    }
     .meta {
       display: inline-flex;
       width: fit-content;
@@ -149,6 +156,11 @@
       align-items: baseline;
       gap: 0.625rem;
     }
+    .seccion-advertencia {
+      background-color: rgba(242, 121, 91, 0.1);
+      border: 1px solid rgba(242, 121, 91, 0.2);
+    }
+    .seccion-advertencia .icono-destacado { color: var(--color-coral); }
     .icono-destacado {
       width: 1rem;
       height: 1rem;
@@ -222,6 +234,7 @@
         <span class="marca-nombre">Seed</span>
       </div>
       <h1>Política de Tratamiento de Datos Personales — Seed-App</h1>
+      
       <p class="meta">Versión 1.0 · Última actualización: 1 de septiembre de 2026</p>
     </header>
 
